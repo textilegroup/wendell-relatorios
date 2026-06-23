@@ -18,6 +18,7 @@ body{font-family:'Segoe UI',sans-serif;background:var(--bg);color:#1a1a1a;min-he
 .hdr-r{margin-left:auto;display:flex;gap:7px;align-items:center}
 .btn-hdr{background:rgba(255,255,255,.18);border:1px solid rgba(255,255,255,.4);color:#fff;padding:5px 11px;border-radius:5px;font-size:11px;font-weight:600;cursor:pointer}
 .badge{background:rgba(255,255,255,.15);border-radius:20px;padding:3px 9px;font-size:11px;font-weight:600}
+#badm{display:none}
 .fbar{background:#fff;border-bottom:1px solid var(--border);padding:8px 14px;overflow-x:auto}
 .fbar-inner{display:inline-flex;gap:5px;align-items:center;white-space:nowrap;min-width:max-content}
 .mbtn{padding:4px 12px;border:1px solid var(--border);border-radius:20px;font-size:11px;font-weight:600;cursor:pointer;background:#fff;color:var(--muted)}
@@ -120,7 +121,7 @@ tr:hover td{background:#fafafa}
   <div><h1>WENDELL DASHBOARD</h1><p id="hs">Wendell Global Interlining</p></div>
   <div class="hdr-r">
     <span class="badge" id="ub">Visitante</span>
-    <button class="btn-hdr" id="badm" onclick="toggleAdmin()" style="display:none">Admin</button>
+    <button class="btn-hdr" id="badm" onclick="toggleAdmin()">&#9881; Admin</button>
     <button class="btn-hdr" id="blg" onclick="abrirLogin()">Entrar</button>
     <button class="btn-hdr" onclick="atualizar()">&#8635;</button>
   </div>
@@ -776,27 +777,37 @@ function abrirLogin(){
 }
 function fModal(){document.getElementById('mlog').classList.remove('on');}
 function login(){
-    var s=document.getElementById('sinp').value;
-    if(s===VS){
-        document.getElementById('ub').textContent='Admin';
-        document.getElementById('blg').textContent='Sair';
-        document.getElementById('badm').style.display='';
+    var s=(document.getElementById('sinp').value||'').trim();
+    var isAdmin  = (s === 'Industria967');
+    var isViewer = (s === 'admin123');
+    if(isAdmin){
+        document.getElementById('ub').textContent = 'Admin';
+        document.getElementById('blg').textContent = 'Sair';
+        document.getElementById('badm').style.display = 'inline-block';
         document.getElementById('admpnl').classList.add('vis');
         buildFatTbl();
         fModal();
         setTimeout(function(){
-            document.getElementById('admpnl').scrollIntoView({behavior:'smooth',block:'start'});
-        }, 150);
-    } else if(s===VA){
-        document.getElementById('ub').textContent='Viewer';document.getElementById('blg').textContent='Sair';fModal();
-    } else {document.getElementById('serr').style.display='block';}
+            document.getElementById('admpnl').scrollIntoView({behavior:'smooth', block:'start'});
+        }, 200);
+    } else if(isViewer){
+        document.getElementById('ub').textContent = 'Viewer';
+        document.getElementById('blg').textContent = 'Sair';
+        document.getElementById('badm').style.display = 'none';
+        fModal();
+    } else {
+        document.getElementById('serr').style.display = 'block';
+    }
 }
 function toggleAdmin(){
-    var pnl=document.getElementById('admpnl');
+    var pnl = document.getElementById('admpnl');
+    var abrindo = !pnl.classList.contains('vis');
     pnl.classList.toggle('vis');
-    if(pnl.classList.contains('vis')){
+    if(abrindo){
         buildFatTbl();
-        setTimeout(function(){pnl.scrollIntoView({behavior:'smooth',block:'start'});},100);
+        setTimeout(function(){
+            pnl.scrollIntoView({behavior:'smooth', block:'start'});
+        }, 100);
     }
 }
 function togglePedidos(){
@@ -811,9 +822,10 @@ function togglePedidos(){
     btn.textContent=hidden?'Recolher':'Exibir';
 }
 function logout(){
-    document.getElementById('ub').textContent='Visitante';document.getElementById('blg').textContent='Entrar';
+    document.getElementById('ub').textContent = 'Visitante';
+    document.getElementById('blg').textContent = 'Entrar';
     document.getElementById('admpnl').classList.remove('vis');
-    document.getElementById('badm').style.display='none';
+    document.getElementById('badm').style.display = 'none';
 }
 document.addEventListener('keydown',function(e){if(e.key==='Escape'){fModal();fecharExp();}});
 
