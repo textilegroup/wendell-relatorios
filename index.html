@@ -57,7 +57,7 @@ body{font-family:'Segoe UI',sans-serif;background:var(--bg);color:#1a1a1a;min-he
 .rbar-f{height:4px;background:var(--red);border-radius:2px}
 .btnpdf{background:var(--red);color:#fff;border:none;padding:6px 13px;border-radius:5px;font-size:11px;font-weight:600;cursor:pointer}
 .btncls{background:none;border:1px solid var(--border);padding:5px 10px;border-radius:5px;font-size:11px;cursor:pointer;color:var(--muted)}
-.admpnl{background:#fff;border-radius:10px;box-shadow:var(--shadow);margin-bottom:12px;display:none}
+.admpnl{background:#fff;border-radius:10px;box-shadow:0 4px 20px rgba(0,0,0,.15);margin-bottom:14px;display:none;border:1px solid var(--border)}
 .admpnl.vis{display:block}
 .admhdr{background:#1a202c;color:#fff;padding:11px 14px;font-size:12px;font-weight:700;display:flex;justify-content:space-between;align-items:center;border-radius:10px 10px 0 0}
 .admbody{padding:14px}
@@ -143,15 +143,19 @@ tr:hover td{background:#fafafa}
 <div class="con">
 
 <div class="admpnl" id="admpnl">
-  <div class="admhdr">Painel Administrativo
-    <button onclick="document.getElementById('admpnl').classList.remove('vis')" style="background:none;border:none;color:#fff;cursor:pointer;font-size:16px">x</button>
+  <div class="admhdr" style="background:#1a202c;color:#fff;padding:12px 16px;font-size:13px;font-weight:700;display:flex;justify-content:space-between;align-items:center;border-radius:10px 10px 0 0">
+    Painel Administrativo — Configuracao de KPIs e Metas
+    <button onclick="toggleAdmin()" style="background:rgba(255,255,255,.15);border:1px solid rgba(255,255,255,.3);color:#fff;cursor:pointer;font-size:12px;padding:4px 10px;border-radius:4px">Fechar</button>
   </div>
   <div class="admbody">
+    <p style="font-size:11px;color:#718096;margin-bottom:10px;padding:8px 10px;background:#f8f9fa;border-radius:6px;border-left:3px solid #a01228">
+      Configure abaixo os valores de referencia para cada KPI. Os dados salvos ficam na sessao atual do browser.
+    </p>
     <div class="admtabs">
-      <button class="atab on" onclick="abaAdm('fat',this)">Faturamento</button>
-      <button class="atab" onclick="abaAdm('be',this)">Break Even</button>
-      <button class="atab" onclick="abaAdm('mg',this)">Margem</button>
-      <button class="atab" onclick="abaAdm('rk',this)">Ranking</button>
+      <button class="atab on" onclick="abaAdm('fat',this)">KPI 1 — Faturamento</button>
+      <button class="atab" onclick="abaAdm('be',this)">KPI 2 — Break Even</button>
+      <button class="atab" onclick="abaAdm('mg',this)">KPI 3/4 — Margem e Ticket</button>
+      <button class="atab" onclick="abaAdm('rk',this)">KPI 5 — Ranking</button>
     </div>
     <div class="asec on" id="as-fat">
       <p style="font-size:11px;color:var(--muted);margin-bottom:10px">
@@ -192,12 +196,7 @@ tr:hover td{background:#fafafa}
           </select>
         </div>
       </div>
-      <div style="background:#f0f8ff;border:1px solid #b8d4f0;border-radius:7px;padding:10px 12px;margin-bottom:10px">
-        <label class="flbl">Meta de Ticket Medio (R$)</label>
-        <input type="number" class="finp" id="tkMeta" placeholder="Ex: 5000" style="width:200px;margin-top:3px">
-        <div class="fhint">Valor de ticket medio desejado por pedido. Exibido como referencia no KPI Ticket Medio.</div>
-      </div>
-      <button class="btnsv" onclick="salvBE()">Salvar</button>
+      <button class="btnsv" onclick="salvBE()">Salvar Break Even</button>
     </div>
     <div class="asec" id="as-mg">
       <p style="font-size:11px;color:var(--muted);margin-bottom:9px">Margem de contribuicao por produto/venda. A media ponderada e calculada automaticamente pelo sistema.</p>
@@ -214,6 +213,13 @@ tr:hover td{background:#fafafa}
         <input type="file" id="fmg" accept=".xlsx,.xls,.csv" style="display:none" onchange="impMg(event)">
       </div>
       <div class="uprev" id="mgPrev"></div>
+      <div style="background:#f0f8ff;border:1px solid #b8d4f0;border-radius:7px;padding:10px 12px;margin-top:12px">
+        <strong style="font-size:11px;color:#1a202c;display:block;margin-bottom:8px">KPI 4 — Ticket Medio</strong>
+        <label class="flbl">Meta de Ticket Medio (R$)</label>
+        <input type="number" class="finp" id="tkMeta" placeholder="Ex: 5000" style="width:200px;margin-top:3px">
+        <div class="fhint">Valor de ticket medio desejado por pedido.</div>
+        <button class="btnsv" onclick="salvMg()" style="margin-top:8px;padding:6px 14px;font-size:11px">Salvar Metas</button>
+      </div>
     </div>
     <div class="asec" id="as-rk">
       <p style="font-size:11px;color:var(--muted);margin-bottom:9px">Produtos e faturamento em ordem decrescente.</p>
@@ -701,7 +707,11 @@ function salvMg(){
         var p=r.querySelector('.mg-p').value,v=parseFloat(r.querySelector('.mg-v').value)||0,m=parseFloat(r.querySelector('.mg-m').value)||0;
         if(p||v) aMg.push({p:p,v:v,m:m,vd:'',uf:''});
     });
-    saveStore();render();alert('Margem salva!');
+    // Salvar também metas de margem e ticket
+    var mgM=document.getElementById('mgMeta');var tkM=document.getElementById('tkMeta');
+    if(mgM) aBE.mgMeta=parseFloat(mgM.value)||0;
+    if(tkM) aBE.tkMeta=parseFloat(tkM.value)||0;
+    saveStore();render();alert('Margem e metas salvas!');
 }
 function impMg(e){
     var file=e.target.files[0];if(!file) return;
@@ -768,16 +778,26 @@ function fModal(){document.getElementById('mlog').classList.remove('on');}
 function login(){
     var s=document.getElementById('sinp').value;
     if(s===VS){
-        document.getElementById('ub').textContent='Admin';document.getElementById('blg').textContent='Sair';
+        document.getElementById('ub').textContent='Admin';
+        document.getElementById('blg').textContent='Sair';
         document.getElementById('badm').style.display='';
-        document.getElementById('admpnl').classList.add('vis');buildFatTbl();fModal();
+        document.getElementById('admpnl').classList.add('vis');
+        buildFatTbl();
+        fModal();
+        setTimeout(function(){
+            document.getElementById('admpnl').scrollIntoView({behavior:'smooth',block:'start'});
+        }, 150);
     } else if(s===VA){
         document.getElementById('ub').textContent='Viewer';document.getElementById('blg').textContent='Sair';fModal();
     } else {document.getElementById('serr').style.display='block';}
 }
 function toggleAdmin(){
-    document.getElementById('admpnl').classList.toggle('vis');
-    if(document.getElementById('admpnl').classList.contains('vis')) buildFatTbl();
+    var pnl=document.getElementById('admpnl');
+    pnl.classList.toggle('vis');
+    if(pnl.classList.contains('vis')){
+        buildFatTbl();
+        setTimeout(function(){pnl.scrollIntoView({behavior:'smooth',block:'start'});},100);
+    }
 }
 function togglePedidos(){
     var tw=document.getElementById('tcard').querySelector('.twrap');
