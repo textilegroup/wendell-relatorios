@@ -154,10 +154,19 @@ tr:hover td{background:#fafafa}
       <button class="atab" onclick="abaAdm('rk',this)">Ranking</button>
     </div>
     <div class="asec on" id="as-fat">
-      <p style="font-size:11px;color:var(--muted);margin-bottom:9px">Faturamento e meta por mes. Alcance calculado automaticamente.</p>
+      <p style="font-size:11px;color:var(--muted);margin-bottom:10px">
+        Informe o faturamento realizado e a meta por mes. O alcance percentual e calculado automaticamente.<br>
+        <strong>Dica:</strong> Se o faturamento nao for informado, o sistema usa automaticamente os pedidos aprovados do Supabase.
+      </p>
+      <div style="background:#fff8f8;border:1px solid #fcc;border-radius:7px;padding:10px 12px;margin-bottom:12px">
+        <label class="flbl">Meta Global Anual (R$) — referencia</label>
+        <input type="number" class="finp" id="metaGlobal" placeholder="Ex: 1200000" style="width:200px;margin-top:3px">
+        <div class="fhint">Opcional. Sera distribuida igualmente entre os meses se as metas mensais estiverem zeradas.</div>
+        <button class="btnsv" onclick="aplicarMetaGlobal()" style="margin-top:8px;padding:6px 14px;font-size:11px">Distribuir por mes</button>
+      </div>
       <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:7px">
         <strong style="font-size:11px">Meses do ano</strong>
-        <button class="btnsv" onclick="salvFat()">Salvar</button>
+        <button class="btnsv" onclick="salvFat()">Salvar tudo</button>
       </div>
       <div style="overflow-x:auto"><table style="width:100%;border-collapse:collapse;font-size:11px">
         <thead><tr style="background:#fafafa"><th style="padding:5px 9px;text-align:left;color:var(--muted);font-size:9px;text-transform:uppercase;border-bottom:2px solid var(--border)">Mes</th><th style="padding:5px 9px;text-align:left;color:var(--muted);font-size:9px;text-transform:uppercase;border-bottom:2px solid var(--border)">Faturamento (R$)</th><th style="padding:5px 9px;text-align:left;color:var(--muted);font-size:9px;text-transform:uppercase;border-bottom:2px solid var(--border)">Meta (R$)</th><th style="padding:5px 9px;text-align:left;color:var(--muted);font-size:9px;text-transform:uppercase;border-bottom:2px solid var(--border)">Vendedor</th><th style="padding:5px 9px;text-align:left;color:var(--muted);font-size:9px;text-transform:uppercase;border-bottom:2px solid var(--border)">UF</th></tr></thead>
@@ -165,14 +174,38 @@ tr:hover td{background:#fafafa}
       </table></div>
     </div>
     <div class="asec" id="as-be">
+      <p style="font-size:11px;color:var(--muted);margin-bottom:10px">
+        Defina o ponto de equilibrio (break even) da operacao. O sistema mostrara o quanto do faturamento atual cobre esse valor.
+      </p>
       <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:10px">
-        <div><label class="flbl">Break Even esperado (R$)</label><input type="number" class="finp" id="beVal" placeholder="250000"><div class="fhint">Faturamento necessario para cobrir custos fixos mensais</div></div>
-        <div><label class="flbl">Referencia</label><select class="finp" id="bePer"><option value="mensal">Mensal</option><option value="trimestral">Trimestral</option></select></div>
+        <div>
+          <label class="flbl">Break Even esperado (R$)</label>
+          <input type="number" class="finp" id="beVal" placeholder="250000">
+          <div class="fhint">Custo fixo total mensal que o faturamento precisa superar</div>
+        </div>
+        <div>
+          <label class="flbl">Referencia de periodo</label>
+          <select class="finp" id="bePer">
+            <option value="mensal">Mensal</option>
+            <option value="trimestral">Trimestral</option>
+            <option value="anual">Anual</option>
+          </select>
+        </div>
       </div>
-      <button class="btnsv" onclick="salvBE()">Salvar Break Even</button>
+      <div style="background:#f0f8ff;border:1px solid #b8d4f0;border-radius:7px;padding:10px 12px;margin-bottom:10px">
+        <label class="flbl">Meta de Ticket Medio (R$)</label>
+        <input type="number" class="finp" id="tkMeta" placeholder="Ex: 5000" style="width:200px;margin-top:3px">
+        <div class="fhint">Valor de ticket medio desejado por pedido. Exibido como referencia no KPI Ticket Medio.</div>
+      </div>
+      <button class="btnsv" onclick="salvBE()">Salvar</button>
     </div>
     <div class="asec" id="as-mg">
-      <p style="font-size:11px;color:var(--muted);margin-bottom:9px">Margem por produto. Media ponderada calculada automaticamente.</p>
+      <p style="font-size:11px;color:var(--muted);margin-bottom:9px">Margem de contribuicao por produto/venda. A media ponderada e calculada automaticamente pelo sistema.</p>
+      <div style="background:#f0fff4;border:1px solid #9ae6b4;border-radius:7px;padding:10px 12px;margin-bottom:10px">
+        <label class="flbl">Meta de Margem Media (%)</label>
+        <input type="number" class="finp" id="mgMeta" placeholder="Ex: 35" style="width:160px;margin-top:3px" step="0.1">
+        <div class="fhint">Margem media desejada. Sera exibida como referencia no KPI Margem Media.</div>
+      </div>
       <div id="mgRows"></div>
       <button class="badd" onclick="addMgRow()">+ Adicionar linha</button>
       <div style="display:flex;gap:7px;margin-top:10px;flex-wrap:wrap;align-items:center">
@@ -198,7 +231,7 @@ tr:hover td{background:#fafafa}
 <div class="kgrid" id="kg">
   <div class="kcard" id="kc-fat" onclick="tog('fat')"><div class="klbl">Faturamento x Meta</div><div class="kval" id="kv-fat">R$ --</div><div class="ksub">Meta: <span id="km-fat">--</span> | <span class="kacc" id="kp-fat">--%</span></div><div class="kebtn" id="kb-fat">+</div></div>
   <div class="kcard" id="kc-be"  onclick="tog('be')"><div class="klbl">Break Even x Faturado</div><div class="kval" id="kv-be">R$ --</div><div class="ksub">Faturado: <span id="km-be">--</span> | <span class="kacc" id="kp-be">--%</span></div><div class="kebtn" id="kb-be">+</div></div>
-  <div class="kcard" id="kc-mg"  onclick="tog('mg')"><div class="klbl">Margem Media</div><div class="kval" id="kv-mg">--%</div><div class="ksub">Media ponderada</div><div class="kebtn" id="kb-mg">+</div></div>
+  <div class="kcard" id="kc-mg"  onclick="tog('mg')"><div class="klbl">Margem Media</div><div class="kval" id="kv-mg">--%</div><div class="ksub" id="ks-mg">Media ponderada</div><div class="kebtn" id="kb-mg">+</div></div>
   <div class="kcard" id="kc-tk"  onclick="tog('tk')"><div class="klbl">Ticket Medio</div><div class="kval" id="kv-tk">R$ --</div><div class="ksub" id="ks-tk">por pedido</div><div class="kebtn" id="kb-tk">+</div></div>
   <div class="kcard" id="kc-rp"  onclick="tog('rp')"><div class="klbl">Ranking Produtos</div><div class="kval" id="kv-rp" style="font-size:15px;margin-top:3px">-- produtos</div><div class="ksub" id="ks-rp">Top: --</div><div class="kebtn" id="kb-rp">+</div></div>
   <div class="kcard" id="kc-rv"  onclick="tog('rv')"><div class="klbl">Ranking Vendedores</div><div class="kval" id="kv-rv" style="font-size:15px;margin-top:3px">-- vendedores</div><div class="ksub" id="ks-rv">Top: --</div><div class="kebtn" id="kb-rv">+</div></div>
@@ -218,9 +251,12 @@ tr:hover td{background:#fafafa}
   </div>
 </div>
 
-<div class="tcard">
+<div class="tcard" id="tcard">
   <div class="thdr">
-    <span class="tttl">Pedidos</span>
+    <span class="tttl" style="display:flex;align-items:center;gap:8px">
+      Pedidos
+      <button onclick="togglePedidos()" id="btnTogglePed" style="background:none;border:1px solid var(--border);padding:3px 9px;border-radius:12px;font-size:10px;color:var(--muted);cursor:pointer;font-weight:600">Recolher</button>
+    </span>
     <input class="tsrch" type="text" placeholder="Buscar..." oninput="filtTbl(this.value)">
   </div>
   <div class="twrap"><table>
@@ -277,7 +313,7 @@ var tD   = [];   // dados tabela
 // INIT
 window.onload = function() {
     document.getElementById('li').src = LG;
-    for (var i=0; i<=mes; i++) matv.push(i);
+    matv.push(mes); // Apenas o mês atual selecionado por padrão
     buildMeses();
     loadStore();
     fetch(SBU+'/rest/v1/pedidos?status=neq.config&order=data_pedido.desc&limit=1000',
@@ -315,7 +351,7 @@ function buildMeses() {
     for (var m=0; m<=mes; m++) {
         (function(idx){
             var b=document.createElement('button');
-            b.className='mbtn on'+(idx===mes?' cur':'');
+            b.className='mbtn'+(idx===mes?' on cur':'');
             b.textContent=MN[idx];
             b.onclick=function(){ toggleM(idx,b); };
             c.appendChild(b);
@@ -381,9 +417,16 @@ function renderKPIs(d) {
     document.getElementById('kp-be').textContent=be>0?Math.round(fat/be*100)+'%':'--%';
     var mg=calcMg();
     document.getElementById('kv-mg').textContent=mg!==null?mg.toFixed(1).replace('.',',')+'%':'--%';
+    var mgMt=aBE.mgMeta||0;
+    var mgSub='Media ponderada';
+    if(mg!==null&&mgMt>0) mgSub='Meta: '+mgMt.toFixed(1).replace('.',',')+'% | '+(mg>=mgMt?'<span style="color:#155724">Atingida</span>':'<span style="color:#a01228">Abaixo</span>');
+    document.getElementById('ks-mg')?document.getElementById('ks-mg').innerHTML=mgSub:null;
     var n=d.length,tk=n?fatSB/n:0;
     document.getElementById('kv-tk').textContent=fmtR(tk);
-    document.getElementById('ks-tk').textContent=n+' pedido(s)';
+    var tkM=aBE.tkMeta||0;
+    var tkSub=n+' pedido(s)';
+    if(tkM>0) tkSub+=' | Meta: '+fmtR(tkM)+' ('+Math.round(tk/tkM*100)+'%)';
+    document.getElementById('ks-tk').textContent=tkSub;
     var rs=aRk.slice().sort(function(a,b){return b.valor-a.valor;});
     document.getElementById('kv-rp').textContent=rs.length+' produto(s)';
     document.getElementById('ks-rp').textContent=rs.length?'Top: '+rs[0].produto:'Nenhum';
@@ -628,10 +671,24 @@ function salvFat(){
     });
     saveStore();render();alert('Salvo!');
 }
+function aplicarMetaGlobal(){
+    var mg=parseFloat(document.getElementById('metaGlobal').value)||0;
+    if(!mg){alert('Informe o valor da meta global anual.');return;}
+    var metaMes=Math.round(mg/12);
+    for(var m=0;m<=mes;m++){
+        var k=ano+'-'+String(m+1).padStart(2,'0');
+        if(!aFat[k]) aFat[k]={fat:0,meta:0,vd:'',uf:''};
+        aFat[k].meta=metaMes;
+    }
+    buildFatTbl();
+    alert('Meta de R$ '+metaMes.toLocaleString('pt-BR')+'/mes distribuida nos '+( mes+1)+' meses. Clique em Salvar tudo para confirmar.');
+}
 function salvBE(){
     aBE.valor=parseFloat(document.getElementById('beVal').value)||0;
     aBE.per=document.getElementById('bePer').value;
-    saveStore();render();alert('Break Even salvo!');
+    aBE.tkMeta=parseFloat(document.getElementById('tkMeta').value)||0;
+    aBE.mgMeta=parseFloat(document.getElementById('mgMeta').value)||0;
+    saveStore();render();alert('Salvo!');
 }
 function addMgRow(p,v,m){
     var d=document.createElement('div');d.className='mrow';
@@ -689,7 +746,12 @@ function saveStore(){
 function loadStore(){
     try{
         var f=sessionStorage.getItem('wf');if(f) aFat=JSON.parse(f);
-        var b=sessionStorage.getItem('wb');if(b){aBE=JSON.parse(b);if(aBE.valor) document.getElementById('beVal').value=aBE.valor;if(aBE.per) document.getElementById('bePer').value=aBE.per;}
+        var b=sessionStorage.getItem('wb');if(b){aBE=JSON.parse(b);
+            if(aBE.valor) document.getElementById('beVal').value=aBE.valor;
+            if(aBE.per)   document.getElementById('bePer').value=aBE.per;
+            if(aBE.tkMeta&&document.getElementById('tkMeta')) document.getElementById('tkMeta').value=aBE.tkMeta;
+            if(aBE.mgMeta&&document.getElementById('mgMeta')) document.getElementById('mgMeta').value=aBE.mgMeta;
+        }
         var m=sessionStorage.getItem('wm');if(m){aMg=JSON.parse(m);aMg.forEach(function(r){addMgRow(r.p,r.v,r.m);});}
         var r=sessionStorage.getItem('wr');if(r){aRk=JSON.parse(r);aRk.forEach(function(rr){addRkRow(rr.produto,rr.valor,rr.vd);});}
     }catch(e){}
@@ -716,6 +778,17 @@ function login(){
 function toggleAdmin(){
     document.getElementById('admpnl').classList.toggle('vis');
     if(document.getElementById('admpnl').classList.contains('vis')) buildFatTbl();
+}
+function togglePedidos(){
+    var tw=document.getElementById('tcard').querySelector('.twrap');
+    var tf=document.getElementById('tcard').querySelector('.tfoot');
+    var btn=document.getElementById('btnTogglePed');
+    var sr=document.getElementById('tcard').querySelector('.tsrch');
+    var hidden=tw.style.display==='none';
+    tw.style.display=hidden?'':'none';
+    if(tf) tf.style.display=hidden?'':'none';
+    if(sr) sr.style.display=hidden?'':'none';
+    btn.textContent=hidden?'Recolher':'Exibir';
 }
 function logout(){
     document.getElementById('ub').textContent='Visitante';document.getElementById('blg').textContent='Entrar';
