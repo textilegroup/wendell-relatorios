@@ -28,21 +28,23 @@ body{font-family:'Segoe UI',sans-serif;background:var(--bg);color:#1a1a1a;min-he
 .dti{padding:4px 8px;border:1px solid var(--border);border-radius:5px;font-size:11px;outline:none;width:120px}
 .dti:focus{border-color:var(--red)}
 .con{padding:12px;max-width:1100px;margin:0 auto}
-.kgrid{display:grid;grid-template-columns:repeat(auto-fill,minmax(155px,1fr));gap:10px;margin-bottom:0}
+.kgrid{display:grid;grid-template-columns:repeat(auto-fill,minmax(155px,1fr));gap:10px;margin-bottom:0;position:relative}
 @media(max-width:520px){.kgrid{grid-template-columns:1fr 1fr;gap:7px}}
-.kcard{background:#fff;border-radius:10px;padding:13px 14px 30px;box-shadow:var(--shadow);border-left:4px solid var(--red);position:relative;cursor:pointer}
+.kcard{background:#fff;border-radius:10px;padding:13px 14px 30px;box-shadow:var(--shadow);border-left:4px solid var(--red);position:relative;cursor:pointer;transition:box-shadow .15s,transform .15s}
 .kcard:hover{box-shadow:0 4px 14px rgba(0,0,0,.12)}
-.kcard.sel{border-bottom-left-radius:0;border-bottom-right-radius:0}
+.kcard.sel{border-bottom-left-radius:0;border-bottom-right-radius:0;box-shadow:0 -2px 12px rgba(160,18,40,.18);transform:translateY(-2px);background:#fff8f8}
+.kcard.sel .klbl{color:var(--red)}
 .klbl{font-size:9px;font-weight:700;color:var(--muted);text-transform:uppercase;letter-spacing:.6px;margin-bottom:5px}
 .kval{font-size:20px;font-weight:800;line-height:1.1}
 @media(max-width:520px){.kval{font-size:16px}}
 .ksub{font-size:10px;color:var(--muted);margin-top:4px;line-height:1.4}
 .kacc{color:var(--red);font-weight:700}
 .kebtn{position:absolute;bottom:7px;right:9px;background:none;border:1px solid var(--border);width:20px;height:20px;border-radius:4px;cursor:pointer;font-size:12px;color:var(--muted);display:flex;align-items:center;justify-content:center;pointer-events:none}
-.exparea{display:none;background:#fff;border:1px solid #ddd;border-left:4px solid var(--red);border-top:none;border-radius:0 0 10px 10px;box-shadow:0 4px 14px rgba(0,0,0,.1);margin-bottom:12px}
+.exparea{display:none;background:#fff;border:1px solid #e0e0e0;border-left:4px solid var(--red);border-top:2px solid var(--red);border-radius:0 0 10px 10px;box-shadow:0 4px 14px rgba(160,18,40,.12);margin-bottom:12px;position:relative}
 .exparea.open{display:block}
+.exparea::before{content:'';position:absolute;top:-6px;left:-4px;width:4px;height:6px;background:var(--red)}
 .expinn{padding:14px}
-.exptit{font-size:13px;font-weight:700;color:var(--red);margin-bottom:11px;display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:8px}
+.exptit{font-size:13px;font-weight:700;color:var(--red);margin-bottom:11px;padding-bottom:8px;border-bottom:2px solid #ffe0e4;display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:8px}
 .pfrow{display:flex;gap:8px;flex-wrap:wrap;margin-bottom:11px}
 .pf{padding:5px 9px;border:1px solid var(--border);border-radius:5px;font-size:11px;outline:none;min-width:130px}
 .pf:focus{border-color:var(--red)}
@@ -118,8 +120,9 @@ tr:hover td{background:#fafafa}
   <div><h1>WENDELL DASHBOARD</h1><p id="hs">Wendell Global Interlining</p></div>
   <div class="hdr-r">
     <span class="badge" id="ub">Visitante</span>
+    <button class="btn-hdr" id="badm" onclick="toggleAdmin()" style="display:none">Admin</button>
     <button class="btn-hdr" id="blg" onclick="abrirLogin()">Entrar</button>
-    <button class="btn-hdr" onclick="atualizar()">Atualizar</button>
+    <button class="btn-hdr" onclick="atualizar()">&#8635;</button>
   </div>
 </div>
 
@@ -704,14 +707,20 @@ function login(){
     var s=document.getElementById('sinp').value;
     if(s===VS){
         document.getElementById('ub').textContent='Admin';document.getElementById('blg').textContent='Sair';
+        document.getElementById('badm').style.display='';
         document.getElementById('admpnl').classList.add('vis');buildFatTbl();fModal();
     } else if(s===VA){
         document.getElementById('ub').textContent='Viewer';document.getElementById('blg').textContent='Sair';fModal();
     } else {document.getElementById('serr').style.display='block';}
 }
+function toggleAdmin(){
+    document.getElementById('admpnl').classList.toggle('vis');
+    if(document.getElementById('admpnl').classList.contains('vis')) buildFatTbl();
+}
 function logout(){
     document.getElementById('ub').textContent='Visitante';document.getElementById('blg').textContent='Entrar';
     document.getElementById('admpnl').classList.remove('vis');
+    document.getElementById('badm').style.display='none';
 }
 document.addEventListener('keydown',function(e){if(e.key==='Escape'){fModal();fecharExp();}});
 
