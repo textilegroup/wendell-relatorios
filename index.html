@@ -350,7 +350,7 @@ tr:hover td{background:#fafafa}
 </div>
 </div>
 
-<div class="moverlay" id="mlog" style="background:rgba(10,10,30,.92)">
+<div class="moverlay on" id="mlog" style="background:rgba(10,10,30,.92)">
   <div class="mbox" style="max-width:360px">
     <div class="mhdr" style="display:flex;align-items:center;gap:10px;padding:16px 18px">
       <img id="logoLogin" style="width:32px;height:32px;object-fit:contain;background:#fff;border-radius:4px;padding:2px" alt="W">
@@ -390,8 +390,7 @@ var tD   = [];   // dados tabela
 
 // INIT
 window.onload = function() {
-    // Mostrar login obrigatório
-    document.getElementById('mlog').classList.add('on');
+    // Login já aberto por padrão via classe CSS
     document.getElementById('logoLogin').src = LG;
     setTimeout(function(){document.getElementById('sinp').focus();},100);
     document.getElementById('li').src = LG;
@@ -938,6 +937,12 @@ function logout(){
     document.getElementById('blg').textContent = 'Entrar';
     document.getElementById('admpnl').classList.remove('vis');
     document.getElementById('badm').style.display = 'none';
+    document.getElementById('mainCon').style.display = 'none';
+    document.getElementById('mainFbar').style.display = 'none';
+    document.getElementById('sinp').value = '';
+    document.getElementById('serr').style.display = 'none';
+    document.getElementById('mlog').classList.add('on');
+    setTimeout(function(){document.getElementById('sinp').focus();}, 100);
 }
 document.addEventListener('keydown',function(e){if(e.key==='Escape'){fModal();fecharExp();}});
 
