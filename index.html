@@ -41,9 +41,15 @@ body{font-family:'Segoe UI',sans-serif;background:var(--bg);color:#1a1a1a;min-he
 .ksub{font-size:10px;color:var(--muted);margin-top:4px;line-height:1.4}
 .kacc{color:var(--red);font-weight:700}
 .kebtn{position:absolute;bottom:7px;right:9px;background:none;border:1px solid var(--border);width:20px;height:20px;border-radius:4px;cursor:pointer;font-size:12px;color:var(--muted);display:flex;align-items:center;justify-content:center;pointer-events:none}
-.exparea{display:none;background:#fff;border:1px solid #e0e0e0;border-left:4px solid var(--red);border-top:2px solid var(--red);border-radius:0 0 10px 10px;box-shadow:0 4px 14px rgba(160,18,40,.12);margin-bottom:12px;position:relative}
+.kval2{font-size:16px;font-weight:700;color:var(--red);line-height:1.1}
+@media(max-width:520px){.kval2{font-size:13px}}
+.exparea{display:none;background:#fff;border:1px solid #e0e0e0;border-left:6px solid var(--red);border-top:3px solid var(--red);border-radius:0 0 10px 10px;box-shadow:0 6px 20px rgba(160,18,40,.15);margin-bottom:14px;position:relative}
 .exparea.open{display:block}
-.exparea::before{content:'';position:absolute;top:-6px;left:-4px;width:4px;height:6px;background:var(--red)}
+.kgrid-wrap{position:relative}
+/* Indicador de qual card está ativo */
+.kcard.sel{border-left:6px solid var(--red);border-bottom:3px solid var(--red);border-bottom-left-radius:0;border-bottom-right-radius:0;box-shadow:0 -2px 14px rgba(160,18,40,.2);transform:translateY(-3px);background:#fff5f5;z-index:2;position:relative}
+.kcard.sel .klbl{color:var(--red);font-weight:800}
+.kcard.sel .kval{color:var(--red)}
 .expinn{padding:14px}
 .exptit{font-size:13px;font-weight:700;color:var(--red);margin-bottom:11px;padding-bottom:8px;border-bottom:2px solid #ffe0e4;display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:8px}
 .pfrow{display:flex;gap:8px;flex-wrap:wrap;margin-bottom:11px}
@@ -116,6 +122,23 @@ tr:hover td{background:#fafafa}
 </style>
 </head>
 <body>
+<!-- OVERLAY BLOQUEIO -->
+<div id="lockScreen" style="display:flex;position:fixed;inset:0;background:var(--red);z-index:99999;justify-content:center;align-items:center;flex-direction:column;padding:24px">
+  <div style="background:#fff;border-radius:14px;max-width:320px;width:100%;padding:28px;box-shadow:0 8px 32px rgba(0,0,0,.3);text-align:center">
+    <img id="lockLogo" style="width:64px;height:64px;object-fit:contain;margin-bottom:14px" alt="W">
+    <h2 style="font-size:18px;font-weight:800;color:#1a1a1a;margin-bottom:4px">WENDELL DASHBOARD</h2>
+    <p style="font-size:12px;color:#718096;margin-bottom:18px">Wendell Global Interlining</p>
+    <input type="password" id="lockSenha" placeholder="Digite sua senha" 
+      style="width:100%;padding:11px 13px;border:1px solid #e0e0e0;border-radius:7px;font-size:14px;outline:none;margin-bottom:10px;text-align:center;letter-spacing:2px"
+      onkeypress="if(event.key==='Enter')tentarEntrar()">
+    <div id="lockErr" style="color:#a01228;font-size:12px;margin-bottom:10px;display:none">Senha incorreta. Tente novamente.</div>
+    <button onclick="tentarEntrar()" 
+      style="width:100%;background:#a01228;color:#fff;border:none;padding:12px;border-radius:7px;font-size:14px;font-weight:700;cursor:pointer">
+      Entrar
+    </button>
+  </div>
+</div>
+
 <div class="hdr">
   <div class="logo"><img id="li" alt="W"></div>
   <div><h1>WENDELL DASHBOARD</h1><p id="hs">Wendell Global Interlining</p></div>
@@ -127,7 +150,7 @@ tr:hover td{background:#fafafa}
   </div>
 </div>
 
-<div class="fbar">
+<div class="fbar" id="mainFbar" style="display:none">
   <div class="fbar-inner">
     <button class="mbtn" onclick="selTodos()">Todos</button>
     <button class="mbtn" onclick="selNenhum()">Nenhum</button>
@@ -141,7 +164,7 @@ tr:hover td{background:#fafafa}
   </div>
 </div>
 
-<div class="con">
+<div class="con" id="mainCon" style="display:none">
 
 <div class="admpnl" id="admpnl">
   <div class="admhdr" style="background:#1a202c;color:#fff;padding:12px 16px;font-size:13px;font-weight:700;display:flex;justify-content:space-between;align-items:center;border-radius:10px 10px 0 0">
@@ -153,10 +176,10 @@ tr:hover td{background:#fafafa}
       Configure abaixo os valores de referencia para cada KPI. Os dados salvos ficam na sessao atual do browser.
     </p>
     <div class="admtabs">
-      <button class="atab on" onclick="abaAdm('fat',this)">KPI 1 — Faturamento</button>
-      <button class="atab" onclick="abaAdm('be',this)">KPI 2 — Break Even</button>
-      <button class="atab" onclick="abaAdm('mg',this)">KPI 3/4 — Margem e Ticket</button>
-      <button class="atab" onclick="abaAdm('rk',this)">KPI 5 — Ranking</button>
+      <button class="atab on" onclick="abaAdm('fat',this)">Faturamento x Meta</button>
+      <button class="atab" onclick="abaAdm('be',this)">Break Even x Faturado</button>
+      <button class="atab" onclick="abaAdm('mg',this)">Margem Media / Ticket Medio</button>
+      <button class="atab" onclick="abaAdm('rk',this)">Ranking Produtos</button>
     </div>
     <div class="asec on" id="as-fat">
       <p style="font-size:11px;color:var(--muted);margin-bottom:10px">
@@ -235,14 +258,59 @@ tr:hover td{background:#fafafa}
   </div>
 </div>
 
-<div class="kgrid" id="kg">
-  <div class="kcard" id="kc-fat" onclick="tog('fat')"><div class="klbl">Faturamento x Meta</div><div class="kval" id="kv-fat">R$ --</div><div class="ksub">Meta: <span id="km-fat">--</span> | <span class="kacc" id="kp-fat">--%</span></div><div class="kebtn" id="kb-fat">+</div></div>
-  <div class="kcard" id="kc-be"  onclick="tog('be')"><div class="klbl">Break Even x Faturado</div><div class="kval" id="kv-be">R$ --</div><div class="ksub">Faturado: <span id="km-be">--</span> | <span class="kacc" id="kp-be">--%</span></div><div class="kebtn" id="kb-be">+</div></div>
-  <div class="kcard" id="kc-mg"  onclick="tog('mg')"><div class="klbl">Margem Media</div><div class="kval" id="kv-mg">--%</div><div class="ksub" id="ks-mg">Media ponderada</div><div class="kebtn" id="kb-mg">+</div></div>
-  <div class="kcard" id="kc-tk"  onclick="tog('tk')"><div class="klbl">Ticket Medio</div><div class="kval" id="kv-tk">R$ --</div><div class="ksub" id="ks-tk">por pedido</div><div class="kebtn" id="kb-tk">+</div></div>
-  <div class="kcard" id="kc-rp"  onclick="tog('rp')"><div class="klbl">Ranking Produtos</div><div class="kval" id="kv-rp" style="font-size:15px;margin-top:3px">-- produtos</div><div class="ksub" id="ks-rp">Top: --</div><div class="kebtn" id="kb-rp">+</div></div>
-  <div class="kcard" id="kc-rv"  onclick="tog('rv')"><div class="klbl">Ranking Vendedores</div><div class="kval" id="kv-rv" style="font-size:15px;margin-top:3px">-- vendedores</div><div class="ksub" id="ks-rv">Top: --</div><div class="kebtn" id="kb-rv">+</div></div>
-</div>
+<div class="kgrid-wrap"><div class="kgrid" id="kg">
+  <!-- KPI 1: Faturamento x Meta — valor grande + % grande -->
+  <div class="kcard" id="kc-fat" onclick="tog('fat')">
+    <div class="klbl">Faturamento x Meta</div>
+    <div style="display:flex;align-items:baseline;gap:8px;flex-wrap:wrap">
+      <div class="kval" id="kv-fat">R$ --</div>
+      <div class="kval2" id="kp-fat">--%</div>
+    </div>
+    <div class="ksub">Meta: <span id="km-fat">--</span></div>
+    <div class="kebtn" id="kb-fat">+</div>
+  </div>
+  <!-- KPI 2: Break Even x Faturado — BE grande + % grande -->
+  <div class="kcard" id="kc-be" onclick="tog('be')">
+    <div class="klbl">Break Even x Faturado</div>
+    <div style="display:flex;align-items:baseline;gap:8px;flex-wrap:wrap">
+      <div class="kval" id="kv-be">R$ --</div>
+      <div class="kval2" id="kp-be">--%</div>
+    </div>
+    <div class="ksub">Faturado: <span id="km-be">--</span></div>
+    <div class="kebtn" id="kb-be">+</div>
+  </div>
+  <!-- KPI 3: Margem Media — resultado grande + meta grande -->
+  <div class="kcard" id="kc-mg" onclick="tog('mg')">
+    <div class="klbl">Margem Media</div>
+    <div style="display:flex;align-items:baseline;gap:8px;flex-wrap:wrap">
+      <div class="kval" id="kv-mg">--%</div>
+      <div class="kval2" id="kv-mg2" style="color:var(--muted)">Meta: --</div>
+    </div>
+    <div class="ksub" id="ks-mg">Media ponderada</div>
+    <div class="kebtn" id="kb-mg">+</div>
+  </div>
+  <!-- KPI 4: Ticket Medio -->
+  <div class="kcard" id="kc-tk" onclick="tog('tk')">
+    <div class="klbl">Ticket Medio</div>
+    <div class="kval" id="kv-tk">R$ --</div>
+    <div class="ksub" id="ks-tk">por pedido</div>
+    <div class="kebtn" id="kb-tk">+</div>
+  </div>
+  <!-- KPI 5: Ranking Produtos -->
+  <div class="kcard" id="kc-rp" onclick="tog('rp')">
+    <div class="klbl">Ranking Produtos</div>
+    <div class="kval" id="kv-rp" style="font-size:15px;margin-top:3px">-- produtos</div>
+    <div class="ksub" id="ks-rp">Top: --</div>
+    <div class="kebtn" id="kb-rp">+</div>
+  </div>
+  <!-- KPI 6: Ranking Vendedores -->
+  <div class="kcard" id="kc-rv" onclick="tog('rv')">
+    <div class="klbl">Ranking Vendedores</div>
+    <div class="kval" id="kv-rv" style="font-size:15px;margin-top:3px">-- vendedores</div>
+    <div class="ksub" id="ks-rv">Top: --</div>
+    <div class="kebtn" id="kb-rv">+</div>
+  </div>
+</div></div>
 
 <div class="exparea" id="expa">
   <div class="expinn">
@@ -282,16 +350,19 @@ tr:hover td{background:#fafafa}
 </div>
 </div>
 
-<div class="moverlay" id="mlog">
-  <div class="mbox">
-    <div class="mhdr">Acesso ao Dashboard</div>
+<div class="moverlay" id="mlog" style="background:rgba(10,10,30,.92)">
+  <div class="mbox" style="max-width:360px">
+    <div class="mhdr" style="display:flex;align-items:center;gap:10px;padding:16px 18px">
+      <img id="logoLogin" style="width:32px;height:32px;object-fit:contain;background:#fff;border-radius:4px;padding:2px" alt="W">
+      <span>Wendell Global Interlining</span>
+    </div>
     <div class="mbody">
-      <label class="mlbl">Senha</label>
-      <input type="password" class="minp" id="sinp" placeholder="Digite a senha" onkeypress="if(event.key==='Enter')login()">
+      <p style="font-size:12px;color:var(--muted);margin-bottom:12px">Digite a senha para acessar o dashboard.</p>
+      <label class="mlbl">Senha de acesso</label>
+      <input type="password" class="minp" id="sinp" placeholder="Senha" onkeypress="if(event.key==='Enter')login()" autofocus>
       <div class="merr" id="serr">Senha incorreta.</div>
       <div class="mbtns">
         <button class="bok" onclick="login()">Entrar</button>
-        <button class="bcnl" onclick="fModal()">Cancelar</button>
       </div>
     </div>
   </div>
@@ -305,8 +376,8 @@ tr:hover td{background:#fafafa}
 var LG  = 'data:image/png;base64,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';
 var SBU = 'https://eepmlsdbtcvsjxdcvimi.supabase.co';
 var SBK = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImVlcG1sc2RidGN2c2p4ZGN2aW1pIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODE1NTMyOTUsImV4cCI6MjA5NzEyOTI5NX0.Le484IS150WX8dzagH7nu3d6fyK9OAjGrBX49SrJawQ';
-var VA  = 'admin123';
-var VS  = 'Industria967';
+var VA  = 'Wendell123'; // visitante
+var VS  = 'admin123'; // admin
 var MN  = ['Jan','Fev','Mar','Abr','Mai','Jun','Jul','Ago','Set','Out','Nov','Dez'];
 var ano = new Date().getFullYear();
 var mes = new Date().getMonth();
@@ -319,7 +390,13 @@ var tD   = [];   // dados tabela
 
 // INIT
 window.onload = function() {
+    // Mostrar login obrigatório
+    document.getElementById('mlog').classList.add('on');
+    document.getElementById('logoLogin').src = LG;
+    setTimeout(function(){document.getElementById('sinp').focus();},100);
     document.getElementById('li').src = LG;
+    document.getElementById('lockLogo').src = LG;
+    document.getElementById('lockSenha').focus();
     matv.push(mes); // Apenas o mês atual selecionado por padrão
     buildMeses();
     loadStore();
@@ -417,17 +494,22 @@ function renderKPIs(d) {
     var fat=fatM||fatSB;
     document.getElementById('kv-fat').textContent=fmtR(fat);
     document.getElementById('km-fat').textContent=metaM>0?fmtR(metaM):'--';
-    document.getElementById('kp-fat').textContent=metaM>0?Math.round(fat/metaM*100)+'%':'--%';
+    var fatPct=metaM>0?Math.round(fat/metaM*100):null;
+    document.getElementById('kp-fat').textContent=fatPct!==null?fatPct+'%':'--%';
+    document.getElementById('kp-fat').style.color=fatPct!==null&&fatPct>=100?'#155724':'var(--red)';
     var be=aBE.valor||0;
     document.getElementById('kv-be').textContent=fmtR(be);
     document.getElementById('km-be').textContent=fmtR(fat);
-    document.getElementById('kp-be').textContent=be>0?Math.round(fat/be*100)+'%':'--%';
+    var bePct=be>0?Math.round(fat/be*100):null;
+    document.getElementById('kp-be').textContent=bePct!==null?bePct+'%':'--%';
+    document.getElementById('kp-be').style.color=bePct!==null&&bePct>=100?'#155724':'var(--red)';
     var mg=calcMg();
     document.getElementById('kv-mg').textContent=mg!==null?mg.toFixed(1).replace('.',',')+'%':'--%';
     var mgMt=aBE.mgMeta||0;
-    var mgSub='Media ponderada';
-    if(mg!==null&&mgMt>0) mgSub='Meta: '+mgMt.toFixed(1).replace('.',',')+'% | '+(mg>=mgMt?'<span style="color:#155724">Atingida</span>':'<span style="color:#a01228">Abaixo</span>');
-    document.getElementById('ks-mg')?document.getElementById('ks-mg').innerHTML=mgSub:null;
+    if(document.getElementById('kv-mg2')) document.getElementById('kv-mg2').textContent=mgMt>0?'Meta: '+mgMt.toFixed(1).replace('.',',')+'%':'Meta: --';
+    var mgSub=mgMt>0&&mg!==null?(mg>=mgMt?'Atingida':'Abaixo da meta'):'Media ponderada';
+    var mgCorSub=mgMt>0&&mg!==null?(mg>=mgMt?'#155724':'#a01228'):'var(--muted)';
+    if(document.getElementById('ks-mg')){ document.getElementById('ks-mg').textContent=mgSub; document.getElementById('ks-mg').style.color=mgCorSub; }
     var n=d.length,tk=n?fatSB/n:0;
     document.getElementById('kv-tk').textContent=fmtR(tk);
     var tkM=aBE.tkMeta||0;
@@ -775,26 +857,56 @@ function abrirLogin(){
     document.getElementById('mlog').classList.add('on');
     setTimeout(function(){document.getElementById('sinp').focus();},80);
 }
-function fModal(){document.getElementById('mlog').classList.remove('on');}
+function fModal(){
+    // Só fecha se já estiver logado
+    if(document.getElementById('ub').textContent !== 'Visitante'){
+        document.getElementById('mlog').classList.remove('on');
+    }
+}
+function tentarEntrar(){
+    var s=(document.getElementById('lockSenha').value||'').trim();
+    var isAdmin2  = (s === 'admin123');
+    var isViewer2 = (s === 'Wendell123');
+    if(isAdmin2||isViewer2){
+        document.getElementById('lockScreen').style.display='none';
+        document.getElementById('lockSenha').value='';
+        if(isAdmin2){
+            document.getElementById('ub').textContent='Admin';
+            document.getElementById('blg').textContent='Sair';
+            document.getElementById('badm').style.display='inline-block';
+        } else {
+            document.getElementById('ub').textContent='Visitante';
+            document.getElementById('blg').textContent='Sair';
+        }
+    } else {
+        document.getElementById('lockErr').style.display='block';
+        document.getElementById('lockSenha').value='';
+        document.getElementById('lockSenha').focus();
+    }
+}
 function login(){
     var s=(document.getElementById('sinp').value||'').trim();
-    var isAdmin  = (s === 'Industria967');
-    var isViewer = (s === 'admin123');
+    var isAdmin  = (s === 'admin123');
+    var isViewer = (s === 'Wendell123');
     if(isAdmin){
         document.getElementById('ub').textContent = 'Admin';
         document.getElementById('blg').textContent = 'Sair';
         document.getElementById('badm').style.display = 'inline-block';
+        document.getElementById('mainCon').style.display = '';
+        document.getElementById('mainFbar').style.display = '';
         document.getElementById('admpnl').classList.add('vis');
         buildFatTbl();
-        fModal();
+        document.getElementById('mlog').classList.remove('on');
         setTimeout(function(){
             document.getElementById('admpnl').scrollIntoView({behavior:'smooth', block:'start'});
         }, 200);
-    } else if(isViewer){
-        document.getElementById('ub').textContent = 'Viewer';
+    } else if(isVisitor){
+        document.getElementById('ub').textContent = 'Visitor';
         document.getElementById('blg').textContent = 'Sair';
         document.getElementById('badm').style.display = 'none';
-        fModal();
+        document.getElementById('mainCon').style.display = '';
+        document.getElementById('mainFbar').style.display = '';
+        document.getElementById('mlog').classList.remove('on');
     } else {
         document.getElementById('serr').style.display = 'block';
     }
