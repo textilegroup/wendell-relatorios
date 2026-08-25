@@ -637,7 +637,6 @@ const T = {
   save:'Salvar dados da planilha importada', pdf:'Gerar PDF',
   gmail:'E-mail', entrando:'Entrando…', sair:'Sair',
   gsubDb:'Wendell Global Interlining · acesso restrito',
-  semPerfil:'A conta do painel não tem perfil em wgi_sales_profiles. Rode o insert descrito no SETUP-SUPABASE.md.',
   semDados:'Nenhuma planilha salva no banco ainda. Importe a planilha e clique em “Salvar dados da planilha importada”.',
   salvando:'Salvando no banco…',
   salvoDb:n=>'Salvo no Supabase: '+n+' linhas. Quem abrir o painel agora já vê estes dados.',
@@ -702,7 +701,6 @@ const T = {
   save:'Save imported workbook data', pdf:'Export PDF',
   gmail:'E-mail', entrando:'Signing in…', sair:'Sign out',
   gsubDb:'Wendell Global Interlining · restricted access',
-  semPerfil:'The panel account has no profile in wgi_sales_profiles. Run the insert described in SETUP-SUPABASE.md.',
   semDados:'No workbook saved in the database yet. Import one and click “Save imported workbook data”.',
   salvando:'Saving to the database…',
   salvoDb:n=>'Saved to Supabase: '+n+' rows. Anyone opening the report now sees this data.',
@@ -1445,45 +1443,36 @@ el('fFile').onchange = async e => {
    deixe url e key vazios: const SUPABASE = { url:'', key:'' };
    ============================================================ */
 const SUPABASE = {
-  url:  'https://eepmlsdbtcvsjxdcvimi.supabase.co',
-  key:  'sb_publishable_048Dv-jRALn34Ythhj9ngA_fZ1gsNI_',
-  /* Conta compartilhada do painel. A senha de acesso continua sendo a do
-     campo da tela; estas credenciais servem só para o painel falar com o
-     banco. No Supabase esta conta tem apenas SELECT e INSERT — não consegue
-     apagar nem alterar nada. */
-  conta: 'painel.vendas@wgi.local',
-  senha: 'Wgi#Painel2026#Vendas'
+  url: 'https://eepmlsdbtcvsjxdcvimi.supabase.co',
+  key: 'sb_publishable_048Dv-jRALn34Ythhj9ngA_fZ1gsNI_'
 };
+/* A senha digitada na tela é conferida no banco, dentro das funções
+   wgi_painel_dados / wgi_painel_salvar. Nada secreto fica neste arquivo:
+   a chave publicável sozinha não devolve nenhum dado. */
+let SENHA = '';
 const SB_ON = !!(SUPABASE.url && SUPABASE.key);
-const AUTH = {token:null, uid:null, email:null, role:null, rep:null};
+const AUTH = {role:'gerencia'};
 
-async function sbFetch(path, opts){
-  const o = opts || {};
-  const h = Object.assign({apikey: SUPABASE.key, 'Content-Type':'application/json'}, o.headers || {});
-  if (AUTH.token) h.Authorization = 'Bearer ' + AUTH.token;
-  const r = await fetch(SUPABASE.url + path, Object.assign({}, o, {headers:h}));
-  if (!r.ok){
-    let m = 'HTTP ' + r.status;
-    try { const j = await r.json(); m = j.message || j.error_description || j.msg || j.hint || m; } catch(e){}
-    throw new Error(m);
-  }
-  if (r.status === 204) return null;
+async function sbRpc(fn, body){
+  const r = await fetch(SUPABASE.url + '/rest/v1/rpc/' + fn, {
+    method:'POST',
+    headers:{apikey: SUPABASE.key, Authorization:'Bearer ' + SUPABASE.key,
+             'Content-Type':'application/json'},
+    body: JSON.stringify(body)
+  });
   const txt = await r.text();
-  return txt ? JSON.parse(txt) : null;
-}
-async function sbLogin(){
-  const d = await sbFetch('/auth/v1/token?grant_type=password',
-    {method:'POST', body: JSON.stringify({email: SUPABASE.conta, password: SUPABASE.senha})});
-  AUTH.token = d.access_token; AUTH.uid = d.user.id; AUTH.email = d.user.email;
-  const prof = await sbFetch('/rest/v1/wgi_sales_profiles?select=role,rep_name&user_id=eq.'+AUTH.uid);
-  if (!prof || !prof.length) throw new Error(t().semPerfil);
-  AUTH.role = prof[0].role; AUTH.rep = prof[0].rep_name;
+  let d = null; try { d = txt ? JSON.parse(txt) : null; } catch(e){}
+  if (!r.ok){
+    const msg = (d && (d.message || d.hint)) || ('HTTP ' + r.status);
+    throw new Error(/senha_invalida/.test(msg) ? t().gerr : msg);
+  }
+  return d;
 }
 function dataFromDb(rows, imp){
-  const R2 = rows.map(r=>[r.mes, r.rep||'', r.wh||'', r.status, r.cliente,
-    +r.brl||0, +r.qtd||0, r.pedido||'', r.data||null, +r.com||0,
-    r.margem===null||r.margem===undefined ? null : +r.margem,
-    r.frete ===null||r.frete ===undefined ? null : +r.frete]);
+  const R2 = rows.map(r=>[r[0], r[1]||'', r[2]||'', r[3], r[4],
+    +r[5]||0, +r[6]||0, r[7]||'', r[8]||null, +r[9]||0,
+    (r[10]===null||r[10]===undefined) ? null : +r[10],
+    (r[11]===null||r[11]===undefined) ? null : +r[11]]);
   const meses = MO_ALL.filter(m=>R2.some(x=>x[0]===m));
   return {
     meses,
@@ -1496,40 +1485,16 @@ function dataFromDb(rows, imp){
     fonte: (imp.arquivo || 'Supabase') + ' · banco'
   };
 }
-async function sbLoadData(){
-  const imp = await sbFetch('/rest/v1/wgi_sales_imports?select=*&ativo=is.true&order=criado_em.desc&limit=1');
-  if (!imp || !imp.length) return null;
-  const I = imp[0], PAGE = 1000, rows = [];
-  for (let from = 0; ; from += PAGE){
-    const chunk = await sbFetch(
-      '/rest/v1/wgi_sales_rows?select=mes,rep,wh,status,cliente,brl,qtd,pedido,data,com,margem,frete'
-      + '&import_id=eq.' + I.id + '&order=id.asc',
-      {headers:{'Range-Unit':'items', Range: from + '-' + (from + PAGE - 1)}});
-    if (!chunk || !chunk.length) break;
-    rows.push.apply(rows, chunk);
-    if (chunk.length < PAGE) break;
-  }
-  return rows.length ? dataFromDb(rows, I) : null;
+async function sbLoadData(senha){
+  const d = await sbRpc('wgi_painel_dados', {p_senha: senha});
+  if (!d || d.vazio || !d.rows || !d.rows.length) return null;
+  return dataFromDb(d.rows, d.imp || {});
 }
 async function sbSave(){
-  const imp = await sbFetch('/rest/v1/wgi_sales_imports',
-    {method:'POST', headers:{Prefer:'return=representation'},
-     body: JSON.stringify({arquivo: DATA.fonte, linhas: DATA.rows.length, fx: DATA.fx,
-                           mes_atual: DATA.atual, ano: DATA.ano, criado_por: AUTH.uid})});
-  const id = imp[0].id;
-  const payload = DATA.rows.map(r=>({
-    import_id:id, mes:r[0], rep:r[1]||null, wh:r[2]||null, status:r[3], cliente:r[4],
-    brl:r[5], qtd:r[6], pedido:r[7]||null, data:r[8]||null, com:r[9],
-    margem:(r[10]===undefined?null:r[10]), frete:(r[11]===undefined?null:r[11]),
-    ano: r[8] ? +String(r[8]).slice(0,4) : DATA.ano }));
-  for (let i = 0; i < payload.length; i += 500)
-    await sbFetch('/rest/v1/wgi_sales_rows',
-      {method:'POST', headers:{Prefer:'return=minimal'}, body: JSON.stringify(payload.slice(i, i+500))});
-  /* a importação nova passa a ser a vigente; as anteriores viram histórico.
-     Feito por função no banco — alterar a tabela direto é proibido. */
-  await sbFetch('/rest/v1/rpc/wgi_ativar_import',
-    {method:'POST', headers:{Prefer:'return=minimal'}, body: JSON.stringify({p_id: id})});
-  return payload.length;
+  const d = await sbRpc('wgi_painel_salvar', {
+    p_senha: SENHA, p_arquivo: DATA.fonte, p_fx: DATA.fx,
+    p_mes_atual: DATA.atual, p_ano: DATA.ano, p_linhas: DATA.rows});
+  return (d && d.linhas) || DATA.rows.length;
 }
 /* aplica o nível de acesso na interface (a RLS já barra no servidor) */
 function applyRole(){
@@ -1773,12 +1738,12 @@ el('gateForm').addEventListener('submit', async e=>{
     else { set('gErr', t().gerr); pw.select(); }
     return;
   }
-  /* a senha é conferida aqui; o banco é acessado com a conta do painel */
-  if (hash(pw.value.trim()) !== KEY){ set('gErr', t().gerr); pw.select(); return; }
+
   btn.disabled = true; set('gBtn', t().entrando);
   try{
-    await sbLogin();
-    const d = await sbLoadData();
+    const senha = pw.value.trim();
+    const d = await sbLoadData(senha);   /* a senha é conferida no banco */
+    SENHA = senha;
     if (d) boot(d);
     applyRole();
     abrirPainel();
@@ -1786,10 +1751,10 @@ el('gateForm').addEventListener('submit', async e=>{
     else if (AUTH.role !== 'gerencia' && AUTH.rep) toast(t().repLock(AUTH.rep));
   } catch(err){
     set('gErr', (err && err.message) ? err.message : String(err));
-    btn.disabled = false; set('gBtn', t().gbtn);
+    btn.disabled = false; set('gBtn', t().gbtn); pw.select();
   }
 });
-el('btnOut').onclick = () => { AUTH.token = null; location.reload(); };
+el('btnOut').onclick = () => { SENHA = ''; location.reload(); };
 el('fLang').addEventListener('click', e=>{ if (e.target.closest('button')) set('gErr',''); });
 applyLang();
 el('gPass').focus();
