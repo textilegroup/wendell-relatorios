@@ -85,13 +85,14 @@ header{
 }
 .brand h1{margin:0;font-size:19px;font-weight:700;letter-spacing:-.01em;line-height:1.1}
 .brand p{margin:1px 0 0;font-size:11px;opacity:.78;letter-spacing:.02em}
-.hdr-right{margin-left:auto;display:flex;align-items:center;gap:8px}
+.hdr-right{margin-left:auto;display:flex;align-items:center;gap:8px;flex-wrap:wrap;justify-content:flex-end}
 .hdr-chip{
   border:1px solid rgba(255,255,255,.35);border-radius:8px;padding:5px 10px;
   font-size:11.5px;font-weight:600;letter-spacing:.03em;background:rgba(255,255,255,.07);
-  color:#fff;cursor:pointer;
+  color:#fff;cursor:pointer;font-family:inherit;
 }
 .hdr-chip:hover{background:rgba(255,255,255,.16)}
+.hdr-chip[disabled]{opacity:.45;cursor:progress}
 .lang{display:flex;border:1px solid rgba(255,255,255,.35);border-radius:8px;overflow:hidden}
 .lang button{
   font:inherit;font-size:11.5px;font-weight:700;letter-spacing:.05em;padding:5px 10px;
@@ -100,9 +101,9 @@ header{
 .lang button[aria-pressed="true"]{background:#fff;color:var(--wine-deep)}
 
 /* ---------- shell ---------- */
-main{max-width:1500px;margin:0 auto;padding:12px 16px 40px;display:flex;flex-direction:column;gap:12px}
+main{max-width:1560px;margin:0 auto;padding:12px 16px 40px;display:flex;flex-direction:column;gap:12px}
 .card{background:var(--card);border:1px solid var(--line);border-radius:10px;box-shadow:var(--shadow)}
-.card-hd{display:flex;align-items:center;gap:10px;padding:9px 14px 8px;border-bottom:2px solid var(--wine-soft)}
+.card-hd{display:flex;align-items:center;gap:10px;padding:9px 14px 8px;border-bottom:2px solid var(--wine-soft);flex-wrap:wrap}
 .card-hd h2{margin:0;font-size:12px;font-weight:700;letter-spacing:.09em;text-transform:uppercase;color:var(--wine)}
 .card-hd .sub{margin-left:auto;font-size:11px;color:var(--ink-3);letter-spacing:.02em;text-align:right}
 .card-bd{padding:11px 14px 13px}
@@ -110,37 +111,66 @@ main{max-width:1500px;margin:0 auto;padding:12px 16px 40px;display:flex;flex-dir
 /* ---------- filters ---------- */
 .frow{display:flex;flex-wrap:wrap;gap:12px 18px;align-items:flex-end}
 .fgrp{display:flex;flex-direction:column;gap:5px;min-width:0}
-.fgrp>label{font-size:10px;font-weight:700;letter-spacing:.09em;text-transform:uppercase;color:var(--ink-3)}
+.fgrp>label,.fgrp>.lb{font-size:10px;font-weight:700;letter-spacing:.09em;text-transform:uppercase;color:var(--ink-3)}
 .pills{display:flex;background:var(--chip);border:1px solid var(--line);border-radius:8px;padding:2px;gap:2px}
 .pills button{
   font:inherit;font-size:12px;font-weight:600;border:0;background:transparent;color:var(--ink-2);
   padding:5px 11px;border-radius:6px;cursor:pointer;white-space:nowrap;
 }
 .pills button[aria-pressed="true"]{background:var(--wine);color:#fff}
-.pills button:focus-visible,select:focus-visible,input:focus-visible,.hdr-chip:focus-visible,
-.lang button:focus-visible,th[data-sort]:focus-visible{outline:2px solid var(--wine-soft);outline-offset:2px}
-select,input[type="search"]{
+.pills button:focus-visible,input:focus-visible,.hdr-chip:focus-visible,.ms-btn:focus-visible,
+.lang button:focus-visible,th[data-sort]:focus-visible,.tab:focus-visible{outline:2px solid var(--wine-soft);outline-offset:2px}
+input[type="search"]{
   font:inherit;font-size:12.5px;color:var(--ink);background:var(--card);
-  border:1px solid var(--line);border-radius:8px;padding:6px 9px;min-width:150px;
+  border:1px solid var(--line);border-radius:8px;padding:6px 9px;min-width:210px;
 }
-input[type="search"]{min-width:210px}
 .grow{flex:1 1 210px}
 
+/* ---------- multiselect ---------- */
+.ms{position:relative;min-width:172px}
+.ms-btn{
+  width:100%;display:flex;align-items:center;gap:6px;font:inherit;font-size:12.5px;color:var(--ink);
+  background:var(--card);border:1px solid var(--line);border-radius:8px;padding:6px 9px;cursor:pointer;text-align:left;
+}
+.ms-btn .lab{flex:1;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.ms-btn .cnt{
+  font-size:10px;font-weight:700;background:var(--wine);color:#fff;border-radius:20px;padding:1px 6px;flex:none;
+}
+.ms-btn .car{color:var(--ink-3);font-size:10px;flex:none}
+.ms-pop{
+  position:absolute;top:calc(100% + 4px);left:0;z-index:30;min-width:100%;max-width:280px;
+  background:var(--card);border:1px solid var(--line);border-radius:9px;box-shadow:0 8px 26px rgba(0,0,0,.18);padding:7px;
+}
+.ms-pop[hidden]{display:none}
+.ms-act{display:flex;gap:5px;margin-bottom:6px}
+.ms-act button{
+  flex:1;font:inherit;font-size:10.5px;font-weight:700;letter-spacing:.05em;text-transform:uppercase;
+  padding:4px;border:1px solid var(--line);background:var(--chip);color:var(--ink-2);border-radius:6px;cursor:pointer;
+}
+.ms-act button:hover{background:var(--sunk);color:var(--ink)}
+.ms-list{max-height:230px;overflow-y:auto;display:flex;flex-direction:column;gap:1px}
+.ms-list label{
+  display:flex;align-items:center;gap:7px;font-size:12px;padding:4px 6px;border-radius:6px;cursor:pointer;white-space:nowrap;
+}
+.ms-list label:hover{background:var(--sunk)}
+.ms-list input{accent-color:var(--wine);margin:0}
+
 /* ---------- kpis ---------- */
-.kpis{display:grid;grid-template-columns:repeat(5,1fr);gap:12px}
+.kpis{display:grid;grid-template-columns:repeat(6,1fr);gap:11px}
 .kpi{background:var(--card);border:1px solid var(--line);border-radius:10px;box-shadow:var(--shadow);
-  padding:11px 13px 12px;display:flex;flex-direction:column;gap:2px;min-width:0}
-.kpi .lab{font-size:10px;font-weight:700;letter-spacing:.09em;text-transform:uppercase;color:var(--ink-3)}
-.kpi .val{font-family:"Archivo Narrow",Archivo,Arial,sans-serif;font-size:26px;font-weight:700;
+  padding:10px 12px 11px;display:flex;flex-direction:column;gap:2px;min-width:0}
+.kpi .lab{font-size:9.5px;font-weight:700;letter-spacing:.08em;text-transform:uppercase;color:var(--ink-3)}
+.kpi .val{font-family:"Archivo Narrow",Archivo,Arial,sans-serif;font-size:25px;font-weight:700;
   letter-spacing:-.01em;line-height:1.05;color:var(--ink)}
-.kpi .val small{font-size:15px;font-weight:600;color:var(--ink-2);margin-right:.22em}
-.kpi .meta{font-size:11px;color:var(--ink-2);margin-top:2px}
+.kpi .val small{font-size:14px;font-weight:600;color:var(--ink-2);margin-right:.22em}
+.kpi .meta{font-size:10.5px;color:var(--ink-2);margin-top:2px}
 .delta{font-weight:700}
 .delta.up{color:var(--pos)} .delta.down{color:var(--neg)}
-.spark{display:flex;align-items:flex-end;gap:2px;height:22px;margin-top:5px}
+.spark{display:flex;align-items:flex-end;gap:2px;height:20px;margin-top:5px}
 .spark i{flex:1;background:var(--s1);opacity:.35;border-radius:2px 2px 0 0;min-height:2px}
 .spark i.on{opacity:1}
 .spark.c2 i{background:var(--s2)}
+.spark.c3 i{background:var(--s3)}
 
 /* ---------- charts ---------- */
 .two{display:grid;grid-template-columns:1.45fr 1fr;gap:12px;align-items:start}
@@ -152,7 +182,7 @@ input[type="search"]{min-width:210px}
 .legend i.hatch{background-image:repeating-linear-gradient(45deg,transparent 0 2px,rgba(255,255,255,.8) 2px 4px)}
 
 .bars{display:flex;align-items:flex-end;gap:6px;height:176px;position:relative}
-.bars.short{height:150px}
+.bars.short{height:142px}
 .grid-lines{position:absolute;inset:16px 0 24px;pointer-events:none}
 .grid-lines div{position:absolute;left:0;right:0;border-top:1px dashed var(--line-2)}
 .mcol{flex:1;display:flex;flex-direction:column;justify-content:flex-end;height:100%;position:relative;cursor:default}
@@ -179,6 +209,20 @@ input[type="search"]{min-width:210px}
 .hint{font-size:11px;color:var(--ink-3);margin-top:9px;line-height:1.45}
 code{font-size:.94em;background:var(--sunk);padding:1px 4px;border-radius:4px}
 
+/* ---------- tabs ---------- */
+.tabs{display:flex;gap:4px;flex-wrap:wrap;padding:8px 14px 0;border-bottom:1px solid var(--line)}
+.tab{
+  font:inherit;font-size:11px;font-weight:700;letter-spacing:.06em;text-transform:uppercase;
+  padding:7px 11px;border:1px solid transparent;border-bottom:0;background:transparent;color:var(--ink-3);
+  border-radius:8px 8px 0 0;cursor:pointer;margin-bottom:-1px;
+}
+.tab:hover{color:var(--ink-2);background:var(--sunk)}
+.tab[aria-selected="true"]{
+  background:var(--card);border-color:var(--line);color:var(--wine);
+  box-shadow:inset 0 2px 0 var(--wine);
+}
+.tab .n{font-weight:600;color:var(--ink-3);margin-left:4px}
+
 /* ---------- table ---------- */
 .tscroll{overflow-x:auto;-webkit-overflow-scrolling:touch}
 table{border-collapse:separate;border-spacing:0;width:100%;font-size:12px}
@@ -188,7 +232,8 @@ thead th{
   padding:7px 8px;text-align:right;white-space:nowrap;border-bottom:1px solid var(--line);
   cursor:pointer;user-select:none;
 }
-thead th:first-child{text-align:left;left:0;z-index:5;background:var(--sunk)}
+thead th:first-child{text-align:left;left:0;z-index:5}
+thead th.txt{text-align:left}
 thead th.cart{color:var(--s2)}
 thead th.cur{color:var(--wine)}
 thead th[aria-sort="desc"]::after{content:" ▾";font-size:9px}
@@ -202,7 +247,10 @@ tbody td.cli{
   font-family:"Archivo",Arial,sans-serif;font-weight:500;max-width:250px;overflow:hidden;
   text-overflow:ellipsis;border-right:1px solid var(--line);
 }
+tbody td.txt{text-align:left;font-family:Archivo,Arial,sans-serif;color:var(--ink-2);font-size:11.5px}
 tbody td.cli.novo{box-shadow:inset 3px 0 0 var(--pos);padding-left:11px}
+tbody td.cli.rk{padding-left:11px}
+tbody td.cli .pos{color:var(--ink-3);font-weight:600;margin-right:6px;font-size:11px}
 tbody tr:hover td,tbody tr:hover td.cli{background:var(--sunk)}
 td.zero{color:var(--ink-3);font-weight:400}
 td.cart{color:var(--s2);font-weight:700;background:color-mix(in srgb,var(--s2) 8%,transparent)}
@@ -210,6 +258,7 @@ tbody tr:hover td.cart{background:color-mix(in srgb,var(--s2) 14%,transparent)}
 td.cart.zero{color:var(--ink-3);font-weight:400;background:none}
 td.cur{font-weight:700;color:var(--ink)}
 td.tot{font-weight:700;border-left:1px solid var(--line)}
+td.warn{color:var(--neg);font-weight:700}
 tfoot td{
   padding:7px 8px;text-align:right;font-weight:700;font-family:"Archivo Narrow",Archivo,sans-serif;
   border-top:2px solid var(--wine-soft);background:var(--sunk);white-space:nowrap;
@@ -237,26 +286,87 @@ tfoot td:first-child{
 .empty{padding:26px 14px;text-align:center;color:var(--ink-3);font-size:12.5px}
 footer{font-size:10.5px;color:var(--ink-3);text-align:center;padding:2px 0 0;line-height:1.6}
 
-@media (max-width:1200px){.kpis{grid-template-columns:repeat(3,1fr)}}
+/* toast */
+#toast{
+  position:fixed;left:50%;bottom:22px;transform:translateX(-50%);z-index:95;
+  background:var(--ink);color:var(--bg);font-size:12.5px;font-weight:500;
+  padding:10px 16px;border-radius:9px;box-shadow:0 8px 26px rgba(0,0,0,.28);
+  max-width:min(520px,92vw);text-align:center;opacity:0;pointer-events:none;transition:opacity .18s;
+}
+#toast.on{opacity:1}
+#toast.err{background:var(--neg);color:#fff}
+.pfilters{display:none}
+#pmore{display:none}
+
+@media (max-width:1340px){.kpis{grid-template-columns:repeat(3,1fr)}}
 @media (max-width:900px){.two{grid-template-columns:1fr}.kpis{grid-template-columns:repeat(2,1fr)}}
 @media (max-width:560px){
   body{font-size:12.5px}
   main{padding:10px 10px 30px;gap:10px}
   .brand h1{font-size:16px}
   .logo{width:32px;height:32px;font-size:11px}
-  .kpi .val{font-size:22px}
+  .kpi .val{font-size:21px}
   .card-bd{padding:10px 11px 12px}
   .frow{gap:10px 12px}
-  select,input[type="search"]{min-width:0;width:100%}
+  input[type="search"]{min-width:0;width:100%}
   .fgrp{flex:1 1 46%}
   .fgrp.grow,.fgrp:has(.pills){flex:1 1 100%}
+  .ms{min-width:0;width:100%}
   .pills{width:100%}
   .pills button{flex:1;padding:6px 6px;font-size:11.5px}
-  tbody td.cli{max-width:132px;font-size:11px}
-  .bars{height:132px}.bars.short{height:120px}
+  tbody td.cli{max-width:126px;font-size:11px}
+  .bars{height:132px}.bars.short{height:118px}
   .mval{font-size:9px}.mlab{font-size:9.5px}
+  .tabs{padding:7px 8px 0;gap:3px}
+  .tab{font-size:10px;padding:6px 8px;letter-spacing:.04em}
 }
 @media (prefers-reduced-motion:reduce){*{transition:none!important}}
+
+/* ---------- impressão: 1 página paisagem ---------- */
+@media print{
+  @page{size:A4 landscape;margin:7mm}
+  html,body{background:#fff!important}
+  header{position:static;-webkit-print-color-adjust:exact;print-color-adjust:exact}
+  .hdr-right,.no-print,#toast,#tip,.hint,.tabs,#newCard{display:none!important}
+  .pfilters{display:block;font-size:9px;color:#444;padding:5px 14px 0}
+  main{padding:4px 7px 0;gap:5px;max-width:none}
+  .two{grid-template-columns:1fr 1fr 1fr;gap:6px}
+  .stackcol{display:contents}
+  .legend{font-size:8px;gap:7px}
+  .mval{font-size:8px;min-height:11px}
+  .mlab{font-size:8px;padding-top:3px}
+  .hb{font-size:9px;gap:6px;grid-template-columns:32px 1fr auto}
+  .hb .track{height:11px}
+  thead th{font-size:8px;padding:4px 5px}
+  tfoot td{font-size:9px;padding:4px 5px}
+  tbody td{font-size:9px}
+  tbody td.cli{max-width:210px;font-size:9px}
+  footer{font-size:7.5px;padding-top:3px}
+  .card-hd h2{font-size:9.5px}
+  .kpi .lab{font-size:7.5px}
+  .kpi .meta{font-size:8px}
+  .card,.kpi{box-shadow:none}
+  .kpi{break-inside:avoid}
+  tr{break-inside:avoid}
+  .kpis{gap:6px}
+  .kpi{padding:6px 9px 7px}
+  .kpi .val{font-size:16px}
+  .kpi .spark{display:none}
+  .card-bd{padding:7px 9px 8px}
+  .card-hd{padding:6px 10px 5px}
+  .bars{height:88px}.bars.short{height:76px}
+  .tscroll{overflow:visible}
+  thead th{position:static}
+  /* impede o Chrome de tratar o tfoot como rodape repetido da pagina */
+  tfoot{display:table-row-group}
+  tbody td.cli,tfoot td:first-child,thead th:first-child{position:static}
+  tbody td{padding:2px 6px}
+  tbody tr.pcut{display:none}
+  #pmore{display:table-row}
+  *{-webkit-print-color-adjust:exact;print-color-adjust:exact}
+}
+#pmore td{text-align:center;font-family:Archivo,sans-serif;font-size:9px;color:var(--ink-3);
+  text-transform:uppercase;letter-spacing:.06em;padding:4px}
 </style>
 </head>
 <body>
@@ -278,6 +388,10 @@ footer{font-size:10.5px;color:var(--ink-3);text-align:center;padding:2px 0 0;lin
   <div class="logo">WGI</div>
   <div class="brand"><h1 id="hTitle"></h1><p id="hSub"></p></div>
   <div class="hdr-right">
+    <input type="file" id="fFile" accept=".xlsx,.xlsm" hidden>
+    <button class="hdr-chip" id="btnImport" type="button"></button>
+    <button class="hdr-chip" id="btnSave" type="button"></button>
+    <button class="hdr-chip" id="btnPdf" type="button"></button>
     <div class="lang" id="fLang">
       <button type="button" data-v="pt">PT</button>
       <button type="button" data-v="en">EN</button>
@@ -286,21 +400,40 @@ footer{font-size:10.5px;color:var(--ink-3);text-align:center;padding:2px 0 0;lin
     <button class="hdr-chip" id="themeBtn" type="button"></button>
   </div>
 </header>
+<div class="pfilters" id="pfilters"></div>
 
-<main>
-  <section class="card">
+<div id="pwrap"><main id="pscale">
+  <section class="card no-print">
     <div class="card-hd"><h2 id="lFilters"></h2><span class="sub" id="fcount"></span></div>
     <div class="card-bd">
       <div class="frow">
-        <div class="fgrp"><label for="fRep" id="lRep"></label><select id="fRep"></select></div>
-        <div class="fgrp"><label for="fUf" id="lState"></label><select id="fUf"></select></div>
-        <div class="fgrp"><label id="lGeo"></label>
+        <div class="fgrp"><span class="lb" id="lRep"></span>
+          <div class="ms" id="msRep">
+            <button class="ms-btn" type="button" aria-expanded="false" aria-haspopup="true">
+              <span class="lab"></span><span class="cnt" hidden></span><span class="car">▾</span></button>
+            <div class="ms-pop" hidden>
+              <div class="ms-act"><button type="button" data-act="all"></button><button type="button" data-act="none"></button></div>
+              <div class="ms-list"></div>
+            </div>
+          </div>
+        </div>
+        <div class="fgrp"><span class="lb" id="lState"></span>
+          <div class="ms" id="msUf">
+            <button class="ms-btn" type="button" aria-expanded="false" aria-haspopup="true">
+              <span class="lab"></span><span class="cnt" hidden></span><span class="car">▾</span></button>
+            <div class="ms-pop" hidden>
+              <div class="ms-act"><button type="button" data-act="all"></button><button type="button" data-act="none"></button></div>
+              <div class="ms-list"></div>
+            </div>
+          </div>
+        </div>
+        <div class="fgrp"><span class="lb" id="lGeo"></span>
           <div class="pills" id="fGeo">
             <button type="button" data-v="wh" id="lGeoWh"></button>
             <button type="button" data-v="uf" id="lGeoUf"></button>
           </div>
         </div>
-        <div class="fgrp"><label id="lCur"></label>
+        <div class="fgrp"><span class="lb" id="lCur"></span>
           <div class="pills" id="fCur">
             <button type="button" data-v="BRL">R$</button>
             <button type="button" data-v="USD">US$</button>
@@ -322,6 +455,8 @@ footer{font-size:10.5px;color:var(--ink-3);text-align:center;padding:2px 0 0;lin
       <span class="meta" id="kNewMeta"></span><div class="spark" id="kNewSpark"></div></div>
     <div class="kpi"><span class="lab" id="lK5"></span><span class="val" id="kCom"></span>
       <span class="meta" id="kComMeta"></span><div class="spark c2" id="kComSpark"></div></div>
+    <div class="kpi"><span class="lab" id="lK6"></span><span class="val" id="kMg"></span>
+      <span class="meta" id="kMgMeta"></span><div class="spark c3" id="kMgSpark"></div></div>
   </section>
 
   <section class="two">
@@ -356,19 +491,22 @@ footer{font-size:10.5px;color:var(--ink-3);text-align:center;padding:2px 0 0;lin
 
   <section class="card">
     <div class="card-hd"><h2 id="lTable"></h2><span class="sub" id="tcount"></span></div>
+    <div class="tabs" id="tabs" role="tablist"></div>
     <div class="tscroll">
-      <table><thead><tr id="thr"></tr></thead><tbody id="tb"></tbody><tfoot><tr id="tf"></tr></tfoot></table>
+      <table><thead><tr id="thr"></tr></thead><tbody id="tb"></tbody>
+        <tfoot><tr id="pmore"><td id="pmoreTd"></td></tr><tr id="tf"></tr></tfoot></table>
     </div>
   </section>
 
-  <section class="card">
+  <section class="card no-print" id="newCard">
     <div class="card-hd"><h2 id="lNew"></h2><span class="sub" id="newSub"></span></div>
     <div class="card-bd"><div class="newlist" id="newList"></div></div>
   </section>
 
   <footer id="foot"></footer>
-</main>
+</main></div>
 <div id="tip" role="status" aria-live="polite"></div>
+<div id="toast" role="status" aria-live="polite"></div>
 </div>
 
 <script>
@@ -423,39 +561,61 @@ const UF_CLIENTE = {
   "ZEAIT IND E COM DE CONFECÇÕES LTDA": "",
 };
 
-const DATA = {"meses":["JAN","FEV","MAR","ABR","MAI","JUN","JUL","AGO"],"atual":"AGO","ano":2026,"fx":5.1,"rows":[["AGO","ARTHUR","SP","I","TUTTO PRINT INDUSTRIA E COMERCIO LTDA",1124.0,200.0,"000057","2026-08-24",0.0,null],["AGO","ARTHUR","SP","I","TUTTO PRINT INDUSTRIA E COMERCIO LTDA",6744.0,1200.0,"000057","2026-08-24",0.0,null],["AGO","ARTHUR","SP","T","ARMARINHOS PALMARES DE ASSIS LTDA",2866.5,273.0,"000056","2026-08-24",0.0,null],["AGO","ALICE","SC","T","LMX CONFECCOES LTDA",1490.0,200.0,"602452","2026-08-24",0.02,null],["AGO","SIMONE","SC","I","AVERARA CONFECCOES LTDA",6000.0,2000.0,"602451","2026-08-19",0.02,0.1692],["AGO","MARCELLO","SP","T","FERNANDES CONFECÇÃO LTDA",449.0,100.0,"","2026-08-17",0.04,null],["AGO","MARCELLO","SC","I","ARABELLA CONFECCOES LTDA",930.0,200.0,"602453","2026-08-17",0.04,0.428189],["AGO","MARCELLO","SC","I","ARABELLA CONFECCOES LTDA",1959.0,300.0,"602453","2026-08-17",0.04,0.401062],["AGO","MARCELLO","SC","I","ARABELLA CONFECCOES LTDA",1626.0,300.0,"602453","2026-08-17",0.04,0.41179],["AGO","MARCELLO","SC","I","ARABELLA CONFECCOES LTDA",1560.0,300.0,"602453","2026-08-17",0.04,0.430241],["AGO","ARTHUR","SP","I","TUTTO PRINT INDUSTRIA E COMERCIO LTDA",1124.0,200.0,"000055","2026-08-18",0.0,0.318883],["AGO","ARTHUR","SP","I","TUTTO PRINT INDUSTRIA E COMERCIO LTDA",2244.0,300.0,"000055","2026-08-18",0.0,0.26153],["AGO","SIMONE","SC","I","MODAS LAVIDA LTDA",3200.0,1000.0,"602449","2026-08-13",0.02,0.1793],["AGO","ARTHUR","SP","I","CONFECCOES DALANT LTDA",2550.0,500.0,"000053","2026-08-07",0.0,null],["AGO","ANDRE CANO","SC","I","T. B. DE ANDRADE CONFECCAO LTDA",364.0,100.0,"602448","2026-08-10",0.02,0.2629],["AGO","ANDRE CANO","SC","I","T. B. DE ANDRADE CONFECCAO LTDA",2100.0,600.0,"602448","2026-08-10",0.02,0.2694],["AGO","ARTHUR","SP","I","MILK' N ROSES CONFECCOES LTDA",3325.0,700.0,"000051","2026-08-07",0.0,null],["AGO","ARTHUR","SP","I","MILK' N ROSES CONFECCOES LTDA",1425.0,300.0,"000051","2026-08-07",0.0,null],["AGO","ARTHUR","SP","I","F. F. FASHION FACTORY LTDA",900.0,500.0,"000050","2026-08-06",0.0,null],["AGO","SIMONE","SP","I","OY MODAS E PRODUCOES FOTOGRAFICAS E TEATRAIS LTDA",948.0,200.0,"000049","2026-08-04",0.02,null],["AGO","MARCELLO","SP","I","VIDA-LOKA CONFECCOES LTDA",1413.0,300.0,"000048","2026-08-03",0.06,null],["JUL","BRUNA","SP","I","LUPO NORDESTE LTDA",7010.0,1000.0,"000047","2026-07-30",0.0,null],["AGO","SIMONE","SP","I","COIMBRA SP INDUSTRIA E COMERCIO LTDA",980.0,200.0,"000046","2026-08-10",0.02,null],["JUL","BRUNA","SP","I","LUPO NORDESTE LTDA",7100.0,1000.0,"000045","2026-07-23",0.0,null],["JUL","ANDRE CANO","SP","I","ZEAIT IND E COM DE CONFECÇÕES LTDA",837.1,100.0,"000042","2026-07-20",0.02,null],["JUL","BRUNA","SP","I","MILK' N ROSES CONFECCOES LTDA",1425.0,300.0,"000041","2026-07-20",0.0,null],["JUL","BRUNA","SP","I","MILK' N ROSES CONFECCOES LTDA",3325.0,700.0,"000041","2026-07-20",0.0,null],["JUL","MARCELLO","SC","I","ARABELLA CONFECCOES LTDA",864.0,200.0,"602447","2026-07-16",0.04,0.192959],["JUL","MARCELLO","SC","I","ARABELLA CONFECCOES LTDA",930.0,200.0,"602447","2026-07-16",0.04,0.421819],["JUL","MARCELLO","SC","I","ARABELLA CONFECCOES LTDA",1084.0,200.0,"602447","2026-07-16",0.04,0.41179],["JUL","MARCELLO","SC","I","ARABELLA CONFECCOES LTDA",520.0,100.0,"602447","2026-07-16",0.04,0.411585],["JUL","BRUNA","SP","I","CLIO CONFECCOES IMPORTACAO E EXPORTACAO LTDA",3420.0,1000.0,"000040","2026-07-14",0.0,null],["JUL","ANDRE CANO","SC","I","ZEAIT IND E COM DE CONFECÇÕES LTDA",2612.0,400.0,"602436","2026-07-13",0.02,0.309179],["JUL","ANDRE CANO","SC","I","ZEAIT IND E COM DE CONFECÇÕES LTDA",1350.0,200.0,"602436","2026-07-13",0.02,0.303793],["JUL","ANDRE CANO","SC","I","JOAO ROBERTO PASSETTI",1456.0,400.0,"602435","2026-07-08",0.02,0.137684],["JUL","ANDRE CANO","SC","I","JOAO ROBERTO PASSETTI",3500.0,1000.0,"602435","2026-07-08",0.02,0.308343],["JUL","BRUNA","SP","I","MILK' N ROSES CONFECCOES LTDA",2375.0,500.0,"000037","2026-07-07",0.0,null],["JUL","BRUNA","SP","I","MILK' N ROSES CONFECCOES LTDA",2375.0,500.0,"000037","2026-07-07",0.0,null],["JUL","BRUNA","SP","I","TUTTO PRINT INDUSTRIA E COMERCIO LTDA",966.0,200.0,"000036","2026-07-03",0.0,null],["JUL","BRUNA","SP","I","TUTTO PRINT INDUSTRIA E COMERCIO LTDA",1932.0,400.0,"000036","2026-07-03",0.0,null],["JUN","BRUNA","SC","I","LMX CONFECCOES LTDA",1490.0,200.0,"602412","2026-06-30",0.0,0.331603],["JUN","ANDRE CANO","SP","I","ELVA CONFECCOES LTDA",0.0,100.0,"000034","2026-06-25",0.0,0.0],["JUN","ANDRE CANO","SP","I","T. B. DE ANDRADE CONFECCAO LTDA",830.0,200.0,"000033","2026-06-25",0.02,0.00921],["JUN","ANDRE CANO","SP","I","T. B. DE ANDRADE CONFECCAO LTDA",2450.0,700.0,"000033","2026-06-25",0.02,0.181293],["JUN","BRUNA","SP","I","YANN COMERCIO E INDUSTRIA LTDA",165.8,10.0,"000031","2026-06-18",0.0,0.352111],["JUN","BRUNA","SP","I","MILK' N ROSES CONFECCOES LTDA",2375.0,500.0,"000030","2026-06-19",0.0,0.219939],["JUN","BRUNA","SP","I","MILK' N ROSES CONFECCOES LTDA",2375.0,500.0,"000030","2026-06-19",0.0,0.240992],["JUN","BRUNA","SP","I","TUTTO PRINT INDUSTRIA E COMERCIO LTDA",496.0,100.0,"000027","2026-06-18",0.0,0.346973],["JUN","BRUNA","SP","I","TUTTO PRINT INDUSTRIA E COMERCIO LTDA",421.0,100.0,"000027","2026-06-18",0.0,0.280967],["JUN","BRUNA","SP","I","TUTTO PRINT INDUSTRIA E COMERCIO LTDA",1995.0,500.0,"000027","2026-06-18",0.0,0.282997],["JUN","ARTHUR","SP","I","J H K CONFECCOES LTDA",1026.0,300.0,"000029","2026-06-18",0.0,0.168127],["JUN","ARTHUR","SC","I","J H K CONFECCOES LTDA",2100.0,700.0,"602386","2026-06-18",0.0,0.214533],["JUN","ARTHUR","SP","I","CLIO CONFECCOES IMPORTACAO E EXPORTACAO LTDA",2394.0,700.0,"000026","2026-06-15",0.0,0.168127],["JUN","ARTHUR","SP","I","CLIO CONFECCOES IMPORTACAO E EXPORTACAO LTDA",1026.0,300.0,"000026","2026-06-15",0.0,-0.147663],["JUN","MARCELLO","SC","I","DVORA HOUSE LTDA",542.0,100.0,"602372","2026-06-12",0.04,0.41179],["JUN","MARCELLO","SC","I","DVORA HOUSE LTDA",2600.0,500.0,"602372","2026-06-12",0.04,0.3932],["JUN","ARTHUR","SP","I","CONFECCOES DALANT LTDA",510.0,100.0,"000024","2026-06-12",0.0,-0.044085],["JUN","BRUNA","SC","I","SAGO PARGO CONFECCOES LTDA",6600.0,2200.0,"602360","2026-06-08",0.0,0.214533],["JUN","BRUNA","SP","I","SAGO PARGO CONFECCOES LTDA",2736.0,800.0,"000023","2026-06-08",0.0,-0.147663],["JUN","BRUNA","SP","I","MILK' N ROSES CONFECCOES LTDA",4750.0,1000.0,"000022","2026-06-08",0.0,0.240992],["JUN","SIMONE","SC","I","AVERARA CONFECCOES LTDA",3000.0,1000.0,"602340","2026-06-08",0.02,0.214533],["JUN","BRUNA","SP","I","IMAPER INDUSTRIA E COMERCIO LTDA",1458.73,91.0,"000021","2026-06-02",0.0,0.354256],["JUN","BRUNA","SP","I","MILK' N ROSES CONFECCOES LTDA",2375.0,500.0,"000020","2026-06-01",0.0,0.240992],["JUN","BRUNA","SP","I","MILK' N ROSES CONFECCOES LTDA",1596.0,400.0,"000020","2026-06-01",0.0,0.250416],["JUN","BRUNA","SP","I","MILK' N ROSES CONFECCOES LTDA",1197.0,300.0,"000020","2026-06-01",0.0,-0.020261],["JUN","ROSIMERE","SP","I","LARISSA VICTOR DE ARAUJO",756.0,100.0,"000018","2026-06-01",0.06,null],["JUN","SIMONE","SC","I","AVERARA CONFECCOES LTDA",3000.0,1000.0,"602339","2026-06-01",0.02,null],["JUN","ANDRE COLARES","SP","I","RAFFAEL ANDRADE PESSOA",990.0,200.0,"000015","2026-06-01",0.02,null],["JUN","ANDRE COLARES","SP","I","TARC DUBLAGENS INDUSTRIAIS LTDA",192.0,100.0,"000019","2026-06-01",0.03,null],["JUN","ANDRE COLARES","SP","I","TARC DUBLAGENS INDUSTRIAIS LTDA",230.0,100.0,"000019","2026-06-01",0.03,null],["JUN","ANDRE COLARES","SP","I","TARC DUBLAGENS INDUSTRIAIS LTDA",350.0,100.0,"000019","2026-06-01",0.02,null],["MAI","ANDRE CANO","SC","I","JOAO ROBERTO PASSETTI",1456.0,400.0,"602344","2026-05-26",0.02,null],["MAI","ANDRE CANO","SC","I","JOAO ROBERTO PASSETTI",3500.0,1000.0,"602344","2026-05-26",0.02,null],["MAI","FERNANDA","SP","I","KFK INDUSTRIA E COMERCIO DE CONFECCOES LTDA",2450.0,700.0,"000014","2026-05-21",0.02,null],["MAI","FERNANDA","SP","I","KFK INDUSTRIA E COMERCIO DE CONFECCOES LTDA",2450.0,700.0,"000014","2026-05-21",0.02,null],["MAI","ANDRE CANO","SC","I","T. B. DE ANDRADE CONFECCAO LTDA",2450.0,700.0,"602342","2026-05-21",0.02,null],["MAI","ANDRE CANO","SC","I","T. B. DE ANDRADE CONFECCAO LTDA",728.0,200.0,"602342","2026-05-21",0.02,null],["MAI","SIMONE","SC","I","HALAVE CONFECCOES LTDA",1035.0,300.0,"602343","2026-05-21",0.02,null],["MAI","SIMONE","SC","I","HALAVE CONFECCOES LTDA",1035.0,300.0,"602343","2026-05-21",0.02,null],["MAI","SIMONE","SC","I","HALAVE CONFECCOES LTDA",576.0,300.0,"602343","2026-05-21",0.03,null],["MAI","SIMONE","SC","I","HALAVE CONFECCOES LTDA",576.0,300.0,"602343","2026-05-21",0.03,null],["MAI","SIMONE","SC","I","AVERARA CONFECCOES LTDA",3000.0,1000.0,"602338","2026-05-20",0.02,null],["MAI","BRUNA","SC","I","FLOR LINDA CONFECCOES LTDA",330.0,100.0,"602328","2026-05-18",0.0,null],["MAI","BRUNA","SC","I","FLOR LINDA CONFECCOES LTDA",330.0,100.0,"602328","2026-05-18",0.0,null],["MAI","BRUNA","SP","I","KYCO. LTDA",2544.0,400.0,"000012","2026-05-15",0.0,0.352641],["MAI","ROSIMERE","SC","I","M.R.T. COMERCIO VAREJISTA DE ARTIGOS DO VESTUARIO E ACESSORIOS LTDA",1230.0,200.0,"602293","2026-05-05",0.06,null],["MAI","ROSIMERE","SP","I","EPELBAUM COMERCIO DE PRODUTOS LTDA",2259.0,300.0,"000009","2026-05-04",0.04,null],["MAI","ROSIMERE","SP","I","EPELBAUM COMERCIO DE PRODUTOS LTDA",2358.0,300.0,"000009","2026-05-04",0.04,null],["MAI","ROSIMERE","SP","I","EPELBAUM COMERCIO DE PRODUTOS LTDA",1000.0,200.0,"000009","2026-05-04",0.06,null],["MAI","ROSIMERE","SP","I","EPELBAUM COMERCIO DE PRODUTOS LTDA",1052.0,200.0,"000009","2026-05-04",0.06,null],["ABR","MARCELLO","SC","I","ARABELLA CONFECCOES LTDA",1560.0,300.0,"602250","2026-04-17",0.04,0.411585],["ABR","MARCELLO","SC","I","ARABELLA CONFECCOES LTDA",1626.0,300.0,"602250","2026-04-17",0.04,0.41179],["ABR","ROSIMERE","SP","I","EPELBAUM COMERCIO DE PRODUTOS LTDA",2001.0,300.0,"000004","2026-04-13",0.06,0.467902],["ABR","ROSIMERE","SP","I","VIENAS COMERCIO DE TECIDOS LTDA",628.0,100.0,"000006","2026-04-13",0.06,0.484257],["ABR","ROSIMERE","SP","I","VIENAS COMERCIO DE TECIDOS LTDA",2900.0,200.0,"000006","2026-04-13",0.05,0.418097],["ABR","ROSIMERE","SP","I","VIENAS COMERCIO DE TECIDOS LTDA",1438.0,100.0,"000006","2026-04-13",0.05,0.419183],["ABR","BRUNA","SP","I","LUPO NORDESTE LTDA",7010.0,1000.0,"000007","2026-04-13",0.0,0.590173],["ABR","SIMONE","SC","I","ZAYAN COMERCIO E CONFECCAO LTDA",2828.0,700.0,"602235","2026-04-09",0.03,0.383576],["ABR","SIMONE","SC","I","ZAYAN COMERCIO E CONFECCAO LTDA",2975.0,700.0,"602235","2026-04-09",0.03,0.38414],["ABR","BRUNA","SP","I","SANTA AMELIA COMERCIO DE ARMARINHOS E TECIDOS LTDA",3552.64,182.0,"000002","2026-04-09",0.0,0.415482],["ABR","BRUNA","SP","I","KYCO. LTDA",3714.0,600.0,"000005","2026-04-09",0.0,0.358043],["ABR","BRUNA","SP","I","KYCO. LTDA",2544.0,400.0,"000005","2026-04-09",0.0,0.352641],["ABR","BRUNA","SP","I","M L DA SILVA CONFECCOES",1954.68,91.0,"000003","2026-04-08",0.0,0.448992],["ABR","BRUNA","SP","I","M L DA SILVA CONFECCOES",2240.0,100.0,"000003","2026-04-08",0.0,0.450846],["MAR","BRUNA","SC","I","LABALABA BORDADOS LTDA",695.0,100.0,"602229","2026-03-25",0.0,0.322567],["MAR","BRUNA","SC","I","LABALABA BORDADOS LTDA",730.0,100.0,"602229","2026-03-25",0.0,0.326342],["MAR","BRUNA","SP","I","LUPO NORDESTE LTDA",7010.0,1000.0,"000001","2026-03-24",0.0,0.570201],["MAR","RICARDO","SC","I","TECIDOS N.A. COMERCIAL LTDA.",1254.0,100.0,"602203","2026-03-16",0.03,0.352859],["MAR","RICARDO","SC","I","TECIDOS N.A. COMERCIAL LTDA.",1264.0,100.0,"602203","2026-03-16",0.03,0.351422],["FEV","ADRIANA","SC","I","RUBINELLA INDUSTRIA DE MODAS LTDA",1974.0,300.0,"602177","2026-02-27",0.04,0.235942],["FEV","ADRIANA","SC","I","RUBINELLA INDUSTRIA DE MODAS LTDA",1406.0,200.0,"602177","2026-02-27",0.05,0.4167],["FEV","ADRIANA","SC","I","RUBINELLA INDUSTRIA DE MODAS LTDA",1466.0,200.0,"602177","2026-02-27",0.05,0.4167],["FEV","RICARDO","SC","I","TECIDOS N.A. COMERCIAL LTDA.",1468.0,200.0,"602150","2026-02-11",0.06,0.323516],["FEV","RICARDO","SC","I","TECIDOS N.A. COMERCIAL LTDA.",762.0,100.0,"602150","2026-02-11",0.06,0.322644],["FEV","RICARDO","SC","I","TECIDOS N.A. COMERCIAL LTDA.",926.0,200.0,"602150","2026-02-11",0.05,0.4167],["FEV","RICARDO","SC","I","TECIDOS N.A. COMERCIAL LTDA.",487.0,100.0,"602150","2026-02-11",0.05,0.4167],["JAN","SIMONE","SC","I","WARDY CONFECCOES LTDA",8250.0,1500.0,"602122","2026-01-19",0.04,0.3833]],"reps":["ADRIANA","ALICE","ANDRE CANO","ANDRE COLARES","ARTHUR","BRUNA","FERNANDA","MARCELLO","RICARDO","ROSIMERE","SIMONE"],"clientes":["ARABELLA CONFECCOES LTDA","ARMARINHOS PALMARES DE ASSIS LTDA","AVERARA CONFECCOES LTDA","CLIO CONFECCOES IMPORTACAO E EXPORTACAO LTDA","COIMBRA SP INDUSTRIA E COMERCIO LTDA","CONFECCOES DALANT LTDA","DVORA HOUSE LTDA","ELVA CONFECCOES LTDA","EPELBAUM COMERCIO DE PRODUTOS LTDA","F. F. FASHION FACTORY LTDA","FERNANDES CONFECÇÃO LTDA","FLOR LINDA CONFECCOES LTDA","HALAVE CONFECCOES LTDA","IMAPER INDUSTRIA E COMERCIO LTDA","J H K CONFECCOES LTDA","JOAO ROBERTO PASSETTI","KFK INDUSTRIA E COMERCIO DE CONFECCOES LTDA","KYCO. LTDA","LABALABA BORDADOS LTDA","LARISSA VICTOR DE ARAUJO","LMX CONFECCOES LTDA","LUPO NORDESTE LTDA","M L DA SILVA CONFECCOES","M.R.T. COMERCIO VAREJISTA DE ARTIGOS DO VESTUARIO E ACESSORIOS LTDA","MILK' N ROSES CONFECCOES LTDA","MODAS LAVIDA LTDA","OY MODAS E PRODUCOES FOTOGRAFICAS E TEATRAIS LTDA","RAFFAEL ANDRADE PESSOA","RUBINELLA INDUSTRIA DE MODAS LTDA","SAGO PARGO CONFECCOES LTDA","SANTA AMELIA COMERCIO DE ARMARINHOS E TECIDOS LTDA","T. B. DE ANDRADE CONFECCAO LTDA","TARC DUBLAGENS INDUSTRIAIS LTDA","TECIDOS N.A. COMERCIAL LTDA.","TUTTO PRINT INDUSTRIA E COMERCIO LTDA","VIDA-LOKA CONFECCOES LTDA","VIENAS COMERCIO DE TECIDOS LTDA","WARDY CONFECCOES LTDA","YANN COMERCIO E INDUSTRIA LTDA","ZAYAN COMERCIO E CONFECCAO LTDA","ZEAIT IND E COM DE CONFECÇÕES LTDA"]};
-const M = DATA.meses, CUR = DATA.atual, FX = DATA.fx;
-const COLS = [...M].reverse();
-const R = DATA.rows.map(r => ({mes:r[0],rep:r[1],wh:r[2],st:r[3],cli:r[4],brl:r[5],
-                               qtd:r[6],ped:r[7],dt:r[8],com:r[9],mg:r[10]}));
+/*DATA_START*/const DATA0 = {"meses":["JAN","FEV","MAR","ABR","MAI","JUN","JUL","AGO"],"atual":"AGO","ano":2026,"fx":5.1,"rows":[["AGO","ARTHUR","SP","I","TUTTO PRINT INDUSTRIA E COMERCIO LTDA",1124.0,200.0,"000057","2026-08-24",0.0,null],["AGO","ARTHUR","SP","I","TUTTO PRINT INDUSTRIA E COMERCIO LTDA",6744.0,1200.0,"000057","2026-08-24",0.0,null],["AGO","ARTHUR","SP","T","ARMARINHOS PALMARES DE ASSIS LTDA",2866.5,273.0,"000056","2026-08-24",0.0,null],["AGO","ALICE","SC","T","LMX CONFECCOES LTDA",1490.0,200.0,"602452","2026-08-24",0.02,null],["AGO","SIMONE","SC","I","AVERARA CONFECCOES LTDA",6000.0,2000.0,"602451","2026-08-19",0.02,0.1692],["AGO","MARCELLO","SP","T","FERNANDES CONFECÇÃO LTDA",449.0,100.0,"","2026-08-17",0.04,null],["AGO","MARCELLO","SC","I","ARABELLA CONFECCOES LTDA",930.0,200.0,"602453","2026-08-17",0.04,0.428189],["AGO","MARCELLO","SC","I","ARABELLA CONFECCOES LTDA",1959.0,300.0,"602453","2026-08-17",0.04,0.401062],["AGO","MARCELLO","SC","I","ARABELLA CONFECCOES LTDA",1626.0,300.0,"602453","2026-08-17",0.04,0.41179],["AGO","MARCELLO","SC","I","ARABELLA CONFECCOES LTDA",1560.0,300.0,"602453","2026-08-17",0.04,0.430241],["AGO","ARTHUR","SP","I","TUTTO PRINT INDUSTRIA E COMERCIO LTDA",1124.0,200.0,"000055","2026-08-18",0.0,0.318883],["AGO","ARTHUR","SP","I","TUTTO PRINT INDUSTRIA E COMERCIO LTDA",2244.0,300.0,"000055","2026-08-18",0.0,0.26153],["AGO","SIMONE","SC","I","MODAS LAVIDA LTDA",3200.0,1000.0,"602449","2026-08-13",0.02,0.1793],["AGO","ARTHUR","SP","I","CONFECCOES DALANT LTDA",2550.0,500.0,"000053","2026-08-07",0.0,null],["AGO","ANDRE CANO","SC","I","T. B. DE ANDRADE CONFECCAO LTDA",364.0,100.0,"602448","2026-08-10",0.02,0.2629],["AGO","ANDRE CANO","SC","I","T. B. DE ANDRADE CONFECCAO LTDA",2100.0,600.0,"602448","2026-08-10",0.02,0.2694],["AGO","ARTHUR","SP","I","MILK' N ROSES CONFECCOES LTDA",3325.0,700.0,"000051","2026-08-07",0.0,null],["AGO","ARTHUR","SP","I","MILK' N ROSES CONFECCOES LTDA",1425.0,300.0,"000051","2026-08-07",0.0,null],["AGO","ARTHUR","SP","I","F. F. FASHION FACTORY LTDA",900.0,500.0,"000050","2026-08-06",0.0,null],["AGO","SIMONE","SP","I","OY MODAS E PRODUCOES FOTOGRAFICAS E TEATRAIS LTDA",948.0,200.0,"000049","2026-08-04",0.02,null],["AGO","MARCELLO","SP","I","VIDA-LOKA CONFECCOES LTDA",1413.0,300.0,"000048","2026-08-03",0.06,null],["JUL","BRUNA","SP","I","LUPO NORDESTE LTDA",7010.0,1000.0,"000047","2026-07-30",0.0,null],["AGO","SIMONE","SP","I","COIMBRA SP INDUSTRIA E COMERCIO LTDA",980.0,200.0,"000046","2026-08-10",0.02,null],["JUL","BRUNA","SP","I","LUPO NORDESTE LTDA",7100.0,1000.0,"000045","2026-07-23",0.0,null],["JUL","ANDRE CANO","SP","I","ZEAIT IND E COM DE CONFECÇÕES LTDA",837.1,100.0,"000042","2026-07-20",0.02,null],["JUL","BRUNA","SP","I","MILK' N ROSES CONFECCOES LTDA",1425.0,300.0,"000041","2026-07-20",0.0,null],["JUL","BRUNA","SP","I","MILK' N ROSES CONFECCOES LTDA",3325.0,700.0,"000041","2026-07-20",0.0,null],["JUL","MARCELLO","SC","I","ARABELLA CONFECCOES LTDA",864.0,200.0,"602447","2026-07-16",0.04,0.192959],["JUL","MARCELLO","SC","I","ARABELLA CONFECCOES LTDA",930.0,200.0,"602447","2026-07-16",0.04,0.421819],["JUL","MARCELLO","SC","I","ARABELLA CONFECCOES LTDA",1084.0,200.0,"602447","2026-07-16",0.04,0.41179],["JUL","MARCELLO","SC","I","ARABELLA CONFECCOES LTDA",520.0,100.0,"602447","2026-07-16",0.04,0.411585],["JUL","BRUNA","SP","I","CLIO CONFECCOES IMPORTACAO E EXPORTACAO LTDA",3420.0,1000.0,"000040","2026-07-14",0.0,null],["JUL","ANDRE CANO","SC","I","ZEAIT IND E COM DE CONFECÇÕES LTDA",2612.0,400.0,"602436","2026-07-13",0.02,0.309179],["JUL","ANDRE CANO","SC","I","ZEAIT IND E COM DE CONFECÇÕES LTDA",1350.0,200.0,"602436","2026-07-13",0.02,0.303793],["JUL","ANDRE CANO","SC","I","JOAO ROBERTO PASSETTI",1456.0,400.0,"602435","2026-07-08",0.02,0.137684],["JUL","ANDRE CANO","SC","I","JOAO ROBERTO PASSETTI",3500.0,1000.0,"602435","2026-07-08",0.02,0.308343],["JUL","BRUNA","SP","I","MILK' N ROSES CONFECCOES LTDA",2375.0,500.0,"000037","2026-07-07",0.0,null],["JUL","BRUNA","SP","I","MILK' N ROSES CONFECCOES LTDA",2375.0,500.0,"000037","2026-07-07",0.0,null],["JUL","BRUNA","SP","I","TUTTO PRINT INDUSTRIA E COMERCIO LTDA",966.0,200.0,"000036","2026-07-03",0.0,null],["JUL","BRUNA","SP","I","TUTTO PRINT INDUSTRIA E COMERCIO LTDA",1932.0,400.0,"000036","2026-07-03",0.0,null],["JUN","BRUNA","SC","I","LMX CONFECCOES LTDA",1490.0,200.0,"602412","2026-06-30",0.0,0.331603],["JUN","ANDRE CANO","SP","I","ELVA CONFECCOES LTDA",0.0,100.0,"000034","2026-06-25",0.0,0.0],["JUN","ANDRE CANO","SP","I","T. B. DE ANDRADE CONFECCAO LTDA",830.0,200.0,"000033","2026-06-25",0.02,0.00921],["JUN","ANDRE CANO","SP","I","T. B. DE ANDRADE CONFECCAO LTDA",2450.0,700.0,"000033","2026-06-25",0.02,0.181293],["JUN","BRUNA","SP","I","YANN COMERCIO E INDUSTRIA LTDA",165.8,10.0,"000031","2026-06-18",0.0,0.352111],["JUN","BRUNA","SP","I","MILK' N ROSES CONFECCOES LTDA",2375.0,500.0,"000030","2026-06-19",0.0,0.219939],["JUN","BRUNA","SP","I","MILK' N ROSES CONFECCOES LTDA",2375.0,500.0,"000030","2026-06-19",0.0,0.240992],["JUN","BRUNA","SP","I","TUTTO PRINT INDUSTRIA E COMERCIO LTDA",496.0,100.0,"000027","2026-06-18",0.0,0.346973],["JUN","BRUNA","SP","I","TUTTO PRINT INDUSTRIA E COMERCIO LTDA",421.0,100.0,"000027","2026-06-18",0.0,0.280967],["JUN","BRUNA","SP","I","TUTTO PRINT INDUSTRIA E COMERCIO LTDA",1995.0,500.0,"000027","2026-06-18",0.0,0.282997],["JUN","ARTHUR","SP","I","J H K CONFECCOES LTDA",1026.0,300.0,"000029","2026-06-18",0.0,0.168127],["JUN","ARTHUR","SC","I","J H K CONFECCOES LTDA",2100.0,700.0,"602386","2026-06-18",0.0,0.214533],["JUN","ARTHUR","SP","I","CLIO CONFECCOES IMPORTACAO E EXPORTACAO LTDA",2394.0,700.0,"000026","2026-06-15",0.0,0.168127],["JUN","ARTHUR","SP","I","CLIO CONFECCOES IMPORTACAO E EXPORTACAO LTDA",1026.0,300.0,"000026","2026-06-15",0.0,-0.147663],["JUN","MARCELLO","SC","I","DVORA HOUSE LTDA",542.0,100.0,"602372","2026-06-12",0.04,0.41179],["JUN","MARCELLO","SC","I","DVORA HOUSE LTDA",2600.0,500.0,"602372","2026-06-12",0.04,0.3932],["JUN","ARTHUR","SP","I","CONFECCOES DALANT LTDA",510.0,100.0,"000024","2026-06-12",0.0,-0.044085],["JUN","BRUNA","SC","I","SAGO PARGO CONFECCOES LTDA",6600.0,2200.0,"602360","2026-06-08",0.0,0.214533],["JUN","BRUNA","SP","I","SAGO PARGO CONFECCOES LTDA",2736.0,800.0,"000023","2026-06-08",0.0,-0.147663],["JUN","BRUNA","SP","I","MILK' N ROSES CONFECCOES LTDA",4750.0,1000.0,"000022","2026-06-08",0.0,0.240992],["JUN","SIMONE","SC","I","AVERARA CONFECCOES LTDA",3000.0,1000.0,"602340","2026-06-08",0.02,0.214533],["JUN","BRUNA","SP","I","IMAPER INDUSTRIA E COMERCIO LTDA",1458.73,91.0,"000021","2026-06-02",0.0,0.354256],["JUN","BRUNA","SP","I","MILK' N ROSES CONFECCOES LTDA",2375.0,500.0,"000020","2026-06-01",0.0,0.240992],["JUN","BRUNA","SP","I","MILK' N ROSES CONFECCOES LTDA",1596.0,400.0,"000020","2026-06-01",0.0,0.250416],["JUN","BRUNA","SP","I","MILK' N ROSES CONFECCOES LTDA",1197.0,300.0,"000020","2026-06-01",0.0,-0.020261],["JUN","ROSIMERE","SP","I","LARISSA VICTOR DE ARAUJO",756.0,100.0,"000018","2026-06-01",0.06,null],["JUN","SIMONE","SC","I","AVERARA CONFECCOES LTDA",3000.0,1000.0,"602339","2026-06-01",0.02,null],["JUN","ANDRE COLARES","SP","I","RAFFAEL ANDRADE PESSOA",990.0,200.0,"000015","2026-06-01",0.02,null],["JUN","ANDRE COLARES","SP","I","TARC DUBLAGENS INDUSTRIAIS LTDA",192.0,100.0,"000019","2026-06-01",0.03,null],["JUN","ANDRE COLARES","SP","I","TARC DUBLAGENS INDUSTRIAIS LTDA",230.0,100.0,"000019","2026-06-01",0.03,null],["JUN","ANDRE COLARES","SP","I","TARC DUBLAGENS INDUSTRIAIS LTDA",350.0,100.0,"000019","2026-06-01",0.02,null],["MAI","ANDRE CANO","SC","I","JOAO ROBERTO PASSETTI",1456.0,400.0,"602344","2026-05-26",0.02,null],["MAI","ANDRE CANO","SC","I","JOAO ROBERTO PASSETTI",3500.0,1000.0,"602344","2026-05-26",0.02,null],["MAI","FERNANDA","SP","I","KFK INDUSTRIA E COMERCIO DE CONFECCOES LTDA",2450.0,700.0,"000014","2026-05-21",0.02,null],["MAI","FERNANDA","SP","I","KFK INDUSTRIA E COMERCIO DE CONFECCOES LTDA",2450.0,700.0,"000014","2026-05-21",0.02,null],["MAI","ANDRE CANO","SC","I","T. B. DE ANDRADE CONFECCAO LTDA",2450.0,700.0,"602342","2026-05-21",0.02,null],["MAI","ANDRE CANO","SC","I","T. B. DE ANDRADE CONFECCAO LTDA",728.0,200.0,"602342","2026-05-21",0.02,null],["MAI","SIMONE","SC","I","HALAVE CONFECCOES LTDA",1035.0,300.0,"602343","2026-05-21",0.02,null],["MAI","SIMONE","SC","I","HALAVE CONFECCOES LTDA",1035.0,300.0,"602343","2026-05-21",0.02,null],["MAI","SIMONE","SC","I","HALAVE CONFECCOES LTDA",576.0,300.0,"602343","2026-05-21",0.03,null],["MAI","SIMONE","SC","I","HALAVE CONFECCOES LTDA",576.0,300.0,"602343","2026-05-21",0.03,null],["MAI","SIMONE","SC","I","AVERARA CONFECCOES LTDA",3000.0,1000.0,"602338","2026-05-20",0.02,null],["MAI","BRUNA","SC","I","FLOR LINDA CONFECCOES LTDA",330.0,100.0,"602328","2026-05-18",0.0,null],["MAI","BRUNA","SC","I","FLOR LINDA CONFECCOES LTDA",330.0,100.0,"602328","2026-05-18",0.0,null],["MAI","BRUNA","SP","I","KYCO. LTDA",2544.0,400.0,"000012","2026-05-15",0.0,0.352641],["MAI","ROSIMERE","SC","I","M.R.T. COMERCIO VAREJISTA DE ARTIGOS DO VESTUARIO E ACESSORIOS LTDA",1230.0,200.0,"602293","2026-05-05",0.06,null],["MAI","ROSIMERE","SP","I","EPELBAUM COMERCIO DE PRODUTOS LTDA",2259.0,300.0,"000009","2026-05-04",0.04,null],["MAI","ROSIMERE","SP","I","EPELBAUM COMERCIO DE PRODUTOS LTDA",2358.0,300.0,"000009","2026-05-04",0.04,null],["MAI","ROSIMERE","SP","I","EPELBAUM COMERCIO DE PRODUTOS LTDA",1000.0,200.0,"000009","2026-05-04",0.06,null],["MAI","ROSIMERE","SP","I","EPELBAUM COMERCIO DE PRODUTOS LTDA",1052.0,200.0,"000009","2026-05-04",0.06,null],["ABR","MARCELLO","SC","I","ARABELLA CONFECCOES LTDA",1560.0,300.0,"602250","2026-04-17",0.04,0.411585],["ABR","MARCELLO","SC","I","ARABELLA CONFECCOES LTDA",1626.0,300.0,"602250","2026-04-17",0.04,0.41179],["ABR","ROSIMERE","SP","I","EPELBAUM COMERCIO DE PRODUTOS LTDA",2001.0,300.0,"000004","2026-04-13",0.06,0.467902],["ABR","ROSIMERE","SP","I","VIENAS COMERCIO DE TECIDOS LTDA",628.0,100.0,"000006","2026-04-13",0.06,0.484257],["ABR","ROSIMERE","SP","I","VIENAS COMERCIO DE TECIDOS LTDA",2900.0,200.0,"000006","2026-04-13",0.05,0.418097],["ABR","ROSIMERE","SP","I","VIENAS COMERCIO DE TECIDOS LTDA",1438.0,100.0,"000006","2026-04-13",0.05,0.419183],["ABR","BRUNA","SP","I","LUPO NORDESTE LTDA",7010.0,1000.0,"000007","2026-04-13",0.0,0.590173],["ABR","SIMONE","SC","I","ZAYAN COMERCIO E CONFECCAO LTDA",2828.0,700.0,"602235","2026-04-09",0.03,0.383576],["ABR","SIMONE","SC","I","ZAYAN COMERCIO E CONFECCAO LTDA",2975.0,700.0,"602235","2026-04-09",0.03,0.38414],["ABR","BRUNA","SP","I","SANTA AMELIA COMERCIO DE ARMARINHOS E TECIDOS LTDA",3552.64,182.0,"000002","2026-04-09",0.0,0.415482],["ABR","BRUNA","SP","I","KYCO. LTDA",3714.0,600.0,"000005","2026-04-09",0.0,0.358043],["ABR","BRUNA","SP","I","KYCO. LTDA",2544.0,400.0,"000005","2026-04-09",0.0,0.352641],["ABR","BRUNA","SP","I","M L DA SILVA CONFECCOES",1954.68,91.0,"000003","2026-04-08",0.0,0.448992],["ABR","BRUNA","SP","I","M L DA SILVA CONFECCOES",2240.0,100.0,"000003","2026-04-08",0.0,0.450846],["MAR","BRUNA","SC","I","LABALABA BORDADOS LTDA",695.0,100.0,"602229","2026-03-25",0.0,0.322567],["MAR","BRUNA","SC","I","LABALABA BORDADOS LTDA",730.0,100.0,"602229","2026-03-25",0.0,0.326342],["MAR","BRUNA","SP","I","LUPO NORDESTE LTDA",7010.0,1000.0,"000001","2026-03-24",0.0,0.570201],["MAR","RICARDO","SC","I","TECIDOS N.A. COMERCIAL LTDA.",1254.0,100.0,"602203","2026-03-16",0.03,0.352859],["MAR","RICARDO","SC","I","TECIDOS N.A. COMERCIAL LTDA.",1264.0,100.0,"602203","2026-03-16",0.03,0.351422],["FEV","ADRIANA","SC","I","RUBINELLA INDUSTRIA DE MODAS LTDA",1974.0,300.0,"602177","2026-02-27",0.04,0.235942],["FEV","ADRIANA","SC","I","RUBINELLA INDUSTRIA DE MODAS LTDA",1406.0,200.0,"602177","2026-02-27",0.05,0.4167],["FEV","ADRIANA","SC","I","RUBINELLA INDUSTRIA DE MODAS LTDA",1466.0,200.0,"602177","2026-02-27",0.05,0.4167],["FEV","RICARDO","SC","I","TECIDOS N.A. COMERCIAL LTDA.",1468.0,200.0,"602150","2026-02-11",0.06,0.323516],["FEV","RICARDO","SC","I","TECIDOS N.A. COMERCIAL LTDA.",762.0,100.0,"602150","2026-02-11",0.06,0.322644],["FEV","RICARDO","SC","I","TECIDOS N.A. COMERCIAL LTDA.",926.0,200.0,"602150","2026-02-11",0.05,0.4167],["FEV","RICARDO","SC","I","TECIDOS N.A. COMERCIAL LTDA.",487.0,100.0,"602150","2026-02-11",0.05,0.4167],["JAN","SIMONE","SC","I","WARDY CONFECCOES LTDA",8250.0,1500.0,"602122","2026-01-19",0.04,0.3833]],"reps":["ADRIANA","ALICE","ANDRE CANO","ANDRE COLARES","ARTHUR","BRUNA","FERNANDA","MARCELLO","RICARDO","ROSIMERE","SIMONE"],"clientes":["ARABELLA CONFECCOES LTDA","ARMARINHOS PALMARES DE ASSIS LTDA","AVERARA CONFECCOES LTDA","CLIO CONFECCOES IMPORTACAO E EXPORTACAO LTDA","COIMBRA SP INDUSTRIA E COMERCIO LTDA","CONFECCOES DALANT LTDA","DVORA HOUSE LTDA","ELVA CONFECCOES LTDA","EPELBAUM COMERCIO DE PRODUTOS LTDA","F. F. FASHION FACTORY LTDA","FERNANDES CONFECÇÃO LTDA","FLOR LINDA CONFECCOES LTDA","HALAVE CONFECCOES LTDA","IMAPER INDUSTRIA E COMERCIO LTDA","J H K CONFECCOES LTDA","JOAO ROBERTO PASSETTI","KFK INDUSTRIA E COMERCIO DE CONFECCOES LTDA","KYCO. LTDA","LABALABA BORDADOS LTDA","LARISSA VICTOR DE ARAUJO","LMX CONFECCOES LTDA","LUPO NORDESTE LTDA","M L DA SILVA CONFECCOES","M.R.T. COMERCIO VAREJISTA DE ARTIGOS DO VESTUARIO E ACESSORIOS LTDA","MILK' N ROSES CONFECCOES LTDA","MODAS LAVIDA LTDA","OY MODAS E PRODUCOES FOTOGRAFICAS E TEATRAIS LTDA","RAFFAEL ANDRADE PESSOA","RUBINELLA INDUSTRIA DE MODAS LTDA","SAGO PARGO CONFECCOES LTDA","SANTA AMELIA COMERCIO DE ARMARINHOS E TECIDOS LTDA","T. B. DE ANDRADE CONFECCAO LTDA","TARC DUBLAGENS INDUSTRIAIS LTDA","TECIDOS N.A. COMERCIAL LTDA.","TUTTO PRINT INDUSTRIA E COMERCIO LTDA","VIDA-LOKA CONFECCOES LTDA","VIENAS COMERCIO DE TECIDOS LTDA","WARDY CONFECCOES LTDA","YANN COMERCIO E INDUSTRIA LTDA","ZAYAN COMERCIO E CONFECCAO LTDA","ZEAIT IND E COM DE CONFECÇÕES LTDA"],"fonte":"SALES REPORT — WENDELL BRAZIL (aba BASE)"};/*DATA_END*/
 
+let DATA = DATA0, M, CUR, FX, COLS, R, FIRST, LAST, FIRSTD;
+function boot(d){
+  DATA = d;
+  M = DATA.meses; CUR = DATA.atual; FX = DATA.fx; COLS = [...M].reverse();
+  R = DATA.rows.map(r => ({mes:r[0],rep:r[1],wh:r[2],st:r[3],cli:r[4],brl:r[5],
+                           qtd:r[6],ped:r[7],dt:r[8],com:r[9],mg:r[10]}));
+  FIRST = {}; LAST = {}; FIRSTD = {};
+  R.filter(r=>r.st==='I').forEach(r=>{
+    const i = M.indexOf(r.mes);
+    if (FIRST[r.cli]===undefined || i < FIRST[r.cli]) FIRST[r.cli] = i;
+    if (r.dt && (FIRSTD[r.cli]===undefined || r.dt < FIRSTD[r.cli])) FIRSTD[r.cli] = r.dt;
+    if (LAST[r.cli]===undefined  || i > LAST[r.cli])  LAST[r.cli]  = i;
+  });
+}
+boot(DATA0);
+
+const MO_ALL = ['JAN','FEV','MAR','ABR','MAI','JUN','JUL','AGO','SET','OUT','NOV','DEZ'];
 const MES_EN = {JAN:'JAN',FEV:'FEB',MAR:'MAR',ABR:'APR',MAI:'MAY',JUN:'JUN',
                 JUL:'JUL',AGO:'AUG',SET:'SEP',OUT:'OCT',NOV:'NOV',DEZ:'DEC'};
+const TABS = ['all','top10','novos','inativos','reps','estados'];
+const PRINT_ROWS = 11;
+
 const T = {
  pt:{
   htitle:'Relatório de Vendas', hsub:'Wendell Global Interlining · Brasil',
   gsub:'Wendell Global Interlining · acesso restrito', gpass:'Senha', gbtn:'Entrar',
-  gerr:'Senha incorreta.', theme:'Tema',
-  filters:'Filtros', rep:'Representante', all:'Todos', state:'Estado',
+  gerr:'Senha incorreta.', theme:'Tema', imp:'Importar planilha', save:'Salvar HTML', pdf:'Gerar PDF',
+  filters:'Filtros', rep:'Representante', all:'Todos', clear:'Limpar', state:'Estado', view:'Visão',
+  nsel:n=>n+' selecionados',
   geo:'Base geográfica', geoWh:'Armazém', geoUf:'UF do cliente', cur:'Moeda',
   search:'Buscar cliente', searchPh:'Ex.: CONFECCOES, LUPO, TUTTO…',
   k1:'Faturamento Total', k2:'Faturamento por Estado', k3:'Média Anual de Faturamento',
-  k4:'Clientes Novos', k5:'Comissão Média Ponderada',
+  k4:'Clientes Novos', k5:'Comissão Média Ponderada', k6:'Margem Média Ponderada',
   chart1:'Faturamento mensal', chart2:'Margem mensal', chart3:'Por estado',
   legInv:'Faturado', legBack:'Carteira (a faturar)', legMg:'Margem ponderada',
   legPart:'Cobertura parcial',
   table:'Vendas por cliente', tCli:'Cliente', tCart:'Carteira', tTot:'Total ano',
   tTotal:'Total', newTitle:'Clientes novos', newTag:'novo',
+  tabs:{all:'Todos',top10:'Top 10',novos:'Clientes novos',inativos:'Inativos no mês',
+        reps:'Top representantes',estados:'Top estados'},
+  colRep:'Representante', colUf:'Estado', colIn:'Entrou em', colLast:'Última compra',
+  colGap:'Meses parado', colShare:'% do total', colCom:'Com. %',
   lines:(a,b)=>a+' linhas faturadas · '+b+' em carteira',
   vs:(m,p,v)=>m+' vs '+p+' · '+v,
   share:(v,p,n)=>v+' · '+p+'% do total · '+n+' '+(n>1?'estados':'estado'),
   avgMeta:(n,p)=>'média/mês em '+n+' meses · projeção 12m '+p,
   newMeta:(m,n)=>'em '+m+' · '+n+' clientes ativos no ano',
   comMeta:(v,n)=>v+' em comissões · '+n+' pedidos com comissão',
-  tcount:(n,c)=>n+' clientes · valores em '+c+' · ● mês atual',
+  mgMeta:c=>'sobre '+c+'% do faturamento com margem informada',
+  tcount:(n,c)=>n+' linhas · valores em '+c+' · ● mês atual',
   newSub:n=>n+' clientes no ano',
   noData:'Sem dados para os filtros atuais.',
-  noRows:'Nenhum cliente para os filtros selecionados.',
+  noRows:'Nada para exibir com os filtros selecionados.',
   noNew:'Sem clientes novos no período filtrado.',
   geoLabWh:'Armazém de origem', geoLabUf:'UF do cliente',
   hintWh:'A planilha não traz a UF do cliente; esta visão usa o armazém de origem (coluna WH). Para faturamento por UF real, preencha <code>UF_CLIENTE</code> no script.',
@@ -464,32 +624,46 @@ const T = {
   mgHint:c=>'Margem ponderada pelo valor de venda. A planilha só informa margem em '+c+'% do faturamento — barras hachuradas marcam meses com cobertura abaixo de 60%.',
   tipInv:'faturado', tipBack:'em carteira', tipMg:'margem ponderada',
   tipCov:'cobertura', tipNoMg:'sem margem informada',
-  foot:'Fonte: SALES REPORT — WENDELL BRAZIL (aba BASE), '+DATA.rows.length+' linhas de item · câmbio fixo R$ 5,10/US$ (aba FX Rates).<br>Faturamento = soma do valor por item das linhas <b>Invoiced</b>. Carteira = linhas <b>TBI</b> (a faturar). Comissão e margem ponderadas pelo valor de venda.'
+  pmore:n=>'+ '+n+' linhas não exibidas nesta página',
+  impOk:(n,f)=>'Planilha importada: '+n+' linhas de '+f+'. Use “Salvar HTML” para gravar os dados no arquivo.',
+  impErr:'Não consegui ler a planilha: ',
+  impNoBase:'A planilha não tem uma aba BASE com as colunas esperadas (Month, Rep, WH, Status, Customer, Total per item).',
+  impNoZip:'Este navegador não consegue descompactar o .xlsx. Use Chrome, Edge, Safari 16.4+ ou Firefox 113+.',
+  saveOk:'HTML gerado com os dados atuais. Suba esse arquivo no lugar do index.html.',
+  saveErr:'Só consigo gerar o HTML quando a página está publicada (GitHub Pages ou outro servidor) — abrindo o arquivo direto do disco o navegador bloqueia a leitura do próprio código.',
+  pfilters:(f,d)=>'Filtros: '+f+'  ·  Gerado em '+d,
+  none:'nenhum'
  },
  en:{
   htitle:'Sales Report', hsub:'Wendell Global Interlining · Brazil',
   gsub:'Wendell Global Interlining · restricted access', gpass:'Password', gbtn:'Enter',
-  gerr:'Wrong password.', theme:'Theme',
-  filters:'Filters', rep:'Sales rep', all:'All', state:'State',
+  gerr:'Wrong password.', theme:'Theme', imp:'Import workbook', save:'Save HTML', pdf:'Export PDF',
+  filters:'Filters', rep:'Sales rep', all:'All', clear:'Clear', state:'State', view:'View',
+  nsel:n=>n+' selected',
   geo:'Geographic basis', geoWh:'Warehouse', geoUf:'Customer state', cur:'Currency',
   search:'Search customer', searchPh:'e.g. CONFECCOES, LUPO, TUTTO…',
   k1:'Total Revenue', k2:'Revenue by State', k3:'Annual Average Revenue',
-  k4:'New Customers', k5:'Weighted Average Commission',
+  k4:'New Customers', k5:'Weighted Average Commission', k6:'Weighted Average Margin',
   chart1:'Monthly revenue', chart2:'Monthly margin', chart3:'By state',
   legInv:'Invoiced', legBack:'Backlog (to invoice)', legMg:'Weighted margin',
   legPart:'Partial coverage',
   table:'Sales by customer', tCli:'Customer', tCart:'Backlog', tTot:'YTD total',
   tTotal:'Total', newTitle:'New customers', newTag:'new',
+  tabs:{all:'All',top10:'Top 10',novos:'New customers',inativos:'Inactive this month',
+        reps:'Top reps',estados:'Top states'},
+  colRep:'Sales rep', colUf:'State', colIn:'First order', colLast:'Last order',
+  colGap:'Months idle', colShare:'% of total', colCom:'Comm. %',
   lines:(a,b)=>a+' invoiced lines · '+b+' in backlog',
   vs:(m,p,v)=>m+' vs '+p+' · '+v,
   share:(v,p,n)=>v+' · '+p+'% of total · '+n+' '+(n>1?'states':'state'),
   avgMeta:(n,p)=>'avg/month over '+n+' months · 12m projection '+p,
   newMeta:(m,n)=>'in '+m+' · '+n+' active customers YTD',
   comMeta:(v,n)=>v+' in commissions · '+n+' orders with commission',
-  tcount:(n,c)=>n+' customers · values in '+c+' · ● current month',
+  mgMeta:c=>'over '+c+'% of revenue with reported margin',
+  tcount:(n,c)=>n+' rows · values in '+c+' · ● current month',
   newSub:n=>n+' customers YTD',
   noData:'No data for the current filters.',
-  noRows:'No customers match the selected filters.',
+  noRows:'Nothing to show with the selected filters.',
   noNew:'No new customers in the filtered period.',
   geoLabWh:'Origin warehouse', geoLabUf:'Customer state',
   hintWh:'The workbook has no customer state; this view uses the origin warehouse (WH column). For revenue by actual state, fill in <code>UF_CLIENTE</code> in the script.',
@@ -498,13 +672,22 @@ const T = {
   mgHint:c=>'Margin weighted by sales value. The workbook reports margin on only '+c+'% of revenue — hatched bars mark months with coverage below 60%.',
   tipInv:'invoiced', tipBack:'in backlog', tipMg:'weighted margin',
   tipCov:'coverage', tipNoMg:'no margin reported',
-  foot:'Source: SALES REPORT — WENDELL BRAZIL (BASE sheet), '+DATA.rows.length+' item lines · fixed rate BRL 5.10/USD (FX Rates sheet).<br>Revenue = sum of item value on <b>Invoiced</b> lines. Backlog = <b>TBI</b> lines (to invoice). Commission and margin weighted by sales value.'
+  pmore:n=>'+ '+n+' rows not shown on this page',
+  impOk:(n,f)=>'Workbook imported: '+n+' rows from '+f+'. Use “Save HTML” to write the data into the file.',
+  impErr:'Could not read the workbook: ',
+  impNoBase:'The workbook has no BASE sheet with the expected columns (Month, Rep, WH, Status, Customer, Total per item).',
+  impNoZip:'This browser cannot unzip the .xlsx. Use Chrome, Edge, Safari 16.4+ or Firefox 113+.',
+  saveOk:'HTML generated with the current data. Upload it in place of index.html.',
+  saveErr:'I can only rebuild the HTML when the page is served (GitHub Pages or any server) — opened straight from disk the browser blocks reading its own source.',
+  pfilters:(f,d)=>'Filters: '+f+'  ·  Generated '+d,
+  none:'none'
  }
 };
 
-const S = {rep:'', uf:'', geo:'wh', cur:'BRL', q:'', sort:'tot', dir:-1, lang:'pt'};
+const S = {reps:new Set(), ufs:new Set(), geo:'wh', cur:'BRL', q:'',
+           sort:'tot', dir:-1, lang:'pt', tab:'all'};
 const t = () => T[S.lang];
-const mn = m => S.lang==='en' ? MES_EN[m] : m;
+const mn = m => S.lang==='en' ? (MES_EN[m]||m) : m;
 const loc = () => S.lang==='en' ? 'en-US' : 'pt-BR';
 
 const conv = v => S.cur==='BRL' ? v : v/FX;
@@ -519,21 +702,25 @@ function compact(v){
   return nf0(x);
 }
 const pct = v => nf1(v)+'%';
+const fdate = iso => { const p = String(iso).split('-');
+  return p.length===3 ? (S.lang==='en' ? p[1]+'/'+p[2] : p[2]+'/'+p[1]) : String(iso); };
+const esc = s => String(s).replace(/[&<>"]/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));
 const ufOf = r => S.geo==='uf' ? (UF_CLIENTE[r.cli] || '—') : r.wh;
 const hasUf = () => Object.values(UF_CLIENTE).some(v => v && v.trim());
 
-const FIRST = {};
-R.filter(r=>r.st==='I').forEach(r=>{
-  const i = M.indexOf(r.mes);
-  if (FIRST[r.cli]===undefined || i < FIRST[r.cli]) FIRST[r.cli] = i;
-});
-
 const filtered = () => {
   const q = S.q.trim().toUpperCase();
-  return R.filter(r => (!S.rep||r.rep===S.rep) && (!S.uf||ufOf(r)===S.uf) && (!q||r.cli.includes(q)));
+  return R.filter(r =>
+    (!S.reps.size || S.reps.has(r.rep)) &&
+    (!S.ufs.size  || S.ufs.has(ufOf(r))) &&
+    (!q || r.cli.includes(q)));
 };
 
-const tip = document.getElementById('tip');
+const el = id => document.getElementById(id);
+const set  = (id,v) => { const n = el(id); if (n) n.textContent = v; };
+const setH = (id,v) => { const n = el(id); if (n) n.innerHTML = v; };
+
+const tip = el('tip');
 function showTip(e, html){
   tip.innerHTML = html; tip.style.opacity = 1;
   const b = tip.getBoundingClientRect();
@@ -543,33 +730,92 @@ function showTip(e, html){
   tip.style.left = x+'px'; tip.style.top = y+'px';
 }
 const hideTip = () => tip.style.opacity = 0;
-const el = id => document.getElementById(id);
-const set  = (id,v) => { const n = el(id); if (n) n.textContent = v; };
-const setH = (id,v) => { const n = el(id); if (n) n.innerHTML = v; };
 
+let toastT;
+function toast(msg, isErr){
+  const n = el('toast');
+  n.textContent = msg; n.className = 'on'+(isErr?' err':'');
+  clearTimeout(toastT); toastT = setTimeout(()=>n.className = isErr?'err':'', isErr?9000:6000);
+}
+
+/* ================= multiselect ================= */
+function msInit(id, key, getOptions){
+  const root = el(id), btn = root.querySelector('.ms-btn'), pop = root.querySelector('.ms-pop');
+  const list = root.querySelector('.ms-list');
+  function paint(){
+    const L = t(), sel = S[key];
+    root.querySelectorAll('.ms-act button')[0].textContent = L.all;
+    root.querySelectorAll('.ms-act button')[1].textContent = L.clear;
+    const lab = btn.querySelector('.lab'), cnt = btn.querySelector('.cnt');
+    if (!sel.size){ lab.textContent = L.all; cnt.hidden = true; }
+    else if (sel.size === 1){ lab.textContent = [...sel][0]; cnt.hidden = true; }
+    else { lab.textContent = L.nsel(sel.size); cnt.hidden = false; cnt.textContent = sel.size; }
+  }
+  function fill(){
+    const opts = getOptions();
+    [...S[key]].forEach(v=>{ if (!opts.includes(v)) S[key].delete(v); });
+    list.innerHTML = opts.map(o=>
+      '<label><input type="checkbox" value="'+esc(o)+'"'+(S[key].has(o)?' checked':'')+'><span>'+esc(o)+'</span></label>').join('');
+    paint();
+  }
+  list.addEventListener('change', e=>{
+    if (e.target.checked) S[key].add(e.target.value); else S[key].delete(e.target.value);
+    paint(); render();
+  });
+  root.querySelector('.ms-act').addEventListener('click', e=>{
+    const b = e.target.closest('button'); if(!b) return;
+    if (b.dataset.act === 'all') getOptions().forEach(o=>S[key].add(o)); else S[key].clear();
+    list.querySelectorAll('input').forEach(i=>i.checked = S[key].has(i.value));
+    paint(); render();
+  });
+  btn.addEventListener('click', ()=>{
+    const open = pop.hidden;
+    document.querySelectorAll('.ms-pop').forEach(p=>p.hidden = true);
+    document.querySelectorAll('.ms-btn').forEach(b=>b.setAttribute('aria-expanded','false'));
+    pop.hidden = !open; btn.setAttribute('aria-expanded', String(open));
+  });
+  return {fill, paint};
+}
+document.addEventListener('click', e=>{
+  if (!e.target.closest('.ms')) {
+    document.querySelectorAll('.ms-pop').forEach(p=>p.hidden = true);
+    document.querySelectorAll('.ms-btn').forEach(b=>b.setAttribute('aria-expanded','false'));
+  }
+});
+document.addEventListener('keydown', e=>{
+  if (e.key === 'Escape') document.querySelectorAll('.ms-pop').forEach(p=>p.hidden = true);
+});
+const MSREP = msInit('msRep','reps', ()=>DATA.reps.slice());
+const MSUF  = msInit('msUf','ufs',  ()=>[...new Set(R.filter(r=>r.st==='I').map(ufOf))].sort());
+
+/* ================= idioma ================= */
 function applyLang(){
   const L = t();
   document.documentElement.lang = S.lang==='en' ? 'en' : 'pt-BR';
   document.title = S.lang==='en' ? 'Wendell Brazil Sales' : 'Vendas Wendell Brasil';
   set('hTitle',L.htitle); set('hSub',L.hsub); set('themeBtn',L.theme);
   set('gTitle',L.htitle); set('gSub',L.gsub); set('gBtn',L.gbtn);
+  set('btnImport',L.imp); set('btnSave',L.save); set('btnPdf',L.pdf);
   const gp = el('gPass');
   if (gp){ gp.placeholder = L.gpass; gp.setAttribute('aria-label',L.gpass); }
   set('lFilters',L.filters); set('lRep',L.rep); set('lState',L.state);
   set('lGeo',L.geo); set('lGeoWh',L.geoWh); set('lGeoUf',L.geoUf);
   set('lCur',L.cur); set('lSearch',L.search);
   el('fQ').placeholder = L.searchPh;
-  set('lK1',L.k1); set('lK2',L.k2); set('lK3',L.k3); set('lK4',L.k4); set('lK5',L.k5);
+  set('lK1',L.k1); set('lK2',L.k2); set('lK3',L.k3);
+  set('lK4',L.k4); set('lK5',L.k5); set('lK6',L.k6);
   set('lChart1',L.chart1); set('lChart2',L.chart2); set('lChart3',L.chart3);
   set('lLegInv',L.legInv); set('lLegBack',L.legBack);
   set('lLegMg',L.legMg); set('lLegPart',L.legPart);
   set('lTable',L.table); set('lNew',L.newTitle);
-  setH('foot',L.foot);
+  setH('foot', S.lang==='en'
+    ? 'Source: '+esc(DATA.fonte)+' · '+DATA.rows.length+' item lines · fixed rate BRL '+nf1(FX).replace('.',',')+'/USD.<br>Revenue = sum of item value on <b>Invoiced</b> lines. Backlog = <b>TBI</b> lines. Commission and margin weighted by sales value.'
+    : 'Fonte: '+esc(DATA.fonte)+' · '+DATA.rows.length+' linhas de item · câmbio fixo R$ '+nf1(FX)+'/US$.<br>Faturamento = soma do valor por item das linhas <b>Invoiced</b>. Carteira = linhas <b>TBI</b>. Comissão e margem ponderadas pelo valor de venda.');
   set('period', DATA.ano+' · '+mn(M[0])+'–'+mn(M[M.length-1]));
-  setH('fRep', '<option value="">'+L.all+'</option>'
-    + DATA.reps.map(r=>'<option'+(r===S.rep?' selected':'')+'>'+r+'</option>').join(''));
+  MSREP.paint(); MSUF.paint();
 }
 
+/* ================= render ================= */
 function render(){
   const L = t(), rows = filtered();
   const inv = rows.filter(r=>r.st==='I'), tbi = rows.filter(r=>r.st==='T');
@@ -578,7 +824,7 @@ function render(){
   inv.forEach(r=>{
     const a = byM[r.mes];
     a.v += r.brl; a.cw += r.brl*r.com;
-    if (r.mg !== null){ a.mw += r.brl*r.mg; a.mb += r.brl; }
+    if (r.mg !== null && r.mg !== undefined){ a.mw += r.brl*r.mg; a.mb += r.brl; }
   });
   const totalInv = inv.reduce((a,r)=>a+r.brl,0);
   const totalTbi = tbi.reduce((a,r)=>a+r.brl,0);
@@ -586,15 +832,15 @@ function render(){
   const avg = active.length ? totalInv/active.length : 0;
   const iCur = M.indexOf(CUR), prev = M[iCur-1];
 
-  /* 1 — faturamento total */
+  /* 1 · faturamento */
   const dPct = prev && byM[prev].v ? (byM[CUR].v-byM[prev].v)/byM[prev].v*100 : null;
   setH('kTot','<small>'+sym()+'</small>'+compact(totalInv));
   setH('kTotMeta',
     (dPct===null?'':'<span class="delta '+(dPct>=0?'up':'down')+'">'+(dPct>=0?'▲':'▼')+' '+pct(Math.abs(dPct))+'</span> ')
-    + L.vs(mn(CUR), mn(prev), money(byM[CUR].v)));
+    + L.vs(mn(CUR), prev?mn(prev):'—', money(byM[CUR].v)));
   spark('kSpark', M.map(m=>byM[m].v), iCur);
 
-  /* 2 — por estado */
+  /* 2 · estado */
   const byU = {};
   inv.forEach(r=>{ const u=ufOf(r); byU[u]=(byU[u]||0)+r.brl; });
   const uList = Object.entries(byU).sort((a,b)=>b[1]-a[1]);
@@ -604,19 +850,19 @@ function render(){
   spark('kUfSpark', uList.map(u=>u[1]), 0);
   set('geoLab', S.geo==='uf' ? L.geoLabUf : L.geoLabWh);
   const maxU = top ? top[1] : 1;
-  setH('ufbars', uList.map(([u,v])=>
-    '<div class="hb" data-uf="'+u+'" data-v="'+v+'"><span class="uf">'+u+'</span>'
-    +'<span class="track"><span class="fill" style="width:'+Math.max(2,v/maxU*100)+'%"></span></span>'
-    +'<span class="amt">'+money(v)+'</span></div>').join('')
+  setH('ufbars', uList.map(x=>
+    '<div class="hb" data-uf="'+esc(x[0])+'" data-v="'+x[1]+'"><span class="uf">'+esc(x[0])+'</span>'
+    +'<span class="track"><span class="fill" style="width:'+Math.max(2,x[1]/maxU*100)+'%"></span></span>'
+    +'<span class="amt">'+money(x[1])+'</span></div>').join('')
     || '<p class="hint">'+L.noData+'</p>');
   setH('ufHint', S.geo==='uf' ? (hasUf()?L.hintUfOk:L.hintUfEmpty) : L.hintWh);
 
-  /* 3 — média */
+  /* 3 · média */
   setH('kAvg','<small>'+sym()+'</small>'+compact(avg));
   set('kAvgMeta', L.avgMeta(active.length, money(avg*12)));
   spark('kAvgSpark', M.map(m=>byM[m].v), -1);
 
-  /* 4 — clientes novos */
+  /* 4 · clientes novos */
   const clis = [...new Set(inv.map(r=>r.cli))];
   const newByM = {}; M.forEach(m=>newByM[m]=0);
   const novosMes = [];
@@ -628,15 +874,22 @@ function render(){
   set('kNewMeta', L.newMeta(mn(CUR), clis.length));
   spark('kNewSpark', M.map(m=>newByM[m]), iCur);
 
-  /* 5 — comissão média ponderada pelo valor de venda */
+  /* 5 · comissão ponderada */
   const comW = inv.reduce((a,r)=>a+r.brl*r.com, 0);
   const nPed = new Set(inv.filter(r=>r.com>0).map(r=>r.mes+'|'+r.ped+'|'+r.cli)).size;
   set('kCom', totalInv ? pct(comW/totalInv*100) : '—');
   set('kComMeta', L.comMeta(money(comW), nPed));
   spark('kComSpark', M.map(m=>byM[m].v ? byM[m].cw/byM[m].v*100 : 0), iCur);
 
-  /* gráfico 1 — faturamento */
-  const maxBar = Math.max(...M.map(m=>byM[m].v), byM[CUR].v+totalTbi, 1);
+  /* 6 · margem ponderada */
+  const mgW = M.reduce((a,m)=>a+byM[m].mw,0), mgB = M.reduce((a,m)=>a+byM[m].mb,0);
+  const covTot = totalInv ? mgB/totalInv*100 : 0;
+  set('kMg', mgB ? pct(mgW/mgB*100) : '—');
+  set('kMgMeta', L.mgMeta(nf0(covTot)));
+  spark('kMgSpark', M.map(m=>byM[m].mb ? byM[m].mw/byM[m].mb*100 : 0), iCur);
+
+  /* gráfico faturamento */
+  const maxBar = Math.max.apply(null, M.map(m=>byM[m].v).concat([byM[CUR].v+totalTbi, 1]));
   setH('glines',[0,25,50,75].map(p=>'<div style="top:'+p+'%"></div>').join(''));
   drawBars('chart', M.map(m=>{
     const v = byM[m].v, tb = (m===CUR ? totalTbi : 0);
@@ -646,7 +899,7 @@ function render(){
         + (tb?'<br><b style="color:var(--s2)">'+money(tb)+'</b> '+L.tipBack:'')};
   }));
 
-  /* gráfico 2 — margem ponderada */
+  /* gráfico margem */
   const mg = M.map(m=>{
     const a = byM[m];
     return {m, p: a.mb ? a.mw/a.mb*100 : null, cov: a.v ? a.mb/a.v*100 : 0};
@@ -663,84 +916,170 @@ function render(){
        + (x.p===null ? L.tipNoMg
          : '<b>'+pct(x.p)+'</b> '+L.tipMg+'<br>'+L.tipCov+': '+nf0(x.cov)+'% '+L.tipInv)
   })));
-  const covTot = totalInv ? M.reduce((a,m)=>a+byM[m].mb,0)/totalInv*100 : 0;
   setH('mgHint', L.mgHint(nf0(covTot)));
 
-  /* tabela */
-  const byCli = {};
-  rows.forEach(r=>{
-    const o = byCli[r.cli] || (byCli[r.cli] = {cli:r.cli, cart:0, tot:0, m:{}});
-    if (r.st==='T') o.cart += r.brl;
-    else { o.m[r.mes] = (o.m[r.mes]||0)+r.brl; o.tot += r.brl; }
-  });
-  const list = Object.values(byCli).sort((a,b)=>{
-    if (S.sort==='cli') return a.cli<b.cli ? -S.dir : a.cli>b.cli ? S.dir : 0;
-    const g = o => S.sort==='tot'?o.tot : S.sort==='cart'?o.cart : (o.m[S.sort]||0);
-    return (g(a)-g(b))*S.dir;
-  });
-  const th = (id,lab,cls) =>
-    '<th data-sort="'+id+'" class="'+(cls||'')+'" tabindex="0" aria-sort="'
-    + (S.sort===id?(S.dir===1?'asc':'desc'):'none')+'">'+lab+'</th>';
-  setH('thr', th('cli',L.tCli) + th('cart',L.tCart,'cart')
-    + COLS.map(m=>th(m, mn(m)+(m===CUR?' ●':''), m===CUR?'cur':'')).join('')
-    + th('tot',L.tTot,'tot'));
-  setH('tb', list.length ? list.map(o=>{
-    const nv = FIRST[o.cli]===iCur;
-    return '<tr><td class="cli'+(nv?' novo':'')+'" title="'+o.cli+'">'+o.cli
-      + (nv?'<span class="tag">'+L.newTag+'</span>':'')+'</td>'
-      + '<td class="cart'+(o.cart?'':' zero')+'">'+(o.cart?nf0(conv(o.cart)):'–')+'</td>'
-      + COLS.map(m=>{const v=o.m[m]||0;
-          return '<td class="'+(m===CUR?'cur':'')+(v?'':' zero')+'">'+(v?nf0(conv(v)):'–')+'</td>';}).join('')
-      + '<td class="tot">'+nf0(conv(o.tot))+'</td></tr>';
-  }).join('') : '<tr><td colspan="'+(COLS.length+3)+'" class="empty">'+L.noRows+'</td></tr>');
-  setH('tf', '<td>'+L.tTotal+' · '+sym()+'</td>'
-    + '<td style="color:var(--s2)">'+(totalTbi?nf0(conv(totalTbi)):'–')+'</td>'
-    + COLS.map(m=>'<td>'+(byM[m].v?nf0(conv(byM[m].v)):'–')+'</td>').join('')
-    + '<td>'+nf0(conv(totalInv))+'</td>');
+  /* abas + tabela */
+  buildTabs(rows, inv, clis);
+  renderTable(rows, inv, byM, totalInv, totalTbi, iCur);
 
-  set('tcount', L.tcount(list.length, sym()));
   set('fcount', L.lines(inv.length, tbi.length));
 
   const novosPorMes = M.map(m=>[m, clis.filter(c=>M[FIRST[c]]===m)]).filter(x=>x[1].length).reverse();
   set('newSub', L.newSub(clis.length));
   setH('newList', novosPorMes.map(x=>
     '<span><b>'+mn(x[0])+'</b> · '+x[1].length+': '
-    + x[1].map(c=>c.split(' ').slice(0,2).join(' ')).join(', ')+'</span>').join('')
+    + x[1].map(c=>esc(c.split(' ').slice(0,2).join(' '))).join(', ')+'</span>').join('')
     || '<span>'+L.noNew+'</span>');
 
-  const keep = S.uf;
-  const opts = [...new Set(R.filter(r=>r.st==='I').map(ufOf))].sort();
-  setH('fUf', '<option value="">'+L.all+'</option>'
-    + opts.map(u=>'<option'+(u===keep?' selected':'')+'>'+u+'</option>').join(''));
+  MSUF.fill();
+}
+
+/* ---- agregações por chave ---- */
+function agg(rows, keyOf){
+  const o = {};
+  rows.forEach(r=>{
+    const k = keyOf(r); if (k===undefined || k===null) return;
+    const a = o[k] || (o[k] = {key:k, cart:0, tot:0, m:{}, cw:0});
+    if (r.st==='T') a.cart += r.brl;
+    else { a.m[r.mes] = (a.m[r.mes]||0)+r.brl; a.tot += r.brl; a.cw += r.brl*r.com; }
+  });
+  return Object.values(o);
+}
+
+function buildTabs(rows, inv, clis){
+  const L = t();
+  const nInat = clis.filter(c=>LAST[c] !== M.indexOf(CUR)).length;
+  const counts = {all:agg(rows,r=>r.cli).length, top10:Math.min(10,agg(inv,r=>r.cli).length),
+    novos:clis.filter(c=>FIRST[c]===M.indexOf(CUR)).length, inativos:nInat,
+    reps:agg(inv,r=>r.rep||'—').length, estados:agg(inv,r=>ufOf(r)).length};
+  setH('tabs', TABS.map(k=>
+    '<button class="tab" role="tab" data-tab="'+k+'" aria-selected="'+(S.tab===k)+'">'
+    + L.tabs[k] + '<span class="n">'+counts[k]+'</span></button>').join(''));
+}
+
+function renderTable(rows, inv, byM, totalInv, totalTbi, iCur){
+  const L = t();
+  let list, extra = [], trail = [], showTot = true, firstLab = L.tCli, rank = false;
+
+  if (S.tab === 'reps'){
+    firstLab = L.colRep; rank = true; showTot = true;
+    list = agg(rows, r=>r.rep || '—');
+    trail = [
+      {id:'share', lab:L.colShare, get:o=>totalInv?pct(o.tot/totalInv*100):'–'},
+      {id:'com',   lab:L.colCom,   get:o=>o.tot?pct(o.cw/o.tot*100):'–'}
+    ];
+  } else if (S.tab === 'estados'){
+    firstLab = L.colUf; rank = true;
+    list = agg(rows, r=>ufOf(r));
+    trail = [{id:'share', lab:L.colShare, get:o=>totalInv?pct(o.tot/totalInv*100):'–'}];
+  } else {
+    list = agg(rows, r=>r.cli);
+    if (S.tab === 'top10'){
+      rank = true;
+      list = list.filter(o=>o.tot>0).sort((a,b)=>b.tot-a.tot).slice(0,10);
+    } else if (S.tab === 'novos'){
+      list = list.filter(o=>FIRST[o.key] === iCur);
+      extra = [{id:'in', lab:L.colIn,
+                get:o=>FIRSTD[o.key] ? fdate(FIRSTD[o.key]) : mn(M[FIRST[o.key]]),
+                sortv:o=>FIRSTD[o.key]||''}];
+    } else if (S.tab === 'inativos'){
+      list = list.filter(o=>FIRST[o.key] !== undefined && LAST[o.key] !== iCur);
+      extra = [
+        {id:'last', lab:L.colLast, get:o=>mn(M[LAST[o.key]]), sortv:o=>LAST[o.key]},
+        {id:'gap',  lab:L.colGap,  get:o=>String(iCur-LAST[o.key]), sortv:o=>iCur-LAST[o.key], cls:'warn'}
+      ];
+    }
+  }
+
+  const valOf = (o,k) => k==='tot' ? o.tot : k==='cart' ? o.cart
+    : k==='key' ? o.key
+    : (extra.concat(trail).find(x=>x.id===k)||{}).sortv ? extra.concat(trail).find(x=>x.id===k).sortv(o)
+    : k==='share' ? o.tot : k==='com' ? (o.tot?o.cw/o.tot:0)
+    : (o.m[k]||0);
+  const fixed = (S.tab==='top10'||S.tab==='reps'||S.tab==='estados') && S.sort==='tot' && S.dir===-1;
+  if (!fixed){
+    list.sort((a,b)=>{
+      const x = valOf(a,S.sort), y = valOf(b,S.sort);
+      if (typeof x === 'string' || typeof y === 'string')
+        return String(x)<String(y) ? -S.dir : String(x)>String(y) ? S.dir : 0;
+      return (x-y)*S.dir;
+    });
+  } else list.sort((a,b)=>b.tot-a.tot);
+
+  const th = (id,lab,cls) =>
+    '<th data-sort="'+id+'" class="'+(cls||'')+'" tabindex="0" aria-sort="'
+    + (S.sort===id?(S.dir===1?'asc':'desc'):'none')+'">'+lab+'</th>';
+  setH('thr', th('key',firstLab)
+    + extra.map(x=>th(x.id,x.lab,'txt')).join('')
+    + th('cart',L.tCart,'cart')
+    + COLS.map(m=>th(m, mn(m)+(m===CUR?' ●':''), m===CUR?'cur':'')).join('')
+    + th('tot',L.tTot,'tot')
+    + trail.map(x=>th(x.id,x.lab)).join(''));
+
+  const nCols = 2 + extra.length + COLS.length + trail.length;
+  setH('tb', list.length ? list.map((o,i)=>{
+    const nv = S.tab!=='reps' && S.tab!=='estados' && FIRST[o.key]===iCur;
+    return '<tr'+(i>=PRINT_ROWS?' class="pcut"':'')+'>'
+      + '<td class="cli'+(nv?' novo':'')+(rank?' rk':'')+'" title="'+esc(o.key)+'">'
+      + (rank?'<span class="pos">'+(i+1)+'</span>':'') + esc(o.key)
+      + (nv?'<span class="tag">'+L.newTag+'</span>':'') + '</td>'
+      + extra.map(x=>'<td class="txt'+(x.cls?' '+x.cls:'')+'">'+x.get(o)+'</td>').join('')
+      + '<td class="cart'+(o.cart?'':' zero')+'">'+(o.cart?nf0(conv(o.cart)):'–')+'</td>'
+      + COLS.map(m=>{const v=o.m[m]||0;
+          return '<td class="'+(m===CUR?'cur':'')+(v?'':' zero')+'">'+(v?nf0(conv(v)):'–')+'</td>';}).join('')
+      + '<td class="tot">'+nf0(conv(o.tot))+'</td>'
+      + trail.map(x=>'<td>'+x.get(o)+'</td>').join('')
+      + '</tr>';
+  }).join('') : '<tr><td colspan="'+nCols+'" class="empty">'+L.noRows+'</td></tr>');
+
+  el('pmoreTd').colSpan = nCols;
+  set('pmoreTd', list.length>PRINT_ROWS ? L.pmore(list.length-PRINT_ROWS) : '');
+  el('pmore').style.visibility = list.length>PRINT_ROWS ? 'visible' : 'collapse';
+
+  const fCart = list.reduce((a,o)=>a+o.cart,0);
+  const fTot  = list.reduce((a,o)=>a+o.tot,0);
+  const fM = {}; COLS.forEach(m=>fM[m] = list.reduce((a,o)=>a+(o.m[m]||0),0));
+  setH('tf', '<td>'+L.tTotal+' · '+sym()+'</td>'
+    + extra.map(()=>'<td></td>').join('')
+    + '<td style="color:var(--s2)">'+(fCart?nf0(conv(fCart)):'–')+'</td>'
+    + COLS.map(m=>'<td>'+(fM[m]?nf0(conv(fM[m])):'–')+'</td>').join('')
+    + '<td>'+nf0(conv(fTot))+'</td>'
+    + trail.map(x=>{
+        if (x.id==='share') return '<td>'+(totalInv?pct(fTot/totalInv*100):'–')+'</td>';
+        if (x.id==='com'){ const cw = list.reduce((a,o)=>a+o.cw,0);
+          return '<td>'+(fTot?pct(cw/fTot*100):'–')+'</td>'; }
+        return '<td></td>';
+      }).join(''));
+
+  set('tcount', L.tcount(list.length, sym()));
+  set('lTable', L.tabs[S.tab] === L.tabs.all ? L.table : L.table+' · '+L.tabs[S.tab]);
 }
 
 function drawBars(id, cols){
-  const host = document.getElementById(id);
+  const host = el(id);
   host.querySelectorAll('.mcol').forEach(n=>n.remove());
   cols.forEach(c=>{
-    const el = document.createElement('div');
-    el.className = 'mcol'+(c.m===CUR?' cur':'');
-    el.innerHTML = '<div class="stack"><span class="mval '+(c.labelCls||'')+'">'+c.label+'</span>'
+    const n = document.createElement('div');
+    n.className = 'mcol'+(c.m===CUR?' cur':'');
+    n.innerHTML = '<div class="stack"><span class="mval '+(c.labelCls||'')+'">'+c.label+'</span>'
       + c.segs.map(s=>'<div class="'+s.cls+'" style="height:'+s.h+'%"></div>').join('')
       + '</div><span class="mlab">'+mn(c.m)+'</span>';
-    el.addEventListener('mousemove', e=>showTip(e, c.tip));
-    el.addEventListener('mouseleave', hideTip);
-    host.appendChild(el);
+    n.addEventListener('mousemove', e=>showTip(e, c.tip));
+    n.addEventListener('mouseleave', hideTip);
+    host.appendChild(n);
   });
 }
-
 function spark(id, vals, hi){
   const max = Math.max.apply(null, vals.map(Math.abs).concat([1]));
   setH(id, vals.map((v,i)=>
     '<i class="'+(i===hi?'on':'')+'" style="height:'+Math.max(6,Math.abs(v)/max*100)+'%"></i>').join(''));
 }
 
-document.getElementById('fRep').onchange = e => { S.rep = e.target.value; render(); };
-document.getElementById('fUf').onchange  = e => { S.uf  = e.target.value; render(); };
-document.getElementById('fQ').oninput    = e => { S.q   = e.target.value; render(); };
+/* ================= eventos ================= */
+el('fQ').oninput = e => { S.q = e.target.value; render(); };
 
 function pillGroup(id, key, after){
-  const g = document.getElementById(id);
+  const g = el(id);
   const sync = () => g.querySelectorAll('button').forEach(b=>b.setAttribute('aria-pressed', S[key]===b.dataset.v));
   g.addEventListener('click', e=>{
     const b = e.target.closest('button'); if(!b || S[key]===b.dataset.v) return;
@@ -750,50 +1089,255 @@ function pillGroup(id, key, after){
   });
   sync(); return sync;
 }
-pillGroup('fGeo','geo', ()=>{ S.uf=''; });
+pillGroup('fGeo','geo', ()=>{ S.ufs.clear(); });
 const syncCur = pillGroup('fCur','cur');
-/* EN traduz o texto e converte a moeda para USD; PT volta para BRL */
 pillGroup('fLang','lang', ()=>{ S.cur = S.lang==='en' ? 'USD' : 'BRL'; syncCur(); });
 
-document.getElementById('thr').addEventListener('click', e=>{
+el('tabs').addEventListener('click', e=>{
+  const b = e.target.closest('.tab'); if(!b || S.tab===b.dataset.tab) return;
+  S.tab = b.dataset.tab; S.sort = 'tot'; S.dir = -1; render();
+});
+el('thr').addEventListener('click', e=>{
   const th = e.target.closest('th[data-sort]'); if(!th) return;
   const k = th.dataset.sort;
-  if (S.sort===k) S.dir = -S.dir; else { S.sort = k; S.dir = k==='cli' ? 1 : -1; }
+  if (S.sort===k) S.dir = -S.dir; else { S.sort = k; S.dir = k==='key' ? 1 : -1; }
   render();
 });
-document.getElementById('thr').addEventListener('keydown', e=>{
+el('thr').addEventListener('keydown', e=>{
   if (e.key==='Enter'||e.key===' '){ e.preventDefault(); e.target.click(); }
 });
-const ufb = document.getElementById('ufbars');
+const ufb = el('ufbars');
 ufb.addEventListener('mousemove', e=>{
   const hb = e.target.closest('.hb'); if(!hb) return;
-  showTip(e, '<span class="k">'+hb.dataset.uf+'</span><b>'+money(+hb.dataset.v)+'</b>');
+  showTip(e, '<span class="k">'+esc(hb.dataset.uf)+'</span><b>'+money(+hb.dataset.v)+'</b>');
 });
 ufb.addEventListener('mouseleave', hideTip);
-
-document.getElementById('themeBtn').onclick = () => {
-  const cur = document.documentElement.getAttribute('data-theme');
-  const dark = cur ? cur==='dark' : matchMedia('(prefers-color-scheme:dark)').matches;
+el('themeBtn').onclick = () => {
+  const c = document.documentElement.getAttribute('data-theme');
+  const dark = c ? c==='dark' : matchMedia('(prefers-color-scheme:dark)').matches;
   document.documentElement.setAttribute('data-theme', dark ? 'light' : 'dark');
 };
 
-/* ---------- acesso ---------- */
+/* ================= PDF ================= */
+function activeFilterText(){
+  const L = t(), p = [];
+  p.push(L.rep+': '+(S.reps.size?[...S.reps].join(', '):L.all));
+  p.push(L.state+': '+(S.ufs.size?[...S.ufs].join(', '):L.all));
+  if (S.q.trim()) p.push(L.search+': "'+S.q.trim()+'"');
+  p.push(L.view+': '+L.tabs[S.tab]);
+  return p.join('  ·  ');
+}
+el('btnPdf').onclick = () => {
+  const L = t();
+  set('pfilters', L.pfilters(activeFilterText(), new Date().toLocaleString(loc())));
+  window.print();
+};
+/* ================= importar .xlsx ================= */
+const td = b => new TextDecoder('utf-8').decode(b);
+async function inflateRaw(bytes){
+  if (typeof DecompressionStream === 'undefined') throw new Error(t().impNoZip);
+  const s = new Blob([bytes]).stream().pipeThrough(new DecompressionStream('deflate-raw'));
+  return new Uint8Array(await new Response(s).arrayBuffer());
+}
+async function unzip(buf){
+  const dv = new DataView(buf.buffer, buf.byteOffset, buf.byteLength);
+  let eocd = -1;
+  for (let i = buf.length - 22; i >= Math.max(0, buf.length - 66000); i--)
+    if (dv.getUint32(i, true) === 0x06054b50){ eocd = i; break; }
+  if (eocd < 0) throw new Error('zip');
+  const n = dv.getUint16(eocd + 10, true);
+  let p = dv.getUint32(eocd + 16, true);
+  const out = {};
+  for (let i = 0; i < n; i++){
+    const nameLen = dv.getUint16(p + 28, true), extLen = dv.getUint16(p + 30, true);
+    const cmtLen = dv.getUint16(p + 32, true), method = dv.getUint16(p + 10, true);
+    const cSize = dv.getUint32(p + 20, true), lho = dv.getUint32(p + 42, true);
+    const name = td(buf.subarray(p + 46, p + 46 + nameLen));
+    const lNameLen = dv.getUint16(lho + 26, true), lExtLen = dv.getUint16(lho + 28, true);
+    const start = lho + 30 + lNameLen + lExtLen;
+    const raw = buf.subarray(start, start + cSize);
+    out[name] = method === 0 ? raw : await inflateRaw(raw);
+    p += 46 + nameLen + extLen + cmtLen;
+  }
+  return out;
+}
+const unesc = s => s.replace(/&lt;/g,'<').replace(/&gt;/g,'>').replace(/&quot;/g,'"')
+                    .replace(/&apos;/g,"'").replace(/&#(\d+);/g,(m,d)=>String.fromCharCode(d))
+                    .replace(/&amp;/g,'&');
+function sharedStrings(xml){
+  const out = [];
+  const si = xml.match(/<si\b[^>]*\/>|<si\b[^>]*>[\s\S]*?<\/si>/g) || [];
+  si.forEach(s=>{
+    let txt = '';
+    (s.match(/<t[^>]*>([\s\S]*?)<\/t>/g) || []).forEach(m=>{
+      txt += unesc(m.replace(/<t[^>]*>/,'').replace(/<\/t>/,''));
+    });
+    out.push(txt);
+  });
+  return out;
+}
+const colIdx = ref => {
+  let n = 0;
+  for (const ch of ref.replace(/\d+/g,'')) n = n*26 + (ch.charCodeAt(0) - 64);
+  return n - 1;
+};
+function sheetRows(xml, shared){
+  const rows = [];
+  (xml.match(/<row\b[^>]*\/>|<row\b[^>]*>[\s\S]*?<\/row>/g) || []).forEach(rx=>{
+    const cells = [];
+    (rx.match(/<c\b[^>]*\/>|<c\b[^>]*>[\s\S]*?<\/c>/g) || []).forEach(cx=>{
+      const ref = (cx.match(/ r="([A-Z]+\d+)"/) || [])[1];
+      if (!ref) return;
+      const type = (cx.match(/ t="([^"]+)"/) || [])[1];
+      let val = null;
+      if (type === 'inlineStr'){
+        const m = cx.match(/<t[^>]*>([\s\S]*?)<\/t>/); val = m ? unesc(m[1]) : '';
+      } else {
+        const m = cx.match(/<v>([\s\S]*?)<\/v>/);
+        if (m){
+          if (type === 's') val = shared[+m[1]] ?? '';
+          else if (type === 'str' || type === 'e') val = unesc(m[1]);
+          else val = parseFloat(m[1]);
+        }
+      }
+      cells[colIdx(ref)] = val;
+    });
+    rows.push(cells);
+  });
+  return rows;
+}
+const serialToISO = v => {
+  if (typeof v !== 'number' || !isFinite(v)) return null;
+  const d = new Date(Date.UTC(1899,11,30) + v*86400000);
+  return isNaN(d) ? null : d.toISOString().slice(0,10);
+};
+const norm = s => String(s??'').toLowerCase().replace(/[^a-z0-9]/g,'');
+function findCol(head, ...cands){
+  for (const c of cands){
+    const i = head.findIndex(h => norm(h) === norm(c));
+    if (i >= 0) return i;
+  }
+  for (const c of cands){
+    const i = head.findIndex(h => norm(h).startsWith(norm(c)));
+    if (i >= 0) return i;
+  }
+  return -1;
+}
+function buildData(cells, fileName){
+  const head = cells[0] || [];
+  const c = {
+    mes:  findCol(head,'Month','Mês','Mes'),
+    rep:  findCol(head,'Rep','Representante'),
+    wh:   findCol(head,'WH','Warehouse'),
+    st:   findCol(head,'Status'),
+    cli:  findCol(head,'Customer','Cliente'),
+    brl:  findCol(head,'Total per item (BRL Value)','Total per item'),
+    qtd:  findCol(head,'Quantity (m)','Quantity'),
+    ped:  findCol(head,'Order Number','Pedido'),
+    dt:   findCol(head,'Date','Data'),
+    com:  findCol(head,'Comission','Commission','Comissão'),
+    mg:   findCol(head,'Margin','Margem')
+  };
+  if ([c.mes,c.st,c.cli,c.brl].some(i=>i<0)) throw new Error(t().impNoBase);
+  const rows = [];
+  for (let i = 1; i < cells.length; i++){
+    const r = cells[i] || [];
+    const cli = r[c.cli];
+    if (!cli || typeof cli !== 'string' || !String(cli).trim()) continue;
+    const mes = String(r[c.mes]||'').trim().toUpperCase();
+    if (!MO_ALL.includes(mes)) continue;
+    const mgv = c.mg>=0 && typeof r[c.mg] === 'number' ? Math.round(r[c.mg]*1e6)/1e6 : null;
+    rows.push([mes,
+      c.rep>=0 ? String(r[c.rep]||'').trim() : '',
+      c.wh>=0  ? String(r[c.wh]||'').trim()  : '',
+      String(r[c.st]||'').trim().toLowerCase()==='invoiced' ? 'I' : 'T',
+      String(cli).trim(),
+      Math.round((+r[c.brl]||0)*100)/100,
+      +r[c.qtd] || 0,
+      c.ped>=0 ? String(r[c.ped]??'').trim() : '',
+      c.dt>=0 ? (typeof r[c.dt]==='number' ? serialToISO(r[c.dt]) : (r[c.dt]||null)) : null,
+      c.com>=0 ? (+r[c.com]||0) : 0,
+      mgv]);
+  }
+  if (!rows.length) throw new Error(t().impNoBase);
+  const meses = MO_ALL.filter(m => rows.some(r=>r[0]===m));
+  const anoRow = rows.find(r=>r[8]);
+  return {
+    meses, atual: meses[meses.length-1],
+    ano: anoRow ? +String(anoRow[8]).slice(0,4) : DATA.ano,
+    fx: DATA.fx, rows,
+    reps: [...new Set(rows.map(r=>r[1]).filter(Boolean))].sort(),
+    clientes: [...new Set(rows.map(r=>r[4]))].sort(),
+    fonte: fileName
+  };
+}
+el('btnImport').onclick = () => el('fFile').click();
+el('fFile').onchange = async e => {
+  const f = e.target.files[0]; if (!f) return;
+  const btn = el('btnImport'); btn.disabled = true;
+  try{
+    const files = await unzip(new Uint8Array(await f.arrayBuffer()));
+    const wb = td(files['xl/workbook.xml'] || new Uint8Array());
+    const rels = td(files['xl/_rels/workbook.xml.rels'] || new Uint8Array());
+    const shared = files['xl/sharedStrings.xml'] ? sharedStrings(td(files['xl/sharedStrings.xml'])) : [];
+    const sheets = [...wb.matchAll(/<sheet[^>]*name="([^"]*)"[^>]*r:id="([^"]*)"/g)]
+      .map(m=>({name:unesc(m[1]), rid:m[2]}));
+    const target = rid => {
+      const m = rels.match(new RegExp('Id="'+rid+'"[^>]*Target="([^"]*)"'));
+      if (!m) return null;
+      let p = m[1].replace(/^\/xl\//,'').replace(/^\.\//,'');
+      return files['xl/'+p] ? 'xl/'+p : (files[p] ? p : null);
+    };
+    const pick = sheets.find(s=>norm(s.name)==='base') || sheets[0];
+    const path = pick && target(pick.rid);
+    if (!path) throw new Error(t().impNoBase);
+    const nd = buildData(sheetRows(td(files[path]), shared), f.name);
+    boot(nd);
+    S.reps.clear(); S.ufs.clear(); S.q = ''; el('fQ').value = '';
+    S.tab = 'all'; S.sort = 'tot'; S.dir = -1;
+    MSREP.fill(); MSUF.fill();
+    applyLang(); render();
+    toast(t().impOk(nd.rows.length, f.name));
+  } catch(err){
+    toast(t().impErr + (err && err.message ? err.message : err), true);
+  } finally { btn.disabled = false; e.target.value = ''; }
+};
+
+/* ================= salvar HTML com os dados ================= */
+el('btnSave').onclick = async () => {
+  const btn = el('btnSave'); btn.disabled = true;
+  try{
+    const src = await (await fetch(location.href, {cache:'no-store'})).text();
+    const a = src.indexOf('/*DATA_START*/'), b = src.indexOf('/*DATA_END*/');
+    if (a < 0 || b < 0) throw new Error('markers');
+    const out = src.slice(0, a) + '/*DATA_START*/const DATA0 = '
+      + JSON.stringify(DATA) + ';' + src.slice(b);
+    const url = URL.createObjectURL(new Blob([out], {type:'text/html'}));
+    const link = document.createElement('a');
+    link.href = url; link.download = 'index.html';
+    document.body.appendChild(link); link.click(); link.remove();
+    setTimeout(()=>URL.revokeObjectURL(url), 4000);
+    toast(t().saveOk);
+  } catch(err){ toast(t().saveErr, true); }
+  finally { btn.disabled = false; }
+};
+
+/* ================= acesso ================= */
 function hash(s){ let x=5381; for (const c of s) x=((x*33)^c.charCodeAt(0))>>>0; return x; }
 const KEY = 2519394238;
-document.getElementById('gateForm').addEventListener('submit', e=>{
+el('gateForm').addEventListener('submit', e=>{
   e.preventDefault();
-  const f = document.getElementById('gPass');
+  const f = el('gPass');
   if (hash(f.value.trim()) === KEY){
-    document.getElementById('gate').remove();
-    document.getElementById('app').hidden = false;
+    el('gate').remove();
+    el('app').hidden = false;
+    MSREP.fill(); MSUF.fill();
     render();
   } else { set('gErr', t().gerr); f.select(); }
 });
-document.getElementById('fLang').addEventListener('click', e=>{
-  if (e.target.closest('button')) set('gErr','');
-});
+el('fLang').addEventListener('click', e=>{ if (e.target.closest('button')) set('gErr',''); });
 applyLang();
-document.getElementById('gPass').focus();
+el('gPass').focus();
 </script>
 
 </body>
