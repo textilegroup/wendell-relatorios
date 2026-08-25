@@ -64,6 +64,7 @@ body{
   width:100%;font:inherit;font-size:14px;text-align:center;letter-spacing:.12em;
   padding:10px;border:1px solid var(--line);border-radius:9px;background:var(--sunk);color:var(--ink);
 }
+.gate-box button[disabled]{opacity:.6;cursor:progress}
 .gate-box button{
   width:100%;margin-top:9px;font:inherit;font-size:12.5px;font-weight:700;letter-spacing:.06em;
   text-transform:uppercase;padding:10px;border:0;border-radius:9px;background:var(--wine);color:#fff;cursor:pointer;
@@ -391,13 +392,16 @@ footer{font-size:10.5px;color:var(--ink-3);text-align:center;padding:2px 0 0;lin
   <div class="hdr-right">
     <input type="file" id="fFile" accept=".xlsx,.xlsm" hidden>
     <button class="hdr-chip" id="btnImport" type="button"></button>
-    <button class="hdr-chip" id="btnSave" type="button"></button>
+    <button class="hdr-chip" id="btnModel" type="button"></button>
+    <button class="hdr-chip" id="btnSave" type="button" hidden></button>
     <button class="hdr-chip" id="btnPdf" type="button"></button>
     <div class="lang" id="fLang">
       <button type="button" data-v="pt">PT</button>
       <button type="button" data-v="en">EN</button>
     </div>
     <span class="hdr-chip" id="period"></span>
+    <span class="hdr-chip" id="whoami" hidden></span>
+    <button class="hdr-chip" id="btnOut" type="button" hidden></button>
     <button class="hdr-chip" id="themeBtn" type="button"></button>
   </div>
 </header>
@@ -584,8 +588,9 @@ const UF_CLIENTE = {
   "ZEAIT IND E COM DE CONFECÇÕES LTDA": "",
 };
 
-/*DATA_START*/const DATA0 = {"meses":["JAN","FEV","MAR","ABR","MAI","JUN","JUL","AGO"],"atual":"AGO","ano":2026,"fx":5.1,"rows":[["AGO","ARTHUR","SP","I","TUTTO PRINT INDUSTRIA E COMERCIO LTDA",1124.0,200.0,"000057","2026-08-24",0.0,null,null],["AGO","ARTHUR","SP","I","TUTTO PRINT INDUSTRIA E COMERCIO LTDA",6744.0,1200.0,"000057","2026-08-24",0.0,null,null],["AGO","ARTHUR","SP","T","ARMARINHOS PALMARES DE ASSIS LTDA",2866.5,273.0,"000056","2026-08-24",0.0,null,null],["AGO","ALICE","SC","T","LMX CONFECCOES LTDA",1490.0,200.0,"602452","2026-08-24",0.02,null,null],["AGO","SIMONE","SC","I","AVERARA CONFECCOES LTDA",6000.0,2000.0,"602451","2026-08-19",0.02,0.1692,322.15],["AGO","MARCELLO","SP","T","FERNANDES CONFECÇÃO LTDA",449.0,100.0,"","2026-08-17",0.04,null,null],["AGO","MARCELLO","SC","I","ARABELLA CONFECCOES LTDA",930.0,200.0,"602453","2026-08-17",0.04,0.428189,null],["AGO","MARCELLO","SC","I","ARABELLA CONFECCOES LTDA",1959.0,300.0,"602453","2026-08-17",0.04,0.401062,null],["AGO","MARCELLO","SC","I","ARABELLA CONFECCOES LTDA",1626.0,300.0,"602453","2026-08-17",0.04,0.41179,null],["AGO","MARCELLO","SC","I","ARABELLA CONFECCOES LTDA",1560.0,300.0,"602453","2026-08-17",0.04,0.430241,null],["AGO","ARTHUR","SP","I","TUTTO PRINT INDUSTRIA E COMERCIO LTDA",1124.0,200.0,"000055","2026-08-18",0.0,0.318883,null],["AGO","ARTHUR","SP","I","TUTTO PRINT INDUSTRIA E COMERCIO LTDA",2244.0,300.0,"000055","2026-08-18",0.0,0.26153,null],["AGO","SIMONE","SC","I","MODAS LAVIDA LTDA",3200.0,1000.0,"602449","2026-08-13",0.02,0.1793,38.7],["AGO","ARTHUR","SP","I","CONFECCOES DALANT LTDA",2550.0,500.0,"000053","2026-08-07",0.0,null,null],["AGO","ANDRE CANO","SC","I","T. B. DE ANDRADE CONFECCAO LTDA",364.0,100.0,"602448","2026-08-10",0.02,0.2629,334.44],["AGO","ANDRE CANO","SC","I","T. B. DE ANDRADE CONFECCAO LTDA",2100.0,600.0,"602448","2026-08-10",0.02,0.2694,0.0],["AGO","ARTHUR","SP","I","MILK' N ROSES CONFECCOES LTDA",3325.0,700.0,"000051","2026-08-07",0.0,null,null],["AGO","ARTHUR","SP","I","MILK' N ROSES CONFECCOES LTDA",1425.0,300.0,"000051","2026-08-07",0.0,null,null],["AGO","ARTHUR","SP","I","F. F. FASHION FACTORY LTDA",900.0,500.0,"000050","2026-08-06",0.0,null,null],["AGO","SIMONE","SP","I","OY MODAS E PRODUCOES FOTOGRAFICAS E TEATRAIS LTDA",948.0,200.0,"000049","2026-08-04",0.02,null,null],["AGO","MARCELLO","SP","I","VIDA-LOKA CONFECCOES LTDA",1413.0,300.0,"000048","2026-08-03",0.06,null,null],["JUL","BRUNA","SP","I","LUPO NORDESTE LTDA",7010.0,1000.0,"000047","2026-07-30",0.0,null,null],["AGO","SIMONE","SP","I","COIMBRA SP INDUSTRIA E COMERCIO LTDA",980.0,200.0,"000046","2026-08-10",0.02,null,null],["JUL","BRUNA","SP","I","LUPO NORDESTE LTDA",7100.0,1000.0,"000045","2026-07-23",0.0,null,null],["JUL","ANDRE CANO","SP","I","ZEAIT IND E COM DE CONFECÇÕES LTDA",837.1,100.0,"000042","2026-07-20",0.02,null,null],["JUL","BRUNA","SP","I","MILK' N ROSES CONFECCOES LTDA",1425.0,300.0,"000041","2026-07-20",0.0,null,null],["JUL","BRUNA","SP","I","MILK' N ROSES CONFECCOES LTDA",3325.0,700.0,"000041","2026-07-20",0.0,null,null],["JUL","MARCELLO","SC","I","ARABELLA CONFECCOES LTDA",864.0,200.0,"602447","2026-07-16",0.04,0.192959,205.61],["JUL","MARCELLO","SC","I","ARABELLA CONFECCOES LTDA",930.0,200.0,"602447","2026-07-16",0.04,0.421819,205.61],["JUL","MARCELLO","SC","I","ARABELLA CONFECCOES LTDA",1084.0,200.0,"602447","2026-07-16",0.04,0.41179,205.61],["JUL","MARCELLO","SC","I","ARABELLA CONFECCOES LTDA",520.0,100.0,"602447","2026-07-16",0.04,0.411585,205.61],["JUL","BRUNA","SP","I","CLIO CONFECCOES IMPORTACAO E EXPORTACAO LTDA",3420.0,1000.0,"000040","2026-07-14",0.0,null,null],["JUL","ANDRE CANO","SC","I","ZEAIT IND E COM DE CONFECÇÕES LTDA",2612.0,400.0,"602436","2026-07-13",0.02,0.309179,null],["JUL","ANDRE CANO","SC","I","ZEAIT IND E COM DE CONFECÇÕES LTDA",1350.0,200.0,"602436","2026-07-13",0.02,0.303793,null],["JUL","ANDRE CANO","SC","I","JOAO ROBERTO PASSETTI",1456.0,400.0,"602435","2026-07-08",0.02,0.137684,397.58],["JUL","ANDRE CANO","SC","I","JOAO ROBERTO PASSETTI",3500.0,1000.0,"602435","2026-07-08",0.02,0.308343,397.58],["JUL","BRUNA","SP","I","MILK' N ROSES CONFECCOES LTDA",2375.0,500.0,"000037","2026-07-07",0.0,null,null],["JUL","BRUNA","SP","I","MILK' N ROSES CONFECCOES LTDA",2375.0,500.0,"000037","2026-07-07",0.0,null,null],["JUL","BRUNA","SP","I","TUTTO PRINT INDUSTRIA E COMERCIO LTDA",966.0,200.0,"000036","2026-07-03",0.0,null,null],["JUL","BRUNA","SP","I","TUTTO PRINT INDUSTRIA E COMERCIO LTDA",1932.0,400.0,"000036","2026-07-03",0.0,null,null],["JUN","BRUNA","SC","I","LMX CONFECCOES LTDA",1490.0,200.0,"602412","2026-06-30",0.0,0.331603,null],["JUN","ANDRE CANO","SP","I","ELVA CONFECCOES LTDA",0.0,100.0,"000034","2026-06-25",0.0,0.0,196.53],["JUN","ANDRE CANO","SP","I","T. B. DE ANDRADE CONFECCAO LTDA",830.0,200.0,"000033","2026-06-25",0.02,0.00921,331.11],["JUN","ANDRE CANO","SP","I","T. B. DE ANDRADE CONFECCAO LTDA",2450.0,700.0,"000033","2026-06-25",0.02,0.181293,0.0],["JUN","BRUNA","SP","I","YANN COMERCIO E INDUSTRIA LTDA",165.8,10.0,"000031","2026-06-18",0.0,0.352111,196.53],["JUN","BRUNA","SP","I","MILK' N ROSES CONFECCOES LTDA",2375.0,500.0,"000030","2026-06-19",0.0,0.219939,331.11],["JUN","BRUNA","SP","I","MILK' N ROSES CONFECCOES LTDA",2375.0,500.0,"000030","2026-06-19",0.0,0.240992,331.11],["JUN","BRUNA","SP","I","TUTTO PRINT INDUSTRIA E COMERCIO LTDA",496.0,100.0,"000027","2026-06-18",0.0,0.346973,0.0],["JUN","BRUNA","SP","I","TUTTO PRINT INDUSTRIA E COMERCIO LTDA",421.0,100.0,"000027","2026-06-18",0.0,0.280967,0.0],["JUN","BRUNA","SP","I","TUTTO PRINT INDUSTRIA E COMERCIO LTDA",1995.0,500.0,"000027","2026-06-18",0.0,0.282997,0.0],["JUN","ARTHUR","SP","I","J H K CONFECCOES LTDA",1026.0,300.0,"000029","2026-06-18",0.0,0.168127,0.0],["JUN","ARTHUR","SC","I","J H K CONFECCOES LTDA",2100.0,700.0,"602386","2026-06-18",0.0,0.214533,179.65],["JUN","ARTHUR","SP","I","CLIO CONFECCOES IMPORTACAO E EXPORTACAO LTDA",2394.0,700.0,"000026","2026-06-15",0.0,0.168127,0.0],["JUN","ARTHUR","SP","I","CLIO CONFECCOES IMPORTACAO E EXPORTACAO LTDA",1026.0,300.0,"000026","2026-06-15",0.0,-0.147663,0.0],["JUN","MARCELLO","SC","I","DVORA HOUSE LTDA",542.0,100.0,"602372","2026-06-12",0.04,0.41179,198.58],["JUN","MARCELLO","SC","I","DVORA HOUSE LTDA",2600.0,500.0,"602372","2026-06-12",0.04,0.3932,198.58],["JUN","ARTHUR","SP","I","CONFECCOES DALANT LTDA",510.0,100.0,"000024","2026-06-12",0.0,-0.044085,0.0],["JUN","BRUNA","SC","I","SAGO PARGO CONFECCOES LTDA",6600.0,2200.0,"602360","2026-06-08",0.0,0.214533,398.58],["JUN","BRUNA","SP","I","SAGO PARGO CONFECCOES LTDA",2736.0,800.0,"000023","2026-06-08",0.0,-0.147663,0.0],["JUN","BRUNA","SP","I","MILK' N ROSES CONFECCOES LTDA",4750.0,1000.0,"000022","2026-06-08",0.0,0.240992,0.0],["JUN","SIMONE","SC","I","AVERARA CONFECCOES LTDA",3000.0,1000.0,"602340","2026-06-08",0.02,0.214533,225.78],["JUN","BRUNA","SP","I","IMAPER INDUSTRIA E COMERCIO LTDA",1458.73,91.0,"000021","2026-06-02",0.0,0.354256,0.0],["JUN","BRUNA","SP","I","MILK' N ROSES CONFECCOES LTDA",2375.0,500.0,"000020","2026-06-01",0.0,0.240992,0.0],["JUN","BRUNA","SP","I","MILK' N ROSES CONFECCOES LTDA",1596.0,400.0,"000020","2026-06-01",0.0,0.250416,0.0],["JUN","BRUNA","SP","I","MILK' N ROSES CONFECCOES LTDA",1197.0,300.0,"000020","2026-06-01",0.0,-0.020261,0.0],["JUN","ROSIMERE","SP","I","LARISSA VICTOR DE ARAUJO",756.0,100.0,"000018","2026-06-01",0.06,null,0.0],["JUN","SIMONE","SC","I","AVERARA CONFECCOES LTDA",3000.0,1000.0,"602339","2026-06-01",0.02,null,225.78],["JUN","ANDRE COLARES","SP","I","RAFFAEL ANDRADE PESSOA",990.0,200.0,"000015","2026-06-01",0.02,null,180.0],["JUN","ANDRE COLARES","SP","I","TARC DUBLAGENS INDUSTRIAIS LTDA",192.0,100.0,"000019","2026-06-01",0.03,null,180.0],["JUN","ANDRE COLARES","SP","I","TARC DUBLAGENS INDUSTRIAIS LTDA",230.0,100.0,"000019","2026-06-01",0.03,null,180.0],["JUN","ANDRE COLARES","SP","I","TARC DUBLAGENS INDUSTRIAIS LTDA",350.0,100.0,"000019","2026-06-01",0.02,null,180.0],["MAI","ANDRE CANO","SC","I","JOAO ROBERTO PASSETTI",1456.0,400.0,"602344","2026-05-26",0.02,null,399.47],["MAI","ANDRE CANO","SC","I","JOAO ROBERTO PASSETTI",3500.0,1000.0,"602344","2026-05-26",0.02,null,399.47],["MAI","FERNANDA","SP","I","KFK INDUSTRIA E COMERCIO DE CONFECCOES LTDA",2450.0,700.0,"000014","2026-05-21",0.02,null,null],["MAI","FERNANDA","SP","I","KFK INDUSTRIA E COMERCIO DE CONFECCOES LTDA",2450.0,700.0,"000014","2026-05-21",0.02,null,null],["MAI","ANDRE CANO","SC","I","T. B. DE ANDRADE CONFECCAO LTDA",2450.0,700.0,"602342","2026-05-21",0.02,null,375.44],["MAI","ANDRE CANO","SC","I","T. B. DE ANDRADE CONFECCAO LTDA",728.0,200.0,"602342","2026-05-21",0.02,null,0.0],["MAI","SIMONE","SC","I","HALAVE CONFECCOES LTDA",1035.0,300.0,"602343","2026-05-21",0.02,null,null],["MAI","SIMONE","SC","I","HALAVE CONFECCOES LTDA",1035.0,300.0,"602343","2026-05-21",0.02,null,null],["MAI","SIMONE","SC","I","HALAVE CONFECCOES LTDA",576.0,300.0,"602343","2026-05-21",0.03,null,null],["MAI","SIMONE","SC","I","HALAVE CONFECCOES LTDA",576.0,300.0,"602343","2026-05-21",0.03,null,null],["MAI","SIMONE","SC","I","AVERARA CONFECCOES LTDA",3000.0,1000.0,"602338","2026-05-20",0.02,null,225.78],["MAI","BRUNA","SC","I","FLOR LINDA CONFECCOES LTDA",330.0,100.0,"602328","2026-05-18",0.0,null,null],["MAI","BRUNA","SC","I","FLOR LINDA CONFECCOES LTDA",330.0,100.0,"602328","2026-05-18",0.0,null,null],["MAI","BRUNA","SP","I","KYCO. LTDA",2544.0,400.0,"000012","2026-05-15",0.0,0.352641,null],["MAI","ROSIMERE","SC","I","M.R.T. COMERCIO VAREJISTA DE ARTIGOS DO VESTUARIO E ACESSORIOS LTDA",1230.0,200.0,"602293","2026-05-05",0.06,null,345.8],["MAI","ROSIMERE","SP","I","EPELBAUM COMERCIO DE PRODUTOS LTDA",2259.0,300.0,"000009","2026-05-04",0.04,null,556.23],["MAI","ROSIMERE","SP","I","EPELBAUM COMERCIO DE PRODUTOS LTDA",2358.0,300.0,"000009","2026-05-04",0.04,null,556.23],["MAI","ROSIMERE","SP","I","EPELBAUM COMERCIO DE PRODUTOS LTDA",1000.0,200.0,"000009","2026-05-04",0.06,null,556.23],["MAI","ROSIMERE","SP","I","EPELBAUM COMERCIO DE PRODUTOS LTDA",1052.0,200.0,"000009","2026-05-04",0.06,null,556.23],["ABR","MARCELLO","SC","I","ARABELLA CONFECCOES LTDA",1560.0,300.0,"602250","2026-04-17",0.04,0.411585,204.18],["ABR","MARCELLO","SC","I","ARABELLA CONFECCOES LTDA",1626.0,300.0,"602250","2026-04-17",0.04,0.41179,204.18],["ABR","ROSIMERE","SP","I","EPELBAUM COMERCIO DE PRODUTOS LTDA",2001.0,300.0,"000004","2026-04-13",0.06,0.467902,312.43],["ABR","ROSIMERE","SP","I","VIENAS COMERCIO DE TECIDOS LTDA",628.0,100.0,"000006","2026-04-13",0.06,0.484257,381.5],["ABR","ROSIMERE","SP","I","VIENAS COMERCIO DE TECIDOS LTDA",2900.0,200.0,"000006","2026-04-13",0.05,0.418097,381.5],["ABR","ROSIMERE","SP","I","VIENAS COMERCIO DE TECIDOS LTDA",1438.0,100.0,"000006","2026-04-13",0.05,0.419183,381.5],["ABR","BRUNA","SP","I","LUPO NORDESTE LTDA",7010.0,1000.0,"000007","2026-04-13",0.0,0.590173,315.72],["ABR","SIMONE","SC","I","ZAYAN COMERCIO E CONFECCAO LTDA",2828.0,700.0,"602235","2026-04-09",0.03,0.383576,277.42],["ABR","SIMONE","SC","I","ZAYAN COMERCIO E CONFECCAO LTDA",2975.0,700.0,"602235","2026-04-09",0.03,0.38414,277.42],["ABR","BRUNA","SP","I","SANTA AMELIA COMERCIO DE ARMARINHOS E TECIDOS LTDA",3552.64,182.0,"000002","2026-04-09",0.0,0.415482,385.36],["ABR","BRUNA","SP","I","KYCO. LTDA",3714.0,600.0,"000005","2026-04-09",0.0,0.358043,null],["ABR","BRUNA","SP","I","KYCO. LTDA",2544.0,400.0,"000005","2026-04-09",0.0,0.352641,null],["ABR","BRUNA","SP","I","M L DA SILVA CONFECCOES",1954.68,91.0,"000003","2026-04-08",0.0,0.448992,null],["ABR","BRUNA","SP","I","M L DA SILVA CONFECCOES",2240.0,100.0,"000003","2026-04-08",0.0,0.450846,null],["MAR","BRUNA","SC","I","LABALABA BORDADOS LTDA",695.0,100.0,"602229","2026-03-25",0.0,0.322567,93.66],["MAR","BRUNA","SC","I","LABALABA BORDADOS LTDA",730.0,100.0,"602229","2026-03-25",0.0,0.326342,93.66],["MAR","BRUNA","SP","I","LUPO NORDESTE LTDA",7010.0,1000.0,"000001","2026-03-24",0.0,0.570201,315.72],["MAR","RICARDO","SC","I","TECIDOS N.A. COMERCIAL LTDA.",1254.0,100.0,"602203","2026-03-16",0.03,0.352859,227.3],["MAR","RICARDO","SC","I","TECIDOS N.A. COMERCIAL LTDA.",1264.0,100.0,"602203","2026-03-16",0.03,0.351422,227.3],["FEV","ADRIANA","SC","I","RUBINELLA INDUSTRIA DE MODAS LTDA",1974.0,300.0,"602177","2026-02-27",0.04,0.235942,202.38],["FEV","ADRIANA","SC","I","RUBINELLA INDUSTRIA DE MODAS LTDA",1406.0,200.0,"602177","2026-02-27",0.05,0.4167,202.38],["FEV","ADRIANA","SC","I","RUBINELLA INDUSTRIA DE MODAS LTDA",1466.0,200.0,"602177","2026-02-27",0.05,0.4167,202.38],["FEV","RICARDO","SC","I","TECIDOS N.A. COMERCIAL LTDA.",1468.0,200.0,"602150","2026-02-11",0.06,0.323516,null],["FEV","RICARDO","SC","I","TECIDOS N.A. COMERCIAL LTDA.",762.0,100.0,"602150","2026-02-11",0.06,0.322644,null],["FEV","RICARDO","SC","I","TECIDOS N.A. COMERCIAL LTDA.",926.0,200.0,"602150","2026-02-11",0.05,0.4167,null],["FEV","RICARDO","SC","I","TECIDOS N.A. COMERCIAL LTDA.",487.0,100.0,"602150","2026-02-11",0.05,0.4167,null],["JAN","SIMONE","SC","I","WARDY CONFECCOES LTDA",8250.0,1500.0,"602122","2026-01-19",0.04,0.3833,null]],"reps":["ADRIANA","ALICE","ANDRE CANO","ANDRE COLARES","ARTHUR","BRUNA","FERNANDA","MARCELLO","RICARDO","ROSIMERE","SIMONE"],"clientes":["ARABELLA CONFECCOES LTDA","ARMARINHOS PALMARES DE ASSIS LTDA","AVERARA CONFECCOES LTDA","CLIO CONFECCOES IMPORTACAO E EXPORTACAO LTDA","COIMBRA SP INDUSTRIA E COMERCIO LTDA","CONFECCOES DALANT LTDA","DVORA HOUSE LTDA","ELVA CONFECCOES LTDA","EPELBAUM COMERCIO DE PRODUTOS LTDA","F. F. FASHION FACTORY LTDA","FERNANDES CONFECÇÃO LTDA","FLOR LINDA CONFECCOES LTDA","HALAVE CONFECCOES LTDA","IMAPER INDUSTRIA E COMERCIO LTDA","J H K CONFECCOES LTDA","JOAO ROBERTO PASSETTI","KFK INDUSTRIA E COMERCIO DE CONFECCOES LTDA","KYCO. LTDA","LABALABA BORDADOS LTDA","LARISSA VICTOR DE ARAUJO","LMX CONFECCOES LTDA","LUPO NORDESTE LTDA","M L DA SILVA CONFECCOES","M.R.T. COMERCIO VAREJISTA DE ARTIGOS DO VESTUARIO E ACESSORIOS LTDA","MILK' N ROSES CONFECCOES LTDA","MODAS LAVIDA LTDA","OY MODAS E PRODUCOES FOTOGRAFICAS E TEATRAIS LTDA","RAFFAEL ANDRADE PESSOA","RUBINELLA INDUSTRIA DE MODAS LTDA","SAGO PARGO CONFECCOES LTDA","SANTA AMELIA COMERCIO DE ARMARINHOS E TECIDOS LTDA","T. B. DE ANDRADE CONFECCAO LTDA","TARC DUBLAGENS INDUSTRIAIS LTDA","TECIDOS N.A. COMERCIAL LTDA.","TUTTO PRINT INDUSTRIA E COMERCIO LTDA","VIDA-LOKA CONFECCOES LTDA","VIENAS COMERCIO DE TECIDOS LTDA","WARDY CONFECCOES LTDA","YANN COMERCIO E INDUSTRIA LTDA","ZAYAN COMERCIO E CONFECCAO LTDA","ZEAIT IND E COM DE CONFECÇÕES LTDA"],"fonte":"SALES REPORT — WENDELL BRAZIL (aba BASE)"};/*DATA_END*/
+/*DATA_START*/const DATA0 = {"meses":[],"atual":"","ano":2026,"fx":5.1,"rows":[],"reps":[],"clientes":[],"fonte":"Supabase"};/*DATA_END*/
 
+const MO_ALL = ['JAN','FEV','MAR','ABR','MAI','JUN','JUL','AGO','SET','OUT','NOV','DEZ'];
 let DATA = DATA0, M, MS, CUR, FX, COLS, R, ANOS, FIRST, LAST, FIRSTD;
 function boot(d){
   DATA = d;
@@ -607,7 +612,8 @@ function boot(d){
     g.forEach(r => r.frb = r.brl);
   });
   ANOS = [...new Set(R.map(r=>r.ano))].sort();
-  MS = M.slice(); CUR = DATA.atual; COLS = [...M].reverse();
+  if (!M.length){ M = [MO_ALL[new Date().getMonth()]]; DATA.atual = M[0]; }
+  MS = M.slice(); CUR = DATA.atual || M[M.length-1]; COLS = [...M].reverse();
   FIRST = {}; LAST = {}; FIRSTD = {};
   R.filter(r=>r.st==='I').forEach(r=>{
     const i = M.indexOf(r.mes);
@@ -618,7 +624,6 @@ function boot(d){
 }
 boot(DATA0);
 
-const MO_ALL = ['JAN','FEV','MAR','ABR','MAI','JUN','JUL','AGO','SET','OUT','NOV','DEZ'];
 const MES_EN = {JAN:'JAN',FEV:'FEB',MAR:'MAR',ABR:'APR',MAI:'MAY',JUN:'JUN',
                 JUL:'JUL',AGO:'AUG',SET:'SEP',OUT:'OCT',NOV:'NOV',DEZ:'DEC'};
 const TABS = ['all','top10','novos','inativos','reps','estados'];
@@ -628,7 +633,17 @@ const T = {
  pt:{
   htitle:'Relatório de Vendas', hsub:'Wendell Global Interlining · Brasil',
   gsub:'Wendell Global Interlining · acesso restrito', gpass:'Senha', gbtn:'Entrar',
-  gerr:'Senha incorreta.', theme:'Tema', imp:'Importar planilha', save:'Salvar dados da planilha', pdf:'Gerar PDF',
+  gerr:'Senha incorreta.', theme:'Tema', imp:'Importar planilha', model:'Baixar modelo',
+  save:'Salvar dados da planilha importada', pdf:'Gerar PDF',
+  gmail:'E-mail', entrando:'Entrando…', sair:'Sair',
+  gsubDb:'Wendell Global Interlining · acesso restrito',
+  semPerfil:'A conta do painel não tem perfil em wgi_sales_profiles. Rode o insert descrito no SETUP-SUPABASE.md.',
+  semDados:'Nenhuma planilha salva no banco ainda. Importe a planilha e clique em “Salvar dados da planilha importada”.',
+  salvando:'Salvando no banco…',
+  salvoDb:n=>'Salvo no Supabase: '+n+' linhas. Quem abrir o painel agora já vê estes dados.',
+  salvoErr:'Não consegui salvar no banco: ',
+  soGerencia:'Só a gerência pode gravar dados.',
+  repLock:r=>'Acesso de representante: você vê apenas os clientes de '+r+'.',
   filters:'Filtros', rep:'Representante', all:'Todos', clear:'Limpar', state:'Estado', view:'Visão',
   year:'Ano', month:'Mês',
   nsel:n=>n+' selecionados',
@@ -669,7 +684,11 @@ const T = {
   pmore:n=>'+ '+n+' linhas não exibidas nesta página',
   impOk:(n,f)=>'Planilha importada: '+n+' linhas de '+f+'. Use “Salvar dados da planilha” para gravar no arquivo.',
   impErr:'Não consegui ler a planilha: ',
-  impNoBase:'A planilha não tem uma aba BASE com as colunas esperadas (Month, Rep, WH, Status, Customer, Total per item).',
+  impNoBase:'Não encontrei uma aba com dados no formato esperado. Baixe o modelo e compare os cabeçalhos.',
+  impFalta:c=>'Faltam colunas obrigatórias na planilha: '+c+'. Baixe o modelo para conferir os cabeçalhos.',
+  impSemLinhas:'A aba foi lida, mas nenhuma linha tinha Month válido (JAN…DEZ) e Customer preenchido.',
+  impOpc:c=>' Colunas opcionais ausentes: '+c+' — os cards correspondentes ficam vazios.',
+  modelOk:'Modelo baixado. A aba LEIA-ME explica cada coluna.',
   impNoZip:'Este navegador não consegue descompactar o .xlsx. Use Chrome, Edge, Safari 16.4+ ou Firefox 113+.',
   saveOk:'HTML gerado com os dados atuais. Suba esse arquivo no lugar do index.html.',
   saveErr:'Só consigo gerar o HTML quando a página está publicada (GitHub Pages ou outro servidor) — abrindo o arquivo direto do disco o navegador bloqueia a leitura do próprio código.',
@@ -679,7 +698,17 @@ const T = {
  en:{
   htitle:'Sales Report', hsub:'Wendell Global Interlining · Brazil',
   gsub:'Wendell Global Interlining · restricted access', gpass:'Password', gbtn:'Enter',
-  gerr:'Wrong password.', theme:'Theme', imp:'Import workbook', save:'Save workbook data', pdf:'Export PDF',
+  gerr:'Wrong password.', theme:'Theme', imp:'Import workbook', model:'Download template',
+  save:'Save imported workbook data', pdf:'Export PDF',
+  gmail:'E-mail', entrando:'Signing in…', sair:'Sign out',
+  gsubDb:'Wendell Global Interlining · restricted access',
+  semPerfil:'The panel account has no profile in wgi_sales_profiles. Run the insert described in SETUP-SUPABASE.md.',
+  semDados:'No workbook saved in the database yet. Import one and click “Save imported workbook data”.',
+  salvando:'Saving to the database…',
+  salvoDb:n=>'Saved to Supabase: '+n+' rows. Anyone opening the report now sees this data.',
+  salvoErr:'Could not save to the database: ',
+  soGerencia:'Only management can write data.',
+  repLock:r=>'Sales rep access: you only see customers of '+r+'.',
   filters:'Filters', rep:'Sales rep', all:'All', clear:'Clear', state:'State', view:'View',
   year:'Year', month:'Month',
   nsel:n=>n+' selected',
@@ -720,7 +749,11 @@ const T = {
   pmore:n=>'+ '+n+' rows not shown on this page',
   impOk:(n,f)=>'Workbook imported: '+n+' rows from '+f+'. Use “Save workbook data” to write it into the file.',
   impErr:'Could not read the workbook: ',
-  impNoBase:'The workbook has no BASE sheet with the expected columns (Month, Rep, WH, Status, Customer, Total per item).',
+  impNoBase:'No sheet with data in the expected format. Download the template and compare the headers.',
+  impFalta:c=>'Required columns missing from the workbook: '+c+'. Download the template to check the headers.',
+  impSemLinhas:'The sheet was read, but no row had a valid Month (JAN…DEZ) and a Customer.',
+  impOpc:c=>' Optional columns missing: '+c+' — the matching cards stay empty.',
+  modelOk:'Template downloaded. The LEIA-ME sheet explains every column.',
   impNoZip:'This browser cannot unzip the .xlsx. Use Chrome, Edge, Safari 16.4+ or Firefox 113+.',
   saveOk:'HTML generated with the current data. Upload it in place of index.html.',
   saveErr:'I can only rebuild the HTML when the page is served (GitHub Pages or any server) — opened straight from disk the browser blocks reading its own source.',
@@ -857,8 +890,9 @@ function applyLang(){
   document.documentElement.lang = S.lang==='en' ? 'en' : 'pt-BR';
   document.title = S.lang==='en' ? 'Wendell Brazil Sales' : 'Vendas Wendell Brasil';
   set('hTitle',L.htitle); set('hSub',L.hsub); set('themeBtn',L.theme);
-  set('gTitle',L.htitle); set('gSub',L.gsub); set('gBtn',L.gbtn);
-  set('btnImport',L.imp); set('btnSave',L.save); set('btnPdf',L.pdf);
+  set('gTitle',L.htitle); set('gSub', SB_ON ? L.gsubDb : L.gsub); set('gBtn',L.gbtn);
+  set('btnImport',L.imp); set('btnModel',L.model); set('btnSave',L.save); set('btnPdf',L.pdf);
+  set('btnOut',L.sair);
   const gp = el('gPass');
   if (gp){ gp.placeholder = L.gpass; gp.setAttribute('aria-label',L.gpass); }
   set('lFilters',L.filters); set('lRep',L.rep); set('lState',L.state);
@@ -1286,6 +1320,7 @@ const serialToISO = v => {
   const d = new Date(Date.UTC(1899,11,30) + v*86400000);
   return isNaN(d) ? null : d.toISOString().slice(0,10);
 };
+let MISSING = [];
 const norm = s => String(s??'').toLowerCase().replace(/[^a-z0-9]/g,'');
 function findCol(head, ...cands){
   for (const c of cands){
@@ -1314,7 +1349,12 @@ function buildData(cells, fileName){
     mg:   findCol(head,'Margin','Margem'),
     fr:   findCol(head,'Total Freight','Frete')
   };
-  if ([c.mes,c.st,c.cli,c.brl].some(i=>i<0)) throw new Error(t().impNoBase);
+  const NOME = {mes:'Month', st:'Status', cli:'Customer', brl:'Total per item (BRL Value)',
+                rep:'Rep', wh:'WH', qtd:'Quantity (m)', ped:'Order Number', dt:'Date',
+                com:'Comission', mg:'Margin', fr:'Total Freight'};
+  const falta = ['mes','st','cli','brl'].filter(k=>c[k]<0).map(k=>NOME[k]);
+  if (falta.length) throw new Error(t().impFalta(falta.join(', ')));
+  MISSING = ['rep','wh','ped','dt','com','mg','fr'].filter(k=>c[k]<0).map(k=>NOME[k]);
   const rows = [];
   for (let i = 1; i < cells.length; i++){
     const r = cells[i] || [];
@@ -1336,7 +1376,7 @@ function buildData(cells, fileName){
       mgv,
       c.fr>=0 && typeof r[c.fr] === 'number' ? Math.round(r[c.fr]*100)/100 : null]);
   }
-  if (!rows.length) throw new Error(t().impNoBase);
+  if (!rows.length) throw new Error(t().impSemLinhas);
   const meses = MO_ALL.filter(m => rows.some(r=>r[0]===m));
   const anoRow = rows.find(r=>r[8]);
   return {
@@ -1357,16 +1397,31 @@ el('fFile').onchange = async e => {
     const wb = td(files['xl/workbook.xml'] || new Uint8Array());
     const rels = td(files['xl/_rels/workbook.xml.rels'] || new Uint8Array());
     const shared = files['xl/sharedStrings.xml'] ? sharedStrings(td(files['xl/sharedStrings.xml'])) : [];
-    const sheets = [...wb.matchAll(/<sheet[^>]*name="([^"]*)"[^>]*r:id="([^"]*)"/g)]
-      .map(m=>({name:unesc(m[1]), rid:m[2]}));
-    const target = rid => {
-      const m = rels.match(new RegExp('Id="'+rid+'"[^>]*Target="([^"]*)"'));
-      if (!m) return null;
-      let p = m[1].replace(/^\/xl\//,'').replace(/^\.\//,'');
-      return files['xl/'+p] ? 'xl/'+p : (files[p] ? p : null);
+    /* atributos podem vir em qualquer ordem, e o Target pode ser absoluto:
+       le cada tag inteira e extrai os atributos um a um */
+    const attr = (tag, name) => {
+      const m = tag.match(new RegExp('\\b'+name+'="([^"]*)"'));
+      return m ? unesc(m[1]) : null;
     };
-    const pick = sheets.find(s=>norm(s.name)==='base') || sheets[0];
-    const path = pick && target(pick.rid);
+    const sheets = (wb.match(/<sheet\b[^>]*\/?>/g) || [])
+      .map(tag=>({name:attr(tag,'name'), rid:attr(tag,'r:id') || attr(tag,'id')}))
+      .filter(x=>x.name);
+    const relMap = {};
+    (rels.match(/<Relationship\b[^>]*\/?>/g) || []).forEach(tag=>{
+      const id = attr(tag,'Id'), tg = attr(tag,'Target');
+      if (id && tg) relMap[id] = tg;
+    });
+    const resolve = tg => {
+      if (!tg) return null;
+      const c = tg.replace(/^\//,'').replace(/^\.\//,'');
+      for (const cand of [c, 'xl/'+c, c.replace(/^xl\//,'')])
+        if (files[cand]) return cand;
+      return null;
+    };
+    const pick = sheets.find(x=>norm(x.name)==='base') || sheets[0];
+    /* ultimo recurso: a primeira planilha que existir no pacote */
+    const path = (pick && resolve(relMap[pick.rid]))
+      || Object.keys(files).filter(k=>/^xl\/worksheets\/sheet\d*\.xml$/.test(k)).sort()[0];
     if (!path) throw new Error(t().impNoBase);
     const nd = buildData(sheetRows(td(files[path]), shared), f.name);
     boot(nd);
@@ -1375,44 +1430,366 @@ el('fFile').onchange = async e => {
     S.tab = 'all'; S.sort = 'tot'; S.dir = -1;
     MSREP.fill(); MSUF.fill(); MSANO.fill(); MSMES.fill();
     applyLang(); render();
-    toast(t().impOk(nd.rows.length, f.name));
+    if (!SB_ON || AUTH.role === 'gerencia') el('btnSave').hidden = false;
+    toast(t().impOk(nd.rows.length, f.name) + (MISSING.length ? t().impOpc(MISSING.join(', ')) : ''));
   } catch(err){
     toast(t().impErr + (err && err.message ? err.message : err), true);
   } finally { btn.disabled = false; e.target.value = ''; }
 };
 
-/* ================= salvar HTML com os dados ================= */
+
+
+/* ============================================================
+   SUPABASE — onde os dados ficam guardados
+   Para voltar ao modo offline (dados embutidos no HTML, sem login),
+   deixe url e key vazios: const SUPABASE = { url:'', key:'' };
+   ============================================================ */
+const SUPABASE = {
+  url:  'https://eepmlsdbtcvsjxdcvimi.supabase.co',
+  key:  'sb_publishable_048Dv-jRALn34Ythhj9ngA_fZ1gsNI_',
+  /* Conta compartilhada do painel. A senha de acesso continua sendo a do
+     campo da tela; estas credenciais servem só para o painel falar com o
+     banco. No Supabase esta conta tem apenas SELECT e INSERT — não consegue
+     apagar nem alterar nada. */
+  conta: 'painel.vendas@wgi.local',
+  senha: 'Wgi#Painel2026#Vendas'
+};
+const SB_ON = !!(SUPABASE.url && SUPABASE.key);
+const AUTH = {token:null, uid:null, email:null, role:null, rep:null};
+
+async function sbFetch(path, opts){
+  const o = opts || {};
+  const h = Object.assign({apikey: SUPABASE.key, 'Content-Type':'application/json'}, o.headers || {});
+  if (AUTH.token) h.Authorization = 'Bearer ' + AUTH.token;
+  const r = await fetch(SUPABASE.url + path, Object.assign({}, o, {headers:h}));
+  if (!r.ok){
+    let m = 'HTTP ' + r.status;
+    try { const j = await r.json(); m = j.message || j.error_description || j.msg || j.hint || m; } catch(e){}
+    throw new Error(m);
+  }
+  if (r.status === 204) return null;
+  const txt = await r.text();
+  return txt ? JSON.parse(txt) : null;
+}
+async function sbLogin(){
+  const d = await sbFetch('/auth/v1/token?grant_type=password',
+    {method:'POST', body: JSON.stringify({email: SUPABASE.conta, password: SUPABASE.senha})});
+  AUTH.token = d.access_token; AUTH.uid = d.user.id; AUTH.email = d.user.email;
+  const prof = await sbFetch('/rest/v1/wgi_sales_profiles?select=role,rep_name&user_id=eq.'+AUTH.uid);
+  if (!prof || !prof.length) throw new Error(t().semPerfil);
+  AUTH.role = prof[0].role; AUTH.rep = prof[0].rep_name;
+}
+function dataFromDb(rows, imp){
+  const R2 = rows.map(r=>[r.mes, r.rep||'', r.wh||'', r.status, r.cliente,
+    +r.brl||0, +r.qtd||0, r.pedido||'', r.data||null, +r.com||0,
+    r.margem===null||r.margem===undefined ? null : +r.margem,
+    r.frete ===null||r.frete ===undefined ? null : +r.frete]);
+  const meses = MO_ALL.filter(m=>R2.some(x=>x[0]===m));
+  return {
+    meses,
+    atual: (imp.mes_atual && meses.indexOf(imp.mes_atual) >= 0) ? imp.mes_atual : meses[meses.length-1],
+    ano: imp.ano || new Date().getFullYear(),
+    fx: +imp.fx || 5.1,
+    rows: R2,
+    reps: [...new Set(R2.map(r=>r[1]).filter(Boolean))].sort(),
+    clientes: [...new Set(R2.map(r=>r[4]))].sort(),
+    fonte: (imp.arquivo || 'Supabase') + ' · banco'
+  };
+}
+async function sbLoadData(){
+  const imp = await sbFetch('/rest/v1/wgi_sales_imports?select=*&ativo=is.true&order=criado_em.desc&limit=1');
+  if (!imp || !imp.length) return null;
+  const I = imp[0], PAGE = 1000, rows = [];
+  for (let from = 0; ; from += PAGE){
+    const chunk = await sbFetch(
+      '/rest/v1/wgi_sales_rows?select=mes,rep,wh,status,cliente,brl,qtd,pedido,data,com,margem,frete'
+      + '&import_id=eq.' + I.id + '&order=id.asc',
+      {headers:{'Range-Unit':'items', Range: from + '-' + (from + PAGE - 1)}});
+    if (!chunk || !chunk.length) break;
+    rows.push.apply(rows, chunk);
+    if (chunk.length < PAGE) break;
+  }
+  return rows.length ? dataFromDb(rows, I) : null;
+}
+async function sbSave(){
+  const imp = await sbFetch('/rest/v1/wgi_sales_imports',
+    {method:'POST', headers:{Prefer:'return=representation'},
+     body: JSON.stringify({arquivo: DATA.fonte, linhas: DATA.rows.length, fx: DATA.fx,
+                           mes_atual: DATA.atual, ano: DATA.ano, criado_por: AUTH.uid})});
+  const id = imp[0].id;
+  const payload = DATA.rows.map(r=>({
+    import_id:id, mes:r[0], rep:r[1]||null, wh:r[2]||null, status:r[3], cliente:r[4],
+    brl:r[5], qtd:r[6], pedido:r[7]||null, data:r[8]||null, com:r[9],
+    margem:(r[10]===undefined?null:r[10]), frete:(r[11]===undefined?null:r[11]),
+    ano: r[8] ? +String(r[8]).slice(0,4) : DATA.ano }));
+  for (let i = 0; i < payload.length; i += 500)
+    await sbFetch('/rest/v1/wgi_sales_rows',
+      {method:'POST', headers:{Prefer:'return=minimal'}, body: JSON.stringify(payload.slice(i, i+500))});
+  /* a importação nova passa a ser a vigente; as anteriores viram histórico.
+     Feito por função no banco — alterar a tabela direto é proibido. */
+  await sbFetch('/rest/v1/rpc/wgi_ativar_import',
+    {method:'POST', headers:{Prefer:'return=minimal'}, body: JSON.stringify({p_id: id})});
+  return payload.length;
+}
+/* aplica o nível de acesso na interface (a RLS já barra no servidor) */
+function applyRole(){
+  if (!SB_ON) return;
+  const ger = AUTH.role === 'gerencia';
+  el('btnOut').hidden = false;
+  el('btnImport').hidden = !ger;
+  if (!ger && AUTH.rep){
+    S.reps = new Set([AUTH.rep]);
+    const b = document.querySelector('#msRep .ms-btn');
+    b.disabled = true; b.style.opacity = .6; b.style.cursor = 'not-allowed';
+  }
+}
+
+/* ================= modelo .xlsx gerado na propria pagina =================
+   Escreve um .xlsx valido sem biblioteca: zip com entradas "stored" (sem
+   compressao) + as partes XML minimas. A lista COLUNAS abaixo e a MESMA que
+   o importador procura, entao o modelo nunca fica defasado do leitor. */
+const COLUNAS = [
+ ['Month','sim','Mês do registro. Define as colunas de meses, o filtro Mês e o gráfico mensal.','Texto de 3 letras em português: JAN FEV MAR ABR MAI JUN JUL AGO SET OUT NOV DEZ','AGO'],
+ ['Date','não','Data do pedido. De onde sai o ano (filtro Ano) e a data da 1ª compra na aba Clientes novos.','Data ou texto AAAA-MM-DD','2026-08-24'],
+ ['Rep','não','Representante. Filtro Representante e aba Top representantes.','Texto livre','ARTHUR'],
+ ['Order Number','não','Número do pedido. Agrupa as linhas de item do mesmo pedido — é o que impede o frete de ser contado várias vezes.','Texto ou número','000057'],
+ ['WH','não','Armazém de origem. Alimenta o Faturamento por estado enquanto o mapa UF_CLIENTE estiver vazio.','Sigla curta','SP'],
+ ['Status','sim','Separa faturamento de carteira.','Invoiced = faturado. Qualquer outro valor (TBI, etc.) entra como carteira.','Invoiced'],
+ ['Customer','sim','Cliente. Primeira coluna da lista e base de clientes novos/inativos.','Texto livre — a grafia precisa ser sempre igual para o mesmo cliente','TUTTO PRINT INDUSTRIA E COMERCIO LTDA'],
+ ['Quantity (m)','não','Metros do item. Guardado para uso futuro, ainda não exibido.','Número','200'],
+ ['Comission','não','Alíquota de comissão do item. Alimenta a Comissão média ponderada.','Número decimal: 0,02 = 2%. Não use 2.','0,02'],
+ ['Total per item (BRL Value)','sim','Valor da linha de item em reais. É a base de TODO o faturamento do relatório.','Número em reais, sem símbolo','1124'],
+ ['Margin','não','Margem do pedido. Alimenta a Margem média ponderada e o gráfico de margem.','Número decimal: 0,3235 = 32,35%. Vazio = mês sem margem informada.','0,3235'],
+ ['Total Freight','não','Frete do pedido em reais. Alimenta o Frete médio ponderado.','Número em reais. Pode repetir em cada item do pedido — o relatório consolida e conta uma vez só.','322,15']
+];
+const EXEMPLO = [
+ ['AGO','2026-08-24','ARTHUR','000057','SP','Invoiced','TUTTO PRINT INDUSTRIA E COMERCIO LTDA',200,0.02,1124,0.3235,322.15],
+ ['AGO','2026-08-24','ARTHUR','000057','SP','Invoiced','TUTTO PRINT INDUSTRIA E COMERCIO LTDA',1200,0.02,6744,0.3235,322.15],
+ ['AGO','2026-08-19','SIMONE','602451','SC','Invoiced','AVERARA CONFECCOES LTDA',2000,0.02,6000,0.1692,null],
+ ['AGO','2026-08-24','ALICE','602452','SC','TBI','LMX CONFECCOES LTDA',200,0.02,1490,null,null]
+];
+const NOTAS = [
+ 'As 4 linhas de exemplo acima são só ilustração — apague-as e cole seus dados a partir da linha 2.',
+ 'A ordem das colunas não importa e colunas extras são ignoradas: o relatório procura cada uma pelo nome do cabeçalho.',
+ 'Cada linha é UM ITEM do pedido. Itens do mesmo pedido repetem Order Number, Customer e Total Freight.',
+ 'Sem as 4 colunas obrigatórias a importação é recusada e o relatório diz qual está faltando.',
+ 'Uma coluna opcional ausente não quebra nada: o card correspondente fica vazio e o relatório avisa.',
+ 'Vazio em Margin ou Total Freight significa "não informado" e fica fora do cálculo — não é zero.',
+ 'A aba pode ter qualquer nome; havendo uma chamada BASE, é ela que será lida.'
+];
+
+let CRCT;
+function crc32(u8){
+  if (!CRCT){
+    CRCT = new Uint32Array(256);
+    for (let n=0;n<256;n++){ let c=n; for(let k=0;k<8;k++) c = c&1 ? 0xEDB88320^(c>>>1) : c>>>1; CRCT[n]=c>>>0; }
+  }
+  let c = 0xFFFFFFFF;
+  for (let i=0;i<u8.length;i++) c = CRCT[(c^u8[i]) & 0xFF] ^ (c>>>8);
+  return (c^0xFFFFFFFF)>>>0;
+}
+function zipStore(entries){
+  const enc = new TextEncoder(), parts = [], central = [];
+  let off = 0;
+  entries.forEach(e=>{
+    const name = enc.encode(e.name), data = enc.encode(e.xml), crc = crc32(data);
+    const lh = new DataView(new ArrayBuffer(30));
+    lh.setUint32(0,0x04034b50,true); lh.setUint16(4,20,true); lh.setUint16(6,0x0800,true);
+    lh.setUint16(8,0,true); lh.setUint16(10,0,true); lh.setUint16(12,0x2100,true);
+    lh.setUint32(14,crc,true); lh.setUint32(18,data.length,true); lh.setUint32(22,data.length,true);
+    lh.setUint16(26,name.length,true); lh.setUint16(28,0,true);
+    parts.push(new Uint8Array(lh.buffer), name, data);
+    const cd = new DataView(new ArrayBuffer(46));
+    cd.setUint32(0,0x02014b50,true); cd.setUint16(4,20,true); cd.setUint16(6,20,true);
+    cd.setUint16(8,0x0800,true); cd.setUint16(10,0,true); cd.setUint16(12,0,true); cd.setUint16(14,0x2100,true);
+    cd.setUint32(16,crc,true); cd.setUint32(20,data.length,true); cd.setUint32(24,data.length,true);
+    cd.setUint16(28,name.length,true); cd.setUint32(42,off,true);
+    central.push(new Uint8Array(cd.buffer), name);
+    off += 30 + name.length + data.length;
+  });
+  let csize = 0; central.forEach(c=>csize += c.length);
+  const eo = new DataView(new ArrayBuffer(22));
+  eo.setUint32(0,0x06054b50,true); eo.setUint16(8,entries.length,true); eo.setUint16(10,entries.length,true);
+  eo.setUint32(12,csize,true); eo.setUint32(16,off,true);
+  const all = parts.concat(central, [new Uint8Array(eo.buffer)]);
+  let total = 0; all.forEach(a=>total += a.length);
+  const out = new Uint8Array(total); let q = 0;
+  all.forEach(a=>{ out.set(a,q); q += a.length; });
+  return out;
+}
+const xe = v => String(v).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
+const colLetter = n => { let s=''; n++; while(n>0){ const m=(n-1)%26; s=String.fromCharCode(65+m)+s; n=(n-m-1)/26; } return s; };
+const dserial = iso => {
+  const a = String(iso).split('-');
+  return Math.round((Date.UTC(+a[0],+a[1]-1,+a[2]) - Date.UTC(1899,11,30))/86400000);
+};
+function sheetXml(rows, widths, extra){
+  const cols = widths ? '<cols>'+widths.map((w,i)=>'<col min="'+(i+1)+'" max="'+(i+1)+'" width="'+w+'" customWidth="1"/>').join('')+'</cols>' : '';
+  const body = rows.map((r,ri)=>{
+    const cells = r.map((c,ci)=>{
+      if (c === null || c === undefined || c === '') return '';
+      const ref = colLetter(ci)+(ri+1);
+      const st = c && c.s !== undefined ? ' s="'+c.s+'"' : '';
+      const v = c && c.v !== undefined ? c.v : c;
+      if (c && c.d) return '<c r="'+ref+'" s="2"><v>'+dserial(v)+'</v></c>';
+      if (typeof v === 'number') return '<c r="'+ref+'"'+st+'><v>'+v+'</v></c>';
+      return '<c r="'+ref+'"'+st+' t="inlineStr"><is><t xml:space="preserve">'+xe(v)+'</t></is></c>';
+    }).join('');
+    return '<row r="'+(ri+1)+'"'+(ri===0?' ht="30" customHeight="1"':'')+'>'+cells+'</row>';
+  }).join('');
+  return '<?xml version="1.0" encoding="UTF-8" standalone="yes"?>'
+    + '<worksheet xmlns="http://schemas.openxmlformats.org/spreadsheetml/2006/main">'
+    + '<sheetViews><sheetView workbookViewId="0"'+(extra&&extra.nogrid?' showGridLines="0"':'')+'>'
+    + (extra&&extra.freeze?'<pane ySplit="1" topLeftCell="A2" activePane="bottomLeft" state="frozen"/>':'')
+    + '</sheetView></sheetViews>'
+    + '<sheetFormatPr defaultRowHeight="14"/>' + cols
+    + '<sheetData>'+body+'</sheetData></worksheet>';
+}
+function modeloXlsx(){
+  const H = COLUNAS.map(c=>({v:c[0], s:1}));
+  const base = [H].concat(EXEMPLO.map(r=>r.map((v,i)=>
+    i===1 ? {v:v, d:true} : v)));
+  base.push([]);
+  NOTAS.slice(0,3).forEach(n=>base.push([{v:n, s:3}]));
+  const leia = [
+    [{v:'Modelo de planilha — Relatório de Vendas WGI', s:4}],
+    [{v:'Este é o formato que o index.html espera no botão “Importar planilha”. Confira esta lista sempre que a planilha de origem mudar de colunas.', s:3}],
+    [],
+    ['Coluna (cabeçalho exato)','Obrigatória','Para que o relatório usa','Formato esperado','Exemplo'].map(v=>({v, s:1}))
+  ].concat(COLUNAS.map(c=>c.map((v,i)=>({v, s:(i===1?6:5)}))));
+  leia.push([]); leia.push([{v:'Regras gerais', s:4}]);
+  NOTAS.forEach(n=>leia.push([{v:'• '+n, s:0}]));
+
+  const styles = '<?xml version="1.0" encoding="UTF-8" standalone="yes"?>'
+   + '<styleSheet xmlns="http://schemas.openxmlformats.org/spreadsheetml/2006/main">'
+   + '<numFmts count="1"><numFmt numFmtId="164" formatCode="dd/mm/yyyy"/></numFmts>'
+   + '<fonts count="5">'
+   + '<font><sz val="10"/><name val="Arial"/></font>'
+   + '<font><b/><sz val="10"/><color rgb="FFFFFFFF"/><name val="Arial"/></font>'
+   + '<font><sz val="10"/><name val="Arial"/></font>'
+   + '<font><i/><sz val="9"/><color rgb="FF8B858E"/><name val="Arial"/></font>'
+   + '<font><b/><sz val="12"/><color rgb="FF7C1B29"/><name val="Arial"/></font>'
+   + '</fonts>'
+   + '<fills count="3"><fill><patternFill patternType="none"/></fill>'
+   + '<fill><patternFill patternType="gray125"/></fill>'
+   + '<fill><patternFill patternType="solid"><fgColor rgb="FF7C1B29"/><bgColor indexed="64"/></patternFill></fill></fills>'
+   + '<borders count="1"><border><left/><right/><top/><bottom/><diagonal/></border></borders>'
+   + '<cellStyleXfs count="1"><xf numFmtId="0" fontId="0" fillId="0" borderId="0"/></cellStyleXfs>'
+   + '<cellXfs count="7">'
+   + '<xf numFmtId="0" fontId="0" fillId="0" borderId="0" xfId="0"/>'
+   + '<xf numFmtId="0" fontId="1" fillId="2" borderId="0" xfId="0" applyFont="1" applyFill="1" applyAlignment="1"><alignment horizontal="center" vertical="center" wrapText="1"/></xf>'
+   + '<xf numFmtId="164" fontId="0" fillId="0" borderId="0" xfId="0" applyNumberFormat="1"/>'
+   + '<xf numFmtId="0" fontId="3" fillId="0" borderId="0" xfId="0" applyFont="1"/>'
+   + '<xf numFmtId="0" fontId="4" fillId="0" borderId="0" xfId="0" applyFont="1"/>'
+   + '<xf numFmtId="0" fontId="0" fillId="0" borderId="0" xfId="0" applyAlignment="1"><alignment vertical="top" wrapText="1"/></xf>'
+   + '<xf numFmtId="0" fontId="0" fillId="0" borderId="0" xfId="0" applyAlignment="1"><alignment horizontal="center" vertical="top"/></xf>'
+   + '</cellXfs><cellStyles count="1"><cellStyle name="Normal" xfId="0" builtinId="0"/></cellStyles></styleSheet>';
+
+  return zipStore([
+   {name:'[Content_Types].xml', xml:'<?xml version="1.0" encoding="UTF-8" standalone="yes"?>'
+     + '<Types xmlns="http://schemas.openxmlformats.org/package/2006/content-types">'
+     + '<Default Extension="rels" ContentType="application/vnd.openxmlformats-package.relationships+xml"/>'
+     + '<Default Extension="xml" ContentType="application/xml"/>'
+     + '<Override PartName="/xl/workbook.xml" ContentType="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet.main+xml"/>'
+     + '<Override PartName="/xl/worksheets/sheet1.xml" ContentType="application/vnd.openxmlformats-officedocument.spreadsheetml.worksheet+xml"/>'
+     + '<Override PartName="/xl/worksheets/sheet2.xml" ContentType="application/vnd.openxmlformats-officedocument.spreadsheetml.worksheet+xml"/>'
+     + '<Override PartName="/xl/styles.xml" ContentType="application/vnd.openxmlformats-officedocument.spreadsheetml.styles+xml"/>'
+     + '</Types>'},
+   {name:'_rels/.rels', xml:'<?xml version="1.0" encoding="UTF-8" standalone="yes"?>'
+     + '<Relationships xmlns="http://schemas.openxmlformats.org/package/2006/relationships">'
+     + '<Relationship Id="rId1" Type="http://schemas.openxmlformats.org/officeDocument/2006/relationships/officeDocument" Target="xl/workbook.xml"/>'
+     + '</Relationships>'},
+   {name:'xl/workbook.xml', xml:'<?xml version="1.0" encoding="UTF-8" standalone="yes"?>'
+     + '<workbook xmlns="http://schemas.openxmlformats.org/spreadsheetml/2006/main" '
+     + 'xmlns:r="http://schemas.openxmlformats.org/officeDocument/2006/relationships">'
+     + '<sheets><sheet name="BASE" sheetId="1" r:id="rId1"/><sheet name="LEIA-ME" sheetId="2" r:id="rId2"/></sheets></workbook>'},
+   {name:'xl/_rels/workbook.xml.rels', xml:'<?xml version="1.0" encoding="UTF-8" standalone="yes"?>'
+     + '<Relationships xmlns="http://schemas.openxmlformats.org/package/2006/relationships">'
+     + '<Relationship Id="rId1" Type="http://schemas.openxmlformats.org/officeDocument/2006/relationships/worksheet" Target="worksheets/sheet1.xml"/>'
+     + '<Relationship Id="rId2" Type="http://schemas.openxmlformats.org/officeDocument/2006/relationships/worksheet" Target="worksheets/sheet2.xml"/>'
+     + '<Relationship Id="rId3" Type="http://schemas.openxmlformats.org/officeDocument/2006/relationships/styles" Target="styles.xml"/>'
+     + '</Relationships>'},
+   {name:'xl/styles.xml', xml:styles},
+   {name:'xl/worksheets/sheet1.xml', xml:sheetXml(base,[10,12,14,15,8,11,40,13,12,26,11,14],{freeze:true})},
+   {name:'xl/worksheets/sheet2.xml', xml:sheetXml(leia,[30,12,52,52,26],{nogrid:true})}
+  ]);
+}
+el('btnModel').onclick = () => {
+  const url = URL.createObjectURL(new Blob([modeloXlsx()],
+    {type:'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet'}));
+  const a = document.createElement('a');
+  a.href = url; a.download = 'MODELO-planilha-relatorio-WGI.xlsx';
+  document.body.appendChild(a); a.click(); a.remove();
+  setTimeout(()=>URL.revokeObjectURL(url), 4000);
+  toast(t().modelOk);
+};
+
+/* ================= salvar os dados importados ================= */
 el('btnSave').onclick = async () => {
-  const btn = el('btnSave'); btn.disabled = true;
+  const btn = el('btnSave');
+  btn.disabled = true;
   try{
-    const src = await (await fetch(location.href, {cache:'no-store'})).text();
-    const a = src.indexOf('/*DATA_START*/'), b = src.indexOf('/*DATA_END*/');
-    if (a < 0 || b < 0) throw new Error('markers');
-    const out = src.slice(0, a) + '/*DATA_START*/const DATA0 = '
-      + JSON.stringify(DATA) + ';' + src.slice(b);
-    const url = URL.createObjectURL(new Blob([out], {type:'text/html'}));
-    const link = document.createElement('a');
-    link.href = url; link.download = 'index.html';
-    document.body.appendChild(link); link.click(); link.remove();
-    setTimeout(()=>URL.revokeObjectURL(url), 4000);
-    toast(t().saveOk);
-  } catch(err){ toast(t().saveErr, true); }
-  finally { btn.disabled = false; }
+    if (SB_ON){
+      if (AUTH.role !== 'gerencia') throw new Error(t().soGerencia);
+      toast(t().salvando);
+      const n = await sbSave();
+      toast(t().salvoDb(n));
+      btn.hidden = true;
+    } else {
+      /* modo offline: regrava o proprio HTML com os dados embutidos */
+      const src = await (await fetch(location.href, {cache:'no-store'})).text();
+      const a = src.indexOf('/*DATA_START*/'), b = src.indexOf('/*DATA_END*/');
+      if (a < 0 || b < 0) throw new Error('markers');
+      const out = src.slice(0, a) + '/*DATA_START*/const DATA0 = '
+        + JSON.stringify(DATA) + ';' + src.slice(b);
+      const url = URL.createObjectURL(new Blob([out], {type:'text/html'}));
+      const link = document.createElement('a');
+      link.href = url; link.download = 'index.html';
+      document.body.appendChild(link); link.click(); link.remove();
+      setTimeout(()=>URL.revokeObjectURL(url), 4000);
+      toast(t().saveOk); btn.hidden = true;
+    }
+  } catch(err){
+    toast((SB_ON ? t().salvoErr : t().saveErr + ' ') + (err && err.message ? err.message : err), true);
+  } finally { btn.disabled = false; }
 };
 
 /* ================= acesso ================= */
 function hash(s){ let x=5381; for (const c of s) x=((x*33)^c.charCodeAt(0))>>>0; return x; }
-const KEY = 2519394238;
-el('gateForm').addEventListener('submit', e=>{
+const KEY = 2519394238;   /* hash da senha de acesso ao painel */
+
+function abrirPainel(){
+  el('gate').remove();
+  el('app').hidden = false;
+  MSREP.fill(); MSUF.fill(); MSANO.fill(); MSMES.fill();
+  applyLang(); render();
+}
+el('gateForm').addEventListener('submit', async e=>{
   e.preventDefault();
-  const f = el('gPass');
-  if (hash(f.value.trim()) === KEY){
-    el('gate').remove();
-    el('app').hidden = false;
-    MSREP.fill(); MSUF.fill(); MSANO.fill(); MSMES.fill();
-    render();
-  } else { set('gErr', t().gerr); f.select(); }
+  const btn = el('gBtn'), pw = el('gPass');
+  set('gErr','');
+  if (!SB_ON){
+    if (hash(pw.value.trim()) === KEY) abrirPainel();
+    else { set('gErr', t().gerr); pw.select(); }
+    return;
+  }
+  /* a senha é conferida aqui; o banco é acessado com a conta do painel */
+  if (hash(pw.value.trim()) !== KEY){ set('gErr', t().gerr); pw.select(); return; }
+  btn.disabled = true; set('gBtn', t().entrando);
+  try{
+    await sbLogin();
+    const d = await sbLoadData();
+    if (d) boot(d);
+    applyRole();
+    abrirPainel();
+    if (!d) toast(t().semDados, true);
+    else if (AUTH.role !== 'gerencia' && AUTH.rep) toast(t().repLock(AUTH.rep));
+  } catch(err){
+    set('gErr', (err && err.message) ? err.message : String(err));
+    btn.disabled = false; set('gBtn', t().gbtn);
+  }
 });
+el('btnOut').onclick = () => { AUTH.token = null; location.reload(); };
 el('fLang').addEventListener('click', e=>{ if (e.target.closest('button')) set('gErr',''); });
 applyLang();
 el('gPass').focus();
