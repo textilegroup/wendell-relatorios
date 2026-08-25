@@ -13,8 +13,7 @@
   --bg:#F2F2F0; --card:#FFFFFF; --sunk:#F7F5F3;
   --ink:#26252A; --ink-2:#5A555C; --ink-3:#8B858E;
   --line:#E3E0DD; --line-2:#EFECE9;
-  --s1:#9E2438; --s2:#B8801F;
-  --s1-fill:#9E2438; --s2-fill:#B8801F;
+  --s1:#9E2438; --s2:#B8801F; --s3:#1E6FB8;
   --pos:#2C6B4F; --neg:#A33A2A;
   --chip:#F6F4F1;
   --shadow:0 1px 2px rgba(38,37,42,.06),0 1px 8px rgba(38,37,42,.04);
@@ -25,8 +24,7 @@
     --bg:#141316; --card:#1E1C21; --sunk:#26232A;
     --ink:#F0EDEA; --ink-2:#B4ADB5; --ink-3:#847D88;
     --line:#332F38; --line-2:#2A272F;
-    --s1:#C4536A; --s2:#B8842C;
-    --s1-fill:#C4536A; --s2-fill:#B8842C;
+    --s1:#C4536A; --s2:#B8842C; --s3:#5B92E0;
     --pos:#5FA37E; --neg:#D97A62;
     --chip:#2A272F;
     --shadow:0 1px 2px rgba(0,0,0,.4);
@@ -37,8 +35,7 @@
   --bg:#141316; --card:#1E1C21; --sunk:#26232A;
   --ink:#F0EDEA; --ink-2:#B4ADB5; --ink-3:#847D88;
   --line:#332F38; --line-2:#2A272F;
-  --s1:#C4536A; --s2:#B8842C;
-  --s1-fill:#C4536A; --s2-fill:#B8842C;
+  --s1:#C4536A; --s2:#B8842C; --s3:#5B92E0;
   --pos:#5FA37E; --neg:#D97A62;
   --chip:#2A272F;
   --shadow:0 1px 2px rgba(0,0,0,.4);
@@ -50,7 +47,30 @@ body{
   font-size:13px; line-height:1.4; -webkit-font-smoothing:antialiased;
   font-variant-numeric:tabular-nums;
 }
-.num{font-family:"Archivo Narrow","Archivo",Arial,sans-serif;font-variant-numeric:tabular-nums}
+
+/* ---------- gate ---------- */
+#gate{
+  position:fixed;inset:0;z-index:100;display:grid;place-items:center;padding:20px;
+  background:linear-gradient(150deg,var(--wine-deep) 0%,var(--wine) 55%,#3C0812 100%);
+}
+.gate-box{
+  background:var(--card);border-radius:14px;padding:26px 24px 20px;width:100%;max-width:340px;
+  box-shadow:0 18px 50px rgba(0,0,0,.32);text-align:center;
+}
+.gate-box .logo{margin:0 auto 12px;background:var(--wine);color:#fff;border-color:var(--wine-soft)}
+.gate-box h2{margin:0 0 3px;font-size:17px;font-weight:700;letter-spacing:-.01em;color:var(--ink)}
+.gate-box p{margin:0 0 16px;font-size:11.5px;color:var(--ink-3);letter-spacing:.02em}
+.gate-box input{
+  width:100%;font:inherit;font-size:14px;text-align:center;letter-spacing:.12em;
+  padding:10px;border:1px solid var(--line);border-radius:9px;background:var(--sunk);color:var(--ink);
+}
+.gate-box button{
+  width:100%;margin-top:9px;font:inherit;font-size:12.5px;font-weight:700;letter-spacing:.06em;
+  text-transform:uppercase;padding:10px;border:0;border-radius:9px;background:var(--wine);color:#fff;cursor:pointer;
+}
+.gate-box button:hover{background:var(--wine-soft)}
+.gate-err{margin-top:9px;font-size:11.5px;color:var(--neg);font-weight:600;min-height:16px}
+#app[hidden]{display:none}
 
 /* ---------- header ---------- */
 header{
@@ -72,17 +92,19 @@ header{
   color:#fff;cursor:pointer;
 }
 .hdr-chip:hover{background:rgba(255,255,255,.16)}
+.lang{display:flex;border:1px solid rgba(255,255,255,.35);border-radius:8px;overflow:hidden}
+.lang button{
+  font:inherit;font-size:11.5px;font-weight:700;letter-spacing:.05em;padding:5px 10px;
+  border:0;background:transparent;color:rgba(255,255,255,.72);cursor:pointer;
+}
+.lang button[aria-pressed="true"]{background:#fff;color:var(--wine-deep)}
 
 /* ---------- shell ---------- */
 main{max-width:1500px;margin:0 auto;padding:12px 16px 40px;display:flex;flex-direction:column;gap:12px}
 .card{background:var(--card);border:1px solid var(--line);border-radius:10px;box-shadow:var(--shadow)}
-.card-hd{
-  display:flex;align-items:center;gap:10px;padding:9px 14px 8px;border-bottom:2px solid var(--wine-soft);
-}
-.card-hd h2{
-  margin:0;font-size:12px;font-weight:700;letter-spacing:.09em;text-transform:uppercase;color:var(--wine);
-}
-.card-hd .sub{margin-left:auto;font-size:11px;color:var(--ink-3);letter-spacing:.02em}
+.card-hd{display:flex;align-items:center;gap:10px;padding:9px 14px 8px;border-bottom:2px solid var(--wine-soft)}
+.card-hd h2{margin:0;font-size:12px;font-weight:700;letter-spacing:.09em;text-transform:uppercase;color:var(--wine)}
+.card-hd .sub{margin-left:auto;font-size:11px;color:var(--ink-3);letter-spacing:.02em;text-align:right}
 .card-bd{padding:11px 14px 13px}
 
 /* ---------- filters ---------- */
@@ -95,9 +117,8 @@ main{max-width:1500px;margin:0 auto;padding:12px 16px 40px;display:flex;flex-dir
   padding:5px 11px;border-radius:6px;cursor:pointer;white-space:nowrap;
 }
 .pills button[aria-pressed="true"]{background:var(--wine);color:#fff}
-.pills button:focus-visible,select:focus-visible,input:focus-visible,.hdr-chip:focus-visible,th[data-sort]:focus-visible{
-  outline:2px solid var(--wine-soft);outline-offset:2px
-}
+.pills button:focus-visible,select:focus-visible,input:focus-visible,.hdr-chip:focus-visible,
+.lang button:focus-visible,th[data-sort]:focus-visible{outline:2px solid var(--wine-soft);outline-offset:2px}
 select,input[type="search"]{
   font:inherit;font-size:12.5px;color:var(--ink);background:var(--card);
   border:1px solid var(--line);border-radius:8px;padding:6px 9px;min-width:150px;
@@ -106,10 +127,12 @@ input[type="search"]{min-width:210px}
 .grow{flex:1 1 210px}
 
 /* ---------- kpis ---------- */
-.kpis{display:grid;grid-template-columns:repeat(4,1fr);gap:12px}
-.kpi{background:var(--card);border:1px solid var(--line);border-radius:10px;box-shadow:var(--shadow);padding:11px 13px 12px;display:flex;flex-direction:column;gap:2px;min-width:0}
+.kpis{display:grid;grid-template-columns:repeat(5,1fr);gap:12px}
+.kpi{background:var(--card);border:1px solid var(--line);border-radius:10px;box-shadow:var(--shadow);
+  padding:11px 13px 12px;display:flex;flex-direction:column;gap:2px;min-width:0}
 .kpi .lab{font-size:10px;font-weight:700;letter-spacing:.09em;text-transform:uppercase;color:var(--ink-3)}
-.kpi .val{font-family:"Archivo Narrow",Archivo,Arial,sans-serif;font-size:27px;font-weight:700;letter-spacing:-.01em;line-height:1.05;color:var(--ink)}
+.kpi .val{font-family:"Archivo Narrow",Archivo,Arial,sans-serif;font-size:26px;font-weight:700;
+  letter-spacing:-.01em;line-height:1.05;color:var(--ink)}
 .kpi .val small{font-size:15px;font-weight:600;color:var(--ink-2);margin-right:.22em}
 .kpi .meta{font-size:11px;color:var(--ink-2);margin-top:2px}
 .delta{font-weight:700}
@@ -117,32 +140,44 @@ input[type="search"]{min-width:210px}
 .spark{display:flex;align-items:flex-end;gap:2px;height:22px;margin-top:5px}
 .spark i{flex:1;background:var(--s1);opacity:.35;border-radius:2px 2px 0 0;min-height:2px}
 .spark i.on{opacity:1}
+.spark.c2 i{background:var(--s2)}
 
 /* ---------- charts ---------- */
-.two{display:grid;grid-template-columns:1.45fr 1fr;gap:12px}
-.legend{display:flex;gap:14px;align-items:center;font-size:11px;color:var(--ink-2);margin-left:auto}
+.two{display:grid;grid-template-columns:1.45fr 1fr;gap:12px;align-items:start}
+.stackcol{display:flex;flex-direction:column;gap:12px}
+.legend{display:flex;gap:14px;align-items:center;font-size:11px;color:var(--ink-2);
+  margin-left:auto;flex-wrap:wrap;justify-content:flex-end}
 .legend span{display:inline-flex;align-items:center;gap:5px}
 .legend i{width:10px;height:10px;border-radius:3px;display:inline-block}
+.legend i.hatch{background-image:repeating-linear-gradient(45deg,transparent 0 2px,rgba(255,255,255,.8) 2px 4px)}
 
 .bars{display:flex;align-items:flex-end;gap:6px;height:176px;position:relative}
+.bars.short{height:150px}
 .grid-lines{position:absolute;inset:16px 0 24px;pointer-events:none}
 .grid-lines div{position:absolute;left:0;right:0;border-top:1px dashed var(--line-2)}
-.mcol{flex:1;display:flex;flex-direction:column;justify-content:flex-end;align-items:stretch;gap:0;height:100%;position:relative;cursor:default}
+.mcol{flex:1;display:flex;flex-direction:column;justify-content:flex-end;height:100%;position:relative;cursor:default}
 .stack{display:flex;flex-direction:column;justify-content:flex-end;gap:2px;height:100%}
-.bar{background:var(--s1-fill);border-radius:4px 4px 0 0;min-height:2px;transition:filter .12s}
-.bar.b2{background:var(--s2-fill);border-radius:4px 4px 0 0}
+.bar{background:var(--s1);border-radius:4px 4px 0 0;min-height:2px;transition:filter .12s}
+.bar.b2{background:var(--s2)}
+.bar.b3{background:var(--s3)}
+.bar.b3.negv{background:var(--neg)}
+.bar.part{background-image:repeating-linear-gradient(45deg,transparent 0 4px,rgba(255,255,255,.45) 4px 8px)}
 .mcol:hover .bar{filter:brightness(1.12)}
 .mcol.cur .bar{outline:2px solid var(--wine-soft);outline-offset:1px}
-.mlab{text-align:center;font-size:10.5px;font-weight:600;color:var(--ink-2);padding-top:5px;border-top:1px solid var(--line);margin-top:4px;letter-spacing:.04em}
-.mval{text-align:center;font-size:10.5px;font-weight:700;color:var(--ink-2);font-family:"Archivo Narrow",Archivo,sans-serif;padding-bottom:3px;min-height:14px}
+.mlab{text-align:center;font-size:10.5px;font-weight:600;color:var(--ink-2);padding-top:5px;
+  border-top:1px solid var(--line);margin-top:4px;letter-spacing:.04em}
+.mval{text-align:center;font-size:10.5px;font-weight:700;color:var(--ink-2);
+  font-family:"Archivo Narrow",Archivo,sans-serif;padding-bottom:3px;min-height:14px}
+.mval.na{color:var(--ink-3);font-weight:400}
 
 .hbars{display:flex;flex-direction:column;gap:7px}
 .hb{display:grid;grid-template-columns:44px 1fr auto;align-items:center;gap:9px;font-size:12px}
 .hb .uf{font-weight:700;letter-spacing:.04em;color:var(--ink)}
 .hb .track{display:block;background:var(--sunk);border-radius:4px;height:15px;overflow:hidden}
-.hb .fill{display:block;height:100%;background:var(--s1-fill);border-radius:4px}
+.hb .fill{display:block;height:100%;background:var(--s1);border-radius:4px}
 .hb .amt{font-family:"Archivo Narrow",Archivo,sans-serif;font-weight:600;color:var(--ink-2);white-space:nowrap}
 .hint{font-size:11px;color:var(--ink-3);margin-top:9px;line-height:1.45}
+code{font-size:.94em;background:var(--sunk);padding:1px 4px;border-radius:4px}
 
 /* ---------- table ---------- */
 .tscroll{overflow-x:auto;-webkit-overflow-scrolling:touch}
@@ -150,13 +185,14 @@ table{border-collapse:separate;border-spacing:0;width:100%;font-size:12px}
 thead th{
   position:sticky;top:0;z-index:3;background:var(--sunk);color:var(--ink-2);
   font-size:10px;font-weight:700;letter-spacing:.07em;text-transform:uppercase;
-  padding:7px 8px;text-align:right;white-space:nowrap;border-bottom:1px solid var(--line);cursor:pointer;user-select:none;
+  padding:7px 8px;text-align:right;white-space:nowrap;border-bottom:1px solid var(--line);
+  cursor:pointer;user-select:none;
 }
-thead th:first-child{text-align:left;left:0;z-index:5}
+thead th:first-child{text-align:left;left:0;z-index:5;background:var(--sunk)}
 thead th.cart{color:var(--s2)}
 thead th.cur{color:var(--wine)}
-thead th[aria-sort]:not([aria-sort="none"])::after{content:" ▾";font-size:9px}
-thead th[aria-sort="asc"]::after{content:" ▴"}
+thead th[aria-sort="desc"]::after{content:" ▾";font-size:9px}
+thead th[aria-sort="asc"]::after{content:" ▴";font-size:9px}
 tbody td{
   padding:4px 8px;text-align:right;border-bottom:1px solid var(--line-2);white-space:nowrap;
   font-family:"Archivo Narrow",Archivo,Arial,sans-serif;font-weight:500;
@@ -167,45 +203,42 @@ tbody td.cli{
   text-overflow:ellipsis;border-right:1px solid var(--line);
 }
 tbody td.cli.novo{box-shadow:inset 3px 0 0 var(--pos);padding-left:11px}
-thead th:first-child{background:var(--sunk)}
-tbody tr:hover td{background:var(--sunk)}
-tbody tr:hover td.cli{background:var(--sunk)}
+tbody tr:hover td,tbody tr:hover td.cli{background:var(--sunk)}
 td.zero{color:var(--ink-3);font-weight:400}
-td.cart{color:var(--s2);font-weight:700;}
-td.cart.zero{color:var(--ink-3);font-weight:400;background:none}
-td.cart{background:color-mix(in srgb,var(--s2) 8%,transparent)}
+td.cart{color:var(--s2);font-weight:700;background:color-mix(in srgb,var(--s2) 8%,transparent)}
 tbody tr:hover td.cart{background:color-mix(in srgb,var(--s2) 14%,transparent)}
+td.cart.zero{color:var(--ink-3);font-weight:400;background:none}
 td.cur{font-weight:700;color:var(--ink)}
 td.tot{font-weight:700;border-left:1px solid var(--line)}
 tfoot td{
   padding:7px 8px;text-align:right;font-weight:700;font-family:"Archivo Narrow",Archivo,sans-serif;
   border-top:2px solid var(--wine-soft);background:var(--sunk);white-space:nowrap;
 }
-tfoot td:first-child{text-align:left;position:sticky;left:0;background:var(--sunk);font-family:Archivo,Arial,sans-serif;
-  font-size:10px;letter-spacing:.08em;text-transform:uppercase;color:var(--wine)}
+tfoot td:first-child{
+  text-align:left;position:sticky;left:0;background:var(--sunk);font-family:Archivo,Arial,sans-serif;
+  font-size:10px;letter-spacing:.08em;text-transform:uppercase;color:var(--wine);
+}
 .tag{
   display:inline-block;font-family:Archivo,sans-serif;font-size:9px;font-weight:700;letter-spacing:.06em;
   text-transform:uppercase;padding:1px 5px;border-radius:4px;margin-left:6px;vertical-align:1px;
   background:color-mix(in srgb,var(--pos) 15%,transparent);color:var(--pos);
 }
-.newlist{display:flex;flex-wrap:wrap;gap:6px;margin-top:2px}
-.newlist span{font-size:11px;background:var(--chip);border:1px solid var(--line);border-radius:6px;padding:3px 7px;color:var(--ink-2)}
+.newlist{display:flex;flex-wrap:wrap;gap:6px}
+.newlist span{font-size:11px;background:var(--chip);border:1px solid var(--line);
+  border-radius:6px;padding:3px 7px;color:var(--ink-2)}
 
-/* ---------- tooltip ---------- */
 #tip{
   position:fixed;pointer-events:none;z-index:90;background:var(--card);color:var(--ink);
   border:1px solid var(--line);border-radius:8px;padding:7px 10px;font-size:11.5px;
-  box-shadow:0 4px 16px rgba(0,0,0,.16);opacity:0;transition:opacity .1s;max-width:230px;
+  box-shadow:0 4px 16px rgba(0,0,0,.16);opacity:0;transition:opacity .1s;max-width:240px;
 }
 #tip b{font-family:"Archivo Narrow",Archivo,sans-serif}
 #tip .k{color:var(--ink-3);font-size:10px;letter-spacing:.06em;text-transform:uppercase;display:block}
 .empty{padding:26px 14px;text-align:center;color:var(--ink-3);font-size:12.5px}
 footer{font-size:10.5px;color:var(--ink-3);text-align:center;padding:2px 0 0;line-height:1.6}
 
-@media (max-width:900px){
-  .two{grid-template-columns:1fr}
-  .kpis{grid-template-columns:repeat(2,1fr)}
-}
+@media (max-width:1200px){.kpis{grid-template-columns:repeat(3,1fr)}}
+@media (max-width:900px){.two{grid-template-columns:1fr}.kpis{grid-template-columns:repeat(2,1fr)}}
 @media (max-width:560px){
   body{font-size:12.5px}
   main{padding:10px 10px 30px;gap:10px}
@@ -220,9 +253,8 @@ footer{font-size:10.5px;color:var(--ink-3);text-align:center;padding:2px 0 0;lin
   .pills{width:100%}
   .pills button{flex:1;padding:6px 6px;font-size:11.5px}
   tbody td.cli{max-width:132px;font-size:11px}
-  .bars{height:132px}
-  .mval{font-size:9px}
-  .mlab{font-size:9.5px}
+  .bars{height:132px}.bars.short{height:120px}
+  .mval{font-size:9px}.mlab{font-size:9.5px}
 }
 @media (prefers-reduced-motion:reduce){*{transition:none!important}}
 </style>
@@ -230,143 +262,122 @@ footer{font-size:10.5px;color:var(--ink-3);text-align:center;padding:2px 0 0;lin
 <body>
 
 
+<div id="gate">
+  <form class="gate-box" id="gateForm">
+    <div class="logo">WGI</div>
+    <h2 id="gTitle">Relatório de Vendas</h2>
+    <p id="gSub"></p>
+    <input type="password" id="gPass" autocomplete="current-password">
+    <button type="submit" id="gBtn">Entrar</button>
+    <div class="gate-err" id="gErr" role="alert"></div>
+  </form>
+</div>
+
+<div id="app" hidden>
 <header>
   <div class="logo">WGI</div>
-  <div class="brand">
-    <h1>Relatório de Vendas</h1>
-    <p>Wendell Global Interlining · Brasil</p>
-  </div>
+  <div class="brand"><h1 id="hTitle"></h1><p id="hSub"></p></div>
   <div class="hdr-right">
-    <span class="hdr-chip" id="period">2026 · JAN–AGO</span>
-    <button class="hdr-chip" id="themeBtn" type="button" title="Alternar tema">Tema</button>
+    <div class="lang" id="fLang">
+      <button type="button" data-v="pt">PT</button>
+      <button type="button" data-v="en">EN</button>
+    </div>
+    <span class="hdr-chip" id="period"></span>
+    <button class="hdr-chip" id="themeBtn" type="button"></button>
   </div>
 </header>
 
 <main>
-
-  <!-- FILTROS -->
   <section class="card">
-    <div class="card-hd">
-      <h2>Filtros</h2>
-      <span class="sub" id="fcount"></span>
-    </div>
+    <div class="card-hd"><h2 id="lFilters"></h2><span class="sub" id="fcount"></span></div>
     <div class="card-bd">
       <div class="frow">
-        <div class="fgrp">
-          <label for="fRep">Representante</label>
-          <select id="fRep"><option value="">Todos</option></select>
-        </div>
-        <div class="fgrp">
-          <label for="fUf">Estado</label>
-          <select id="fUf"><option value="">Todos</option></select>
-        </div>
-        <div class="fgrp">
-          <label>Base geográfica</label>
+        <div class="fgrp"><label for="fRep" id="lRep"></label><select id="fRep"></select></div>
+        <div class="fgrp"><label for="fUf" id="lState"></label><select id="fUf"></select></div>
+        <div class="fgrp"><label id="lGeo"></label>
           <div class="pills" id="fGeo">
-            <button type="button" data-v="wh">Armazém</button>
-            <button type="button" data-v="uf">UF do cliente</button>
+            <button type="button" data-v="wh" id="lGeoWh"></button>
+            <button type="button" data-v="uf" id="lGeoUf"></button>
           </div>
         </div>
-        <div class="fgrp">
-          <label>Moeda</label>
+        <div class="fgrp"><label id="lCur"></label>
           <div class="pills" id="fCur">
             <button type="button" data-v="BRL">R$</button>
             <button type="button" data-v="USD">US$</button>
           </div>
         </div>
-        <div class="fgrp grow">
-          <label for="fQ">Buscar cliente</label>
-          <input type="search" id="fQ" placeholder="Ex.: CONFECCOES, LUPO, TUTTO…">
+        <div class="fgrp grow"><label for="fQ" id="lSearch"></label><input type="search" id="fQ"></div>
+      </div>
+    </div>
+  </section>
+
+  <section class="kpis">
+    <div class="kpi"><span class="lab" id="lK1"></span><span class="val" id="kTot"></span>
+      <span class="meta" id="kTotMeta"></span><div class="spark" id="kSpark"></div></div>
+    <div class="kpi"><span class="lab" id="lK2"></span><span class="val" id="kUf"></span>
+      <span class="meta" id="kUfMeta"></span><div class="spark" id="kUfSpark"></div></div>
+    <div class="kpi"><span class="lab" id="lK3"></span><span class="val" id="kAvg"></span>
+      <span class="meta" id="kAvgMeta"></span><div class="spark" id="kAvgSpark"></div></div>
+    <div class="kpi"><span class="lab" id="lK4"></span><span class="val" id="kNew"></span>
+      <span class="meta" id="kNewMeta"></span><div class="spark" id="kNewSpark"></div></div>
+    <div class="kpi"><span class="lab" id="lK5"></span><span class="val" id="kCom"></span>
+      <span class="meta" id="kComMeta"></span><div class="spark c2" id="kComSpark"></div></div>
+  </section>
+
+  <section class="two">
+    <div class="stackcol">
+      <div class="card">
+        <div class="card-hd"><h2 id="lChart1"></h2>
+          <span class="legend">
+            <span><i style="background:var(--s1)"></i><b id="lLegInv"></b></span>
+            <span><i style="background:var(--s2)"></i><b id="lLegBack"></b></span>
+          </span>
+        </div>
+        <div class="card-bd"><div class="bars" id="chart"><div class="grid-lines" id="glines"></div></div></div>
+      </div>
+      <div class="card">
+        <div class="card-hd"><h2 id="lChart2"></h2>
+          <span class="legend">
+            <span><i style="background:var(--s3)"></i><b id="lLegMg"></b></span>
+            <span><i class="hatch" style="background-color:var(--s3)"></i><b id="lLegPart"></b></span>
+          </span>
+        </div>
+        <div class="card-bd">
+          <div class="bars short" id="chartM"><div class="grid-lines" id="glinesM"></div></div>
+          <p class="hint" id="mgHint"></p>
         </div>
       </div>
     </div>
-  </section>
-
-  <!-- KPIs -->
-  <section class="kpis">
-    <div class="kpi">
-      <span class="lab">Faturamento Total</span>
-      <span class="val" id="kTot"></span>
-      <span class="meta" id="kTotMeta"></span>
-      <div class="spark" id="kSpark"></div>
-    </div>
-    <div class="kpi">
-      <span class="lab">Faturamento por Estado</span>
-      <span class="val" id="kUf"></span>
-      <span class="meta" id="kUfMeta"></span>
-      <div class="spark" id="kUfSpark"></div>
-    </div>
-    <div class="kpi">
-      <span class="lab">Média Anual de Faturamento</span>
-      <span class="val" id="kAvg"></span>
-      <span class="meta" id="kAvgMeta"></span>
-      <div class="spark" id="kAvgSpark"></div>
-    </div>
-    <div class="kpi">
-      <span class="lab">Clientes Novos</span>
-      <span class="val" id="kNew"></span>
-      <span class="meta" id="kNewMeta"></span>
-      <div class="spark" id="kNewSpark"></div>
-    </div>
-  </section>
-
-  <!-- CHARTS -->
-  <section class="two">
     <div class="card">
-      <div class="card-hd">
-        <h2>Faturamento mensal</h2>
-        <span class="legend">
-          <span><i style="background:var(--s1-fill)"></i>Faturado</span>
-          <span><i style="background:var(--s2-fill)"></i>Carteira (a faturar)</span>
-        </span>
-      </div>
-      <div class="card-bd">
-        <div class="bars" id="chart"><div class="grid-lines" id="glines"></div></div>
-      </div>
-    </div>
-    <div class="card">
-      <div class="card-hd"><h2>Por estado</h2><span class="sub" id="geoLab"></span></div>
-      <div class="card-bd">
-        <div class="hbars" id="ufbars"></div>
-        <p class="hint" id="ufHint"></p>
-      </div>
+      <div class="card-hd"><h2 id="lChart3"></h2><span class="sub" id="geoLab"></span></div>
+      <div class="card-bd"><div class="hbars" id="ufbars"></div><p class="hint" id="ufHint"></p></div>
     </div>
   </section>
 
-  <!-- TABELA -->
   <section class="card">
-    <div class="card-hd">
-      <h2>Vendas por cliente</h2>
-      <span class="sub" id="tcount"></span>
-    </div>
+    <div class="card-hd"><h2 id="lTable"></h2><span class="sub" id="tcount"></span></div>
     <div class="tscroll">
-      <table id="tbl">
-        <thead><tr id="thr"></tr></thead>
-        <tbody id="tb"></tbody>
-        <tfoot><tr id="tf"></tr></tfoot>
-      </table>
+      <table><thead><tr id="thr"></tr></thead><tbody id="tb"></tbody><tfoot><tr id="tf"></tr></tfoot></table>
     </div>
   </section>
 
   <section class="card">
-    <div class="card-hd"><h2>Clientes novos</h2><span class="sub" id="newSub"></span></div>
+    <div class="card-hd"><h2 id="lNew"></h2><span class="sub" id="newSub"></span></div>
     <div class="card-bd"><div class="newlist" id="newList"></div></div>
   </section>
 
-  <footer>
-    Fonte: SALES REPORT — WENDELL BRAZIL (aba BASE), 117 linhas de item · câmbio fixo R$ 5,10/US$ (aba FX Rates).<br>
-    Faturamento = soma do valor por item das linhas <b>Invoiced</b>. Carteira = linhas <b>TBI</b> (a faturar).
-  </footer>
+  <footer id="foot"></footer>
 </main>
 <div id="tip" role="status" aria-live="polite"></div>
+</div>
 
 <script>
 /* ============================================================
-   MAPA CLIENTE → UF   ·  PREENCHA AQUI
+   MAPA CLIENTE -> UF  ·  PREENCHA AQUI
    Escreva a sigla do estado entre as aspas, ex.: "SP", "SC", "MG".
-   Enquanto estiver vazio, o painel usa o armazém (SP/SC) como base
-   geográfica. Assim que houver UFs preenchidas, escolha "UF do
-   cliente" no filtro Base geográfica.
+   Enquanto estiver vazio, o painel usa o armazem (SP/SC) como base
+   geografica. Assim que houver UFs preenchidas, escolha "UF do
+   cliente" no filtro Base geografica.
    ============================================================ */
 const UF_CLIENTE = {
   "ARABELLA CONFECCOES LTDA": "",
@@ -412,45 +423,116 @@ const UF_CLIENTE = {
   "ZEAIT IND E COM DE CONFECÇÕES LTDA": "",
 };
 
-const DATA = {"meses":["JAN","FEV","MAR","ABR","MAI","JUN","JUL","AGO"],"atual":"AGO","ano":2026,"fx":5.1,"rows":[["AGO","ARTHUR","SP","I","TUTTO PRINT INDUSTRIA E COMERCIO LTDA",1124.0,200.0,"000057","2026-08-24"],["AGO","ARTHUR","SP","I","TUTTO PRINT INDUSTRIA E COMERCIO LTDA",6744.0,1200.0,"000057","2026-08-24"],["AGO","ARTHUR","SP","T","ARMARINHOS PALMARES DE ASSIS LTDA",2866.5,273.0,"000056","2026-08-24"],["AGO","ALICE","SC","T","LMX CONFECCOES LTDA",1490.0,200.0,"602452","2026-08-24"],["AGO","SIMONE","SC","I","AVERARA CONFECCOES LTDA",6000.0,2000.0,"602451","2026-08-19"],["AGO","MARCELLO","SP","T","FERNANDES CONFECÇÃO LTDA",449.0,100.0,"","2026-08-17"],["AGO","MARCELLO","SC","I","ARABELLA CONFECCOES LTDA",930.0,200.0,"602453","2026-08-17"],["AGO","MARCELLO","SC","I","ARABELLA CONFECCOES LTDA",1959.0,300.0,"602453","2026-08-17"],["AGO","MARCELLO","SC","I","ARABELLA CONFECCOES LTDA",1626.0,300.0,"602453","2026-08-17"],["AGO","MARCELLO","SC","I","ARABELLA CONFECCOES LTDA",1560.0,300.0,"602453","2026-08-17"],["AGO","ARTHUR","SP","I","TUTTO PRINT INDUSTRIA E COMERCIO LTDA",1124.0,200.0,"000055","2026-08-18"],["AGO","ARTHUR","SP","I","TUTTO PRINT INDUSTRIA E COMERCIO LTDA",2244.0,300.0,"000055","2026-08-18"],["AGO","SIMONE","SC","I","MODAS LAVIDA LTDA",3200.0,1000.0,"602449","2026-08-13"],["AGO","ARTHUR","SP","I","CONFECCOES DALANT LTDA",2550.0,500.0,"000053","2026-08-07"],["AGO","ANDRE CANO","SC","I","T. B. DE ANDRADE CONFECCAO LTDA",364.0,100.0,"602448","2026-08-10"],["AGO","ANDRE CANO","SC","I","T. B. DE ANDRADE CONFECCAO LTDA",2100.0,600.0,"602448","2026-08-10"],["AGO","ARTHUR","SP","I","MILK' N ROSES CONFECCOES LTDA",3325.0,700.0,"000051","2026-08-07"],["AGO","ARTHUR","SP","I","MILK' N ROSES CONFECCOES LTDA",1425.0,300.0,"000051","2026-08-07"],["AGO","ARTHUR","SP","I","F. F. FASHION FACTORY LTDA",900.0,500.0,"000050","2026-08-06"],["AGO","SIMONE","SP","I","OY MODAS E PRODUCOES FOTOGRAFICAS E TEATRAIS LTDA",948.0,200.0,"000049","2026-08-04"],["AGO","MARCELLO","SP","I","VIDA-LOKA CONFECCOES LTDA",1413.0,300.0,"000048","2026-08-03"],["JUL","BRUNA","SP","I","LUPO NORDESTE LTDA",7010.0,1000.0,"000047","2026-07-30"],["AGO","SIMONE","SP","I","COIMBRA SP INDUSTRIA E COMERCIO LTDA",980.0,200.0,"000046","2026-08-10"],["JUL","BRUNA","SP","I","LUPO NORDESTE LTDA",7100.0,1000.0,"000045","2026-07-23"],["JUL","ANDRE CANO","SP","I","ZEAIT IND E COM DE CONFECÇÕES LTDA",837.1,100.0,"000042","2026-07-20"],["JUL","BRUNA","SP","I","MILK' N ROSES CONFECCOES LTDA",1425.0,300.0,"000041","2026-07-20"],["JUL","BRUNA","SP","I","MILK' N ROSES CONFECCOES LTDA",3325.0,700.0,"000041","2026-07-20"],["JUL","MARCELLO","SC","I","ARABELLA CONFECCOES LTDA",864.0,200.0,"602447","2026-07-16"],["JUL","MARCELLO","SC","I","ARABELLA CONFECCOES LTDA",930.0,200.0,"602447","2026-07-16"],["JUL","MARCELLO","SC","I","ARABELLA CONFECCOES LTDA",1084.0,200.0,"602447","2026-07-16"],["JUL","MARCELLO","SC","I","ARABELLA CONFECCOES LTDA",520.0,100.0,"602447","2026-07-16"],["JUL","BRUNA","SP","I","CLIO CONFECCOES IMPORTACAO E EXPORTACAO LTDA",3420.0,1000.0,"000040","2026-07-14"],["JUL","ANDRE CANO","SC","I","ZEAIT IND E COM DE CONFECÇÕES LTDA",2612.0,400.0,"602436","2026-07-13"],["JUL","ANDRE CANO","SC","I","ZEAIT IND E COM DE CONFECÇÕES LTDA",1350.0,200.0,"602436","2026-07-13"],["JUL","ANDRE CANO","SC","I","JOAO ROBERTO PASSETTI",1456.0,400.0,"602435","2026-07-08"],["JUL","ANDRE CANO","SC","I","JOAO ROBERTO PASSETTI",3500.0,1000.0,"602435","2026-07-08"],["JUL","BRUNA","SP","I","MILK' N ROSES CONFECCOES LTDA",2375.0,500.0,"000037","2026-07-07"],["JUL","BRUNA","SP","I","MILK' N ROSES CONFECCOES LTDA",2375.0,500.0,"000037","2026-07-07"],["JUL","BRUNA","SP","I","TUTTO PRINT INDUSTRIA E COMERCIO LTDA",966.0,200.0,"000036","2026-07-03"],["JUL","BRUNA","SP","I","TUTTO PRINT INDUSTRIA E COMERCIO LTDA",1932.0,400.0,"000036","2026-07-03"],["JUN","BRUNA","SC","I","LMX CONFECCOES LTDA",1490.0,200.0,"602412","2026-06-30"],["JUN","ANDRE CANO","SP","I","ELVA CONFECCOES LTDA",0.0,100.0,"000034","2026-06-25"],["JUN","ANDRE CANO","SP","I","T. B. DE ANDRADE CONFECCAO LTDA",830.0,200.0,"000033","2026-06-25"],["JUN","ANDRE CANO","SP","I","T. B. DE ANDRADE CONFECCAO LTDA",2450.0,700.0,"000033","2026-06-25"],["JUN","BRUNA","SP","I","YANN COMERCIO E INDUSTRIA LTDA",165.8,10.0,"000031","2026-06-18"],["JUN","BRUNA","SP","I","MILK' N ROSES CONFECCOES LTDA",2375.0,500.0,"000030","2026-06-19"],["JUN","BRUNA","SP","I","MILK' N ROSES CONFECCOES LTDA",2375.0,500.0,"000030","2026-06-19"],["JUN","BRUNA","SP","I","TUTTO PRINT INDUSTRIA E COMERCIO LTDA",496.0,100.0,"000027","2026-06-18"],["JUN","BRUNA","SP","I","TUTTO PRINT INDUSTRIA E COMERCIO LTDA",421.0,100.0,"000027","2026-06-18"],["JUN","BRUNA","SP","I","TUTTO PRINT INDUSTRIA E COMERCIO LTDA",1995.0,500.0,"000027","2026-06-18"],["JUN","ARTHUR","SP","I","J H K CONFECCOES LTDA",1026.0,300.0,"000029","2026-06-18"],["JUN","ARTHUR","SC","I","J H K CONFECCOES LTDA",2100.0,700.0,"602386","2026-06-18"],["JUN","ARTHUR","SP","I","CLIO CONFECCOES IMPORTACAO E EXPORTACAO LTDA",2394.0,700.0,"000026","2026-06-15"],["JUN","ARTHUR","SP","I","CLIO CONFECCOES IMPORTACAO E EXPORTACAO LTDA",1026.0,300.0,"000026","2026-06-15"],["JUN","MARCELLO","SC","I","DVORA HOUSE LTDA",542.0,100.0,"602372","2026-06-12"],["JUN","MARCELLO","SC","I","DVORA HOUSE LTDA",2600.0,500.0,"602372","2026-06-12"],["JUN","ARTHUR","SP","I","CONFECCOES DALANT LTDA",510.0,100.0,"000024","2026-06-12"],["JUN","BRUNA","SC","I","SAGO PARGO CONFECCOES LTDA",6600.0,2200.0,"602360","2026-06-08"],["JUN","BRUNA","SP","I","SAGO PARGO CONFECCOES LTDA",2736.0,800.0,"000023","2026-06-08"],["JUN","BRUNA","SP","I","MILK' N ROSES CONFECCOES LTDA",4750.0,1000.0,"000022","2026-06-08"],["JUN","SIMONE","SC","I","AVERARA CONFECCOES LTDA",3000.0,1000.0,"602340","2026-06-08"],["JUN","BRUNA","SP","I","IMAPER INDUSTRIA E COMERCIO LTDA",1458.73,91.0,"000021","2026-06-02"],["JUN","BRUNA","SP","I","MILK' N ROSES CONFECCOES LTDA",2375.0,500.0,"000020","2026-06-01"],["JUN","BRUNA","SP","I","MILK' N ROSES CONFECCOES LTDA",1596.0,400.0,"000020","2026-06-01"],["JUN","BRUNA","SP","I","MILK' N ROSES CONFECCOES LTDA",1197.0,300.0,"000020","2026-06-01"],["JUN","ROSIMERE","SP","I","LARISSA VICTOR DE ARAUJO",756.0,100.0,"000018","2026-06-01"],["JUN","SIMONE","SC","I","AVERARA CONFECCOES LTDA",3000.0,1000.0,"602339","2026-06-01"],["JUN","ANDRE COLARES","SP","I","RAFFAEL ANDRADE PESSOA",990.0,200.0,"000015","2026-06-01"],["JUN","ANDRE COLARES","SP","I","TARC DUBLAGENS INDUSTRIAIS LTDA",192.0,100.0,"000019","2026-06-01"],["JUN","ANDRE COLARES","SP","I","TARC DUBLAGENS INDUSTRIAIS LTDA",230.0,100.0,"000019","2026-06-01"],["JUN","ANDRE COLARES","SP","I","TARC DUBLAGENS INDUSTRIAIS LTDA",350.0,100.0,"000019","2026-06-01"],["MAI","ANDRE CANO","SC","I","JOAO ROBERTO PASSETTI",1456.0,400.0,"602344","2026-05-26"],["MAI","ANDRE CANO","SC","I","JOAO ROBERTO PASSETTI",3500.0,1000.0,"602344","2026-05-26"],["MAI","FERNANDA","SP","I","KFK INDUSTRIA E COMERCIO DE CONFECCOES LTDA",2450.0,700.0,"000014","2026-05-21"],["MAI","FERNANDA","SP","I","KFK INDUSTRIA E COMERCIO DE CONFECCOES LTDA",2450.0,700.0,"000014","2026-05-21"],["MAI","ANDRE CANO","SC","I","T. B. DE ANDRADE CONFECCAO LTDA",2450.0,700.0,"602342","2026-05-21"],["MAI","ANDRE CANO","SC","I","T. B. DE ANDRADE CONFECCAO LTDA",728.0,200.0,"602342","2026-05-21"],["MAI","SIMONE","SC","I","HALAVE CONFECCOES LTDA",1035.0,300.0,"602343","2026-05-21"],["MAI","SIMONE","SC","I","HALAVE CONFECCOES LTDA",1035.0,300.0,"602343","2026-05-21"],["MAI","SIMONE","SC","I","HALAVE CONFECCOES LTDA",576.0,300.0,"602343","2026-05-21"],["MAI","SIMONE","SC","I","HALAVE CONFECCOES LTDA",576.0,300.0,"602343","2026-05-21"],["MAI","SIMONE","SC","I","AVERARA CONFECCOES LTDA",3000.0,1000.0,"602338","2026-05-20"],["MAI","BRUNA","SC","I","FLOR LINDA CONFECCOES LTDA",330.0,100.0,"602328","2026-05-18"],["MAI","BRUNA","SC","I","FLOR LINDA CONFECCOES LTDA",330.0,100.0,"602328","2026-05-18"],["MAI","BRUNA","SP","I","KYCO. LTDA",2544.0,400.0,"000012","2026-05-15"],["MAI","ROSIMERE","SC","I","M.R.T. COMERCIO VAREJISTA DE ARTIGOS DO VESTUARIO E ACESSORIOS LTDA",1230.0,200.0,"602293","2026-05-05"],["MAI","ROSIMERE","SP","I","EPELBAUM COMERCIO DE PRODUTOS LTDA",2259.0,300.0,"000009","2026-05-04"],["MAI","ROSIMERE","SP","I","EPELBAUM COMERCIO DE PRODUTOS LTDA",2358.0,300.0,"000009","2026-05-04"],["MAI","ROSIMERE","SP","I","EPELBAUM COMERCIO DE PRODUTOS LTDA",1000.0,200.0,"000009","2026-05-04"],["MAI","ROSIMERE","SP","I","EPELBAUM COMERCIO DE PRODUTOS LTDA",1052.0,200.0,"000009","2026-05-04"],["ABR","MARCELLO","SC","I","ARABELLA CONFECCOES LTDA",1560.0,300.0,"602250","2026-04-17"],["ABR","MARCELLO","SC","I","ARABELLA CONFECCOES LTDA",1626.0,300.0,"602250","2026-04-17"],["ABR","ROSIMERE","SP","I","EPELBAUM COMERCIO DE PRODUTOS LTDA",2001.0,300.0,"000004","2026-04-13"],["ABR","ROSIMERE","SP","I","VIENAS COMERCIO DE TECIDOS LTDA",628.0,100.0,"000006","2026-04-13"],["ABR","ROSIMERE","SP","I","VIENAS COMERCIO DE TECIDOS LTDA",2900.0,200.0,"000006","2026-04-13"],["ABR","ROSIMERE","SP","I","VIENAS COMERCIO DE TECIDOS LTDA",1438.0,100.0,"000006","2026-04-13"],["ABR","BRUNA","SP","I","LUPO NORDESTE LTDA",7010.0,1000.0,"000007","2026-04-13"],["ABR","SIMONE","SC","I","ZAYAN COMERCIO E CONFECCAO LTDA",2828.0,700.0,"602235","2026-04-09"],["ABR","SIMONE","SC","I","ZAYAN COMERCIO E CONFECCAO LTDA",2975.0,700.0,"602235","2026-04-09"],["ABR","BRUNA","SP","I","SANTA AMELIA COMERCIO DE ARMARINHOS E TECIDOS LTDA",3552.64,182.0,"000002","2026-04-09"],["ABR","BRUNA","SP","I","KYCO. LTDA",3714.0,600.0,"000005","2026-04-09"],["ABR","BRUNA","SP","I","KYCO. LTDA",2544.0,400.0,"000005","2026-04-09"],["ABR","BRUNA","SP","I","M L DA SILVA CONFECCOES",1954.68,91.0,"000003","2026-04-08"],["ABR","BRUNA","SP","I","M L DA SILVA CONFECCOES",2240.0,100.0,"000003","2026-04-08"],["MAR","BRUNA","SC","I","LABALABA BORDADOS LTDA",695.0,100.0,"602229","2026-03-25"],["MAR","BRUNA","SC","I","LABALABA BORDADOS LTDA",730.0,100.0,"602229","2026-03-25"],["MAR","BRUNA","SP","I","LUPO NORDESTE LTDA",7010.0,1000.0,"000001","2026-03-24"],["MAR","RICARDO","SC","I","TECIDOS N.A. COMERCIAL LTDA.",1254.0,100.0,"602203","2026-03-16"],["MAR","RICARDO","SC","I","TECIDOS N.A. COMERCIAL LTDA.",1264.0,100.0,"602203","2026-03-16"],["FEV","ADRIANA","SC","I","RUBINELLA INDUSTRIA DE MODAS LTDA",1974.0,300.0,"602177","2026-02-27"],["FEV","ADRIANA","SC","I","RUBINELLA INDUSTRIA DE MODAS LTDA",1406.0,200.0,"602177","2026-02-27"],["FEV","ADRIANA","SC","I","RUBINELLA INDUSTRIA DE MODAS LTDA",1466.0,200.0,"602177","2026-02-27"],["FEV","RICARDO","SC","I","TECIDOS N.A. COMERCIAL LTDA.",1468.0,200.0,"602150","2026-02-11"],["FEV","RICARDO","SC","I","TECIDOS N.A. COMERCIAL LTDA.",762.0,100.0,"602150","2026-02-11"],["FEV","RICARDO","SC","I","TECIDOS N.A. COMERCIAL LTDA.",926.0,200.0,"602150","2026-02-11"],["FEV","RICARDO","SC","I","TECIDOS N.A. COMERCIAL LTDA.",487.0,100.0,"602150","2026-02-11"],["JAN","SIMONE","SC","I","WARDY CONFECCOES LTDA",8250.0,1500.0,"602122","2026-01-19"]],"reps":["ADRIANA","ALICE","ANDRE CANO","ANDRE COLARES","ARTHUR","BRUNA","FERNANDA","MARCELLO","RICARDO","ROSIMERE","SIMONE"],"clientes":["ARABELLA CONFECCOES LTDA","ARMARINHOS PALMARES DE ASSIS LTDA","AVERARA CONFECCOES LTDA","CLIO CONFECCOES IMPORTACAO E EXPORTACAO LTDA","COIMBRA SP INDUSTRIA E COMERCIO LTDA","CONFECCOES DALANT LTDA","DVORA HOUSE LTDA","ELVA CONFECCOES LTDA","EPELBAUM COMERCIO DE PRODUTOS LTDA","F. F. FASHION FACTORY LTDA","FERNANDES CONFECÇÃO LTDA","FLOR LINDA CONFECCOES LTDA","HALAVE CONFECCOES LTDA","IMAPER INDUSTRIA E COMERCIO LTDA","J H K CONFECCOES LTDA","JOAO ROBERTO PASSETTI","KFK INDUSTRIA E COMERCIO DE CONFECCOES LTDA","KYCO. LTDA","LABALABA BORDADOS LTDA","LARISSA VICTOR DE ARAUJO","LMX CONFECCOES LTDA","LUPO NORDESTE LTDA","M L DA SILVA CONFECCOES","M.R.T. COMERCIO VAREJISTA DE ARTIGOS DO VESTUARIO E ACESSORIOS LTDA","MILK' N ROSES CONFECCOES LTDA","MODAS LAVIDA LTDA","OY MODAS E PRODUCOES FOTOGRAFICAS E TEATRAIS LTDA","RAFFAEL ANDRADE PESSOA","RUBINELLA INDUSTRIA DE MODAS LTDA","SAGO PARGO CONFECCOES LTDA","SANTA AMELIA COMERCIO DE ARMARINHOS E TECIDOS LTDA","T. B. DE ANDRADE CONFECCAO LTDA","TARC DUBLAGENS INDUSTRIAIS LTDA","TECIDOS N.A. COMERCIAL LTDA.","TUTTO PRINT INDUSTRIA E COMERCIO LTDA","VIDA-LOKA CONFECCOES LTDA","VIENAS COMERCIO DE TECIDOS LTDA","WARDY CONFECCOES LTDA","YANN COMERCIO E INDUSTRIA LTDA","ZAYAN COMERCIO E CONFECCAO LTDA","ZEAIT IND E COM DE CONFECÇÕES LTDA"]};
+const DATA = {"meses":["JAN","FEV","MAR","ABR","MAI","JUN","JUL","AGO"],"atual":"AGO","ano":2026,"fx":5.1,"rows":[["AGO","ARTHUR","SP","I","TUTTO PRINT INDUSTRIA E COMERCIO LTDA",1124.0,200.0,"000057","2026-08-24",0.0,null],["AGO","ARTHUR","SP","I","TUTTO PRINT INDUSTRIA E COMERCIO LTDA",6744.0,1200.0,"000057","2026-08-24",0.0,null],["AGO","ARTHUR","SP","T","ARMARINHOS PALMARES DE ASSIS LTDA",2866.5,273.0,"000056","2026-08-24",0.0,null],["AGO","ALICE","SC","T","LMX CONFECCOES LTDA",1490.0,200.0,"602452","2026-08-24",0.02,null],["AGO","SIMONE","SC","I","AVERARA CONFECCOES LTDA",6000.0,2000.0,"602451","2026-08-19",0.02,0.1692],["AGO","MARCELLO","SP","T","FERNANDES CONFECÇÃO LTDA",449.0,100.0,"","2026-08-17",0.04,null],["AGO","MARCELLO","SC","I","ARABELLA CONFECCOES LTDA",930.0,200.0,"602453","2026-08-17",0.04,0.428189],["AGO","MARCELLO","SC","I","ARABELLA CONFECCOES LTDA",1959.0,300.0,"602453","2026-08-17",0.04,0.401062],["AGO","MARCELLO","SC","I","ARABELLA CONFECCOES LTDA",1626.0,300.0,"602453","2026-08-17",0.04,0.41179],["AGO","MARCELLO","SC","I","ARABELLA CONFECCOES LTDA",1560.0,300.0,"602453","2026-08-17",0.04,0.430241],["AGO","ARTHUR","SP","I","TUTTO PRINT INDUSTRIA E COMERCIO LTDA",1124.0,200.0,"000055","2026-08-18",0.0,0.318883],["AGO","ARTHUR","SP","I","TUTTO PRINT INDUSTRIA E COMERCIO LTDA",2244.0,300.0,"000055","2026-08-18",0.0,0.26153],["AGO","SIMONE","SC","I","MODAS LAVIDA LTDA",3200.0,1000.0,"602449","2026-08-13",0.02,0.1793],["AGO","ARTHUR","SP","I","CONFECCOES DALANT LTDA",2550.0,500.0,"000053","2026-08-07",0.0,null],["AGO","ANDRE CANO","SC","I","T. B. DE ANDRADE CONFECCAO LTDA",364.0,100.0,"602448","2026-08-10",0.02,0.2629],["AGO","ANDRE CANO","SC","I","T. B. DE ANDRADE CONFECCAO LTDA",2100.0,600.0,"602448","2026-08-10",0.02,0.2694],["AGO","ARTHUR","SP","I","MILK' N ROSES CONFECCOES LTDA",3325.0,700.0,"000051","2026-08-07",0.0,null],["AGO","ARTHUR","SP","I","MILK' N ROSES CONFECCOES LTDA",1425.0,300.0,"000051","2026-08-07",0.0,null],["AGO","ARTHUR","SP","I","F. F. FASHION FACTORY LTDA",900.0,500.0,"000050","2026-08-06",0.0,null],["AGO","SIMONE","SP","I","OY MODAS E PRODUCOES FOTOGRAFICAS E TEATRAIS LTDA",948.0,200.0,"000049","2026-08-04",0.02,null],["AGO","MARCELLO","SP","I","VIDA-LOKA CONFECCOES LTDA",1413.0,300.0,"000048","2026-08-03",0.06,null],["JUL","BRUNA","SP","I","LUPO NORDESTE LTDA",7010.0,1000.0,"000047","2026-07-30",0.0,null],["AGO","SIMONE","SP","I","COIMBRA SP INDUSTRIA E COMERCIO LTDA",980.0,200.0,"000046","2026-08-10",0.02,null],["JUL","BRUNA","SP","I","LUPO NORDESTE LTDA",7100.0,1000.0,"000045","2026-07-23",0.0,null],["JUL","ANDRE CANO","SP","I","ZEAIT IND E COM DE CONFECÇÕES LTDA",837.1,100.0,"000042","2026-07-20",0.02,null],["JUL","BRUNA","SP","I","MILK' N ROSES CONFECCOES LTDA",1425.0,300.0,"000041","2026-07-20",0.0,null],["JUL","BRUNA","SP","I","MILK' N ROSES CONFECCOES LTDA",3325.0,700.0,"000041","2026-07-20",0.0,null],["JUL","MARCELLO","SC","I","ARABELLA CONFECCOES LTDA",864.0,200.0,"602447","2026-07-16",0.04,0.192959],["JUL","MARCELLO","SC","I","ARABELLA CONFECCOES LTDA",930.0,200.0,"602447","2026-07-16",0.04,0.421819],["JUL","MARCELLO","SC","I","ARABELLA CONFECCOES LTDA",1084.0,200.0,"602447","2026-07-16",0.04,0.41179],["JUL","MARCELLO","SC","I","ARABELLA CONFECCOES LTDA",520.0,100.0,"602447","2026-07-16",0.04,0.411585],["JUL","BRUNA","SP","I","CLIO CONFECCOES IMPORTACAO E EXPORTACAO LTDA",3420.0,1000.0,"000040","2026-07-14",0.0,null],["JUL","ANDRE CANO","SC","I","ZEAIT IND E COM DE CONFECÇÕES LTDA",2612.0,400.0,"602436","2026-07-13",0.02,0.309179],["JUL","ANDRE CANO","SC","I","ZEAIT IND E COM DE CONFECÇÕES LTDA",1350.0,200.0,"602436","2026-07-13",0.02,0.303793],["JUL","ANDRE CANO","SC","I","JOAO ROBERTO PASSETTI",1456.0,400.0,"602435","2026-07-08",0.02,0.137684],["JUL","ANDRE CANO","SC","I","JOAO ROBERTO PASSETTI",3500.0,1000.0,"602435","2026-07-08",0.02,0.308343],["JUL","BRUNA","SP","I","MILK' N ROSES CONFECCOES LTDA",2375.0,500.0,"000037","2026-07-07",0.0,null],["JUL","BRUNA","SP","I","MILK' N ROSES CONFECCOES LTDA",2375.0,500.0,"000037","2026-07-07",0.0,null],["JUL","BRUNA","SP","I","TUTTO PRINT INDUSTRIA E COMERCIO LTDA",966.0,200.0,"000036","2026-07-03",0.0,null],["JUL","BRUNA","SP","I","TUTTO PRINT INDUSTRIA E COMERCIO LTDA",1932.0,400.0,"000036","2026-07-03",0.0,null],["JUN","BRUNA","SC","I","LMX CONFECCOES LTDA",1490.0,200.0,"602412","2026-06-30",0.0,0.331603],["JUN","ANDRE CANO","SP","I","ELVA CONFECCOES LTDA",0.0,100.0,"000034","2026-06-25",0.0,0.0],["JUN","ANDRE CANO","SP","I","T. B. DE ANDRADE CONFECCAO LTDA",830.0,200.0,"000033","2026-06-25",0.02,0.00921],["JUN","ANDRE CANO","SP","I","T. B. DE ANDRADE CONFECCAO LTDA",2450.0,700.0,"000033","2026-06-25",0.02,0.181293],["JUN","BRUNA","SP","I","YANN COMERCIO E INDUSTRIA LTDA",165.8,10.0,"000031","2026-06-18",0.0,0.352111],["JUN","BRUNA","SP","I","MILK' N ROSES CONFECCOES LTDA",2375.0,500.0,"000030","2026-06-19",0.0,0.219939],["JUN","BRUNA","SP","I","MILK' N ROSES CONFECCOES LTDA",2375.0,500.0,"000030","2026-06-19",0.0,0.240992],["JUN","BRUNA","SP","I","TUTTO PRINT INDUSTRIA E COMERCIO LTDA",496.0,100.0,"000027","2026-06-18",0.0,0.346973],["JUN","BRUNA","SP","I","TUTTO PRINT INDUSTRIA E COMERCIO LTDA",421.0,100.0,"000027","2026-06-18",0.0,0.280967],["JUN","BRUNA","SP","I","TUTTO PRINT INDUSTRIA E COMERCIO LTDA",1995.0,500.0,"000027","2026-06-18",0.0,0.282997],["JUN","ARTHUR","SP","I","J H K CONFECCOES LTDA",1026.0,300.0,"000029","2026-06-18",0.0,0.168127],["JUN","ARTHUR","SC","I","J H K CONFECCOES LTDA",2100.0,700.0,"602386","2026-06-18",0.0,0.214533],["JUN","ARTHUR","SP","I","CLIO CONFECCOES IMPORTACAO E EXPORTACAO LTDA",2394.0,700.0,"000026","2026-06-15",0.0,0.168127],["JUN","ARTHUR","SP","I","CLIO CONFECCOES IMPORTACAO E EXPORTACAO LTDA",1026.0,300.0,"000026","2026-06-15",0.0,-0.147663],["JUN","MARCELLO","SC","I","DVORA HOUSE LTDA",542.0,100.0,"602372","2026-06-12",0.04,0.41179],["JUN","MARCELLO","SC","I","DVORA HOUSE LTDA",2600.0,500.0,"602372","2026-06-12",0.04,0.3932],["JUN","ARTHUR","SP","I","CONFECCOES DALANT LTDA",510.0,100.0,"000024","2026-06-12",0.0,-0.044085],["JUN","BRUNA","SC","I","SAGO PARGO CONFECCOES LTDA",6600.0,2200.0,"602360","2026-06-08",0.0,0.214533],["JUN","BRUNA","SP","I","SAGO PARGO CONFECCOES LTDA",2736.0,800.0,"000023","2026-06-08",0.0,-0.147663],["JUN","BRUNA","SP","I","MILK' N ROSES CONFECCOES LTDA",4750.0,1000.0,"000022","2026-06-08",0.0,0.240992],["JUN","SIMONE","SC","I","AVERARA CONFECCOES LTDA",3000.0,1000.0,"602340","2026-06-08",0.02,0.214533],["JUN","BRUNA","SP","I","IMAPER INDUSTRIA E COMERCIO LTDA",1458.73,91.0,"000021","2026-06-02",0.0,0.354256],["JUN","BRUNA","SP","I","MILK' N ROSES CONFECCOES LTDA",2375.0,500.0,"000020","2026-06-01",0.0,0.240992],["JUN","BRUNA","SP","I","MILK' N ROSES CONFECCOES LTDA",1596.0,400.0,"000020","2026-06-01",0.0,0.250416],["JUN","BRUNA","SP","I","MILK' N ROSES CONFECCOES LTDA",1197.0,300.0,"000020","2026-06-01",0.0,-0.020261],["JUN","ROSIMERE","SP","I","LARISSA VICTOR DE ARAUJO",756.0,100.0,"000018","2026-06-01",0.06,null],["JUN","SIMONE","SC","I","AVERARA CONFECCOES LTDA",3000.0,1000.0,"602339","2026-06-01",0.02,null],["JUN","ANDRE COLARES","SP","I","RAFFAEL ANDRADE PESSOA",990.0,200.0,"000015","2026-06-01",0.02,null],["JUN","ANDRE COLARES","SP","I","TARC DUBLAGENS INDUSTRIAIS LTDA",192.0,100.0,"000019","2026-06-01",0.03,null],["JUN","ANDRE COLARES","SP","I","TARC DUBLAGENS INDUSTRIAIS LTDA",230.0,100.0,"000019","2026-06-01",0.03,null],["JUN","ANDRE COLARES","SP","I","TARC DUBLAGENS INDUSTRIAIS LTDA",350.0,100.0,"000019","2026-06-01",0.02,null],["MAI","ANDRE CANO","SC","I","JOAO ROBERTO PASSETTI",1456.0,400.0,"602344","2026-05-26",0.02,null],["MAI","ANDRE CANO","SC","I","JOAO ROBERTO PASSETTI",3500.0,1000.0,"602344","2026-05-26",0.02,null],["MAI","FERNANDA","SP","I","KFK INDUSTRIA E COMERCIO DE CONFECCOES LTDA",2450.0,700.0,"000014","2026-05-21",0.02,null],["MAI","FERNANDA","SP","I","KFK INDUSTRIA E COMERCIO DE CONFECCOES LTDA",2450.0,700.0,"000014","2026-05-21",0.02,null],["MAI","ANDRE CANO","SC","I","T. B. DE ANDRADE CONFECCAO LTDA",2450.0,700.0,"602342","2026-05-21",0.02,null],["MAI","ANDRE CANO","SC","I","T. B. DE ANDRADE CONFECCAO LTDA",728.0,200.0,"602342","2026-05-21",0.02,null],["MAI","SIMONE","SC","I","HALAVE CONFECCOES LTDA",1035.0,300.0,"602343","2026-05-21",0.02,null],["MAI","SIMONE","SC","I","HALAVE CONFECCOES LTDA",1035.0,300.0,"602343","2026-05-21",0.02,null],["MAI","SIMONE","SC","I","HALAVE CONFECCOES LTDA",576.0,300.0,"602343","2026-05-21",0.03,null],["MAI","SIMONE","SC","I","HALAVE CONFECCOES LTDA",576.0,300.0,"602343","2026-05-21",0.03,null],["MAI","SIMONE","SC","I","AVERARA CONFECCOES LTDA",3000.0,1000.0,"602338","2026-05-20",0.02,null],["MAI","BRUNA","SC","I","FLOR LINDA CONFECCOES LTDA",330.0,100.0,"602328","2026-05-18",0.0,null],["MAI","BRUNA","SC","I","FLOR LINDA CONFECCOES LTDA",330.0,100.0,"602328","2026-05-18",0.0,null],["MAI","BRUNA","SP","I","KYCO. LTDA",2544.0,400.0,"000012","2026-05-15",0.0,0.352641],["MAI","ROSIMERE","SC","I","M.R.T. COMERCIO VAREJISTA DE ARTIGOS DO VESTUARIO E ACESSORIOS LTDA",1230.0,200.0,"602293","2026-05-05",0.06,null],["MAI","ROSIMERE","SP","I","EPELBAUM COMERCIO DE PRODUTOS LTDA",2259.0,300.0,"000009","2026-05-04",0.04,null],["MAI","ROSIMERE","SP","I","EPELBAUM COMERCIO DE PRODUTOS LTDA",2358.0,300.0,"000009","2026-05-04",0.04,null],["MAI","ROSIMERE","SP","I","EPELBAUM COMERCIO DE PRODUTOS LTDA",1000.0,200.0,"000009","2026-05-04",0.06,null],["MAI","ROSIMERE","SP","I","EPELBAUM COMERCIO DE PRODUTOS LTDA",1052.0,200.0,"000009","2026-05-04",0.06,null],["ABR","MARCELLO","SC","I","ARABELLA CONFECCOES LTDA",1560.0,300.0,"602250","2026-04-17",0.04,0.411585],["ABR","MARCELLO","SC","I","ARABELLA CONFECCOES LTDA",1626.0,300.0,"602250","2026-04-17",0.04,0.41179],["ABR","ROSIMERE","SP","I","EPELBAUM COMERCIO DE PRODUTOS LTDA",2001.0,300.0,"000004","2026-04-13",0.06,0.467902],["ABR","ROSIMERE","SP","I","VIENAS COMERCIO DE TECIDOS LTDA",628.0,100.0,"000006","2026-04-13",0.06,0.484257],["ABR","ROSIMERE","SP","I","VIENAS COMERCIO DE TECIDOS LTDA",2900.0,200.0,"000006","2026-04-13",0.05,0.418097],["ABR","ROSIMERE","SP","I","VIENAS COMERCIO DE TECIDOS LTDA",1438.0,100.0,"000006","2026-04-13",0.05,0.419183],["ABR","BRUNA","SP","I","LUPO NORDESTE LTDA",7010.0,1000.0,"000007","2026-04-13",0.0,0.590173],["ABR","SIMONE","SC","I","ZAYAN COMERCIO E CONFECCAO LTDA",2828.0,700.0,"602235","2026-04-09",0.03,0.383576],["ABR","SIMONE","SC","I","ZAYAN COMERCIO E CONFECCAO LTDA",2975.0,700.0,"602235","2026-04-09",0.03,0.38414],["ABR","BRUNA","SP","I","SANTA AMELIA COMERCIO DE ARMARINHOS E TECIDOS LTDA",3552.64,182.0,"000002","2026-04-09",0.0,0.415482],["ABR","BRUNA","SP","I","KYCO. LTDA",3714.0,600.0,"000005","2026-04-09",0.0,0.358043],["ABR","BRUNA","SP","I","KYCO. LTDA",2544.0,400.0,"000005","2026-04-09",0.0,0.352641],["ABR","BRUNA","SP","I","M L DA SILVA CONFECCOES",1954.68,91.0,"000003","2026-04-08",0.0,0.448992],["ABR","BRUNA","SP","I","M L DA SILVA CONFECCOES",2240.0,100.0,"000003","2026-04-08",0.0,0.450846],["MAR","BRUNA","SC","I","LABALABA BORDADOS LTDA",695.0,100.0,"602229","2026-03-25",0.0,0.322567],["MAR","BRUNA","SC","I","LABALABA BORDADOS LTDA",730.0,100.0,"602229","2026-03-25",0.0,0.326342],["MAR","BRUNA","SP","I","LUPO NORDESTE LTDA",7010.0,1000.0,"000001","2026-03-24",0.0,0.570201],["MAR","RICARDO","SC","I","TECIDOS N.A. COMERCIAL LTDA.",1254.0,100.0,"602203","2026-03-16",0.03,0.352859],["MAR","RICARDO","SC","I","TECIDOS N.A. COMERCIAL LTDA.",1264.0,100.0,"602203","2026-03-16",0.03,0.351422],["FEV","ADRIANA","SC","I","RUBINELLA INDUSTRIA DE MODAS LTDA",1974.0,300.0,"602177","2026-02-27",0.04,0.235942],["FEV","ADRIANA","SC","I","RUBINELLA INDUSTRIA DE MODAS LTDA",1406.0,200.0,"602177","2026-02-27",0.05,0.4167],["FEV","ADRIANA","SC","I","RUBINELLA INDUSTRIA DE MODAS LTDA",1466.0,200.0,"602177","2026-02-27",0.05,0.4167],["FEV","RICARDO","SC","I","TECIDOS N.A. COMERCIAL LTDA.",1468.0,200.0,"602150","2026-02-11",0.06,0.323516],["FEV","RICARDO","SC","I","TECIDOS N.A. COMERCIAL LTDA.",762.0,100.0,"602150","2026-02-11",0.06,0.322644],["FEV","RICARDO","SC","I","TECIDOS N.A. COMERCIAL LTDA.",926.0,200.0,"602150","2026-02-11",0.05,0.4167],["FEV","RICARDO","SC","I","TECIDOS N.A. COMERCIAL LTDA.",487.0,100.0,"602150","2026-02-11",0.05,0.4167],["JAN","SIMONE","SC","I","WARDY CONFECCOES LTDA",8250.0,1500.0,"602122","2026-01-19",0.04,0.3833]],"reps":["ADRIANA","ALICE","ANDRE CANO","ANDRE COLARES","ARTHUR","BRUNA","FERNANDA","MARCELLO","RICARDO","ROSIMERE","SIMONE"],"clientes":["ARABELLA CONFECCOES LTDA","ARMARINHOS PALMARES DE ASSIS LTDA","AVERARA CONFECCOES LTDA","CLIO CONFECCOES IMPORTACAO E EXPORTACAO LTDA","COIMBRA SP INDUSTRIA E COMERCIO LTDA","CONFECCOES DALANT LTDA","DVORA HOUSE LTDA","ELVA CONFECCOES LTDA","EPELBAUM COMERCIO DE PRODUTOS LTDA","F. F. FASHION FACTORY LTDA","FERNANDES CONFECÇÃO LTDA","FLOR LINDA CONFECCOES LTDA","HALAVE CONFECCOES LTDA","IMAPER INDUSTRIA E COMERCIO LTDA","J H K CONFECCOES LTDA","JOAO ROBERTO PASSETTI","KFK INDUSTRIA E COMERCIO DE CONFECCOES LTDA","KYCO. LTDA","LABALABA BORDADOS LTDA","LARISSA VICTOR DE ARAUJO","LMX CONFECCOES LTDA","LUPO NORDESTE LTDA","M L DA SILVA CONFECCOES","M.R.T. COMERCIO VAREJISTA DE ARTIGOS DO VESTUARIO E ACESSORIOS LTDA","MILK' N ROSES CONFECCOES LTDA","MODAS LAVIDA LTDA","OY MODAS E PRODUCOES FOTOGRAFICAS E TEATRAIS LTDA","RAFFAEL ANDRADE PESSOA","RUBINELLA INDUSTRIA DE MODAS LTDA","SAGO PARGO CONFECCOES LTDA","SANTA AMELIA COMERCIO DE ARMARINHOS E TECIDOS LTDA","T. B. DE ANDRADE CONFECCAO LTDA","TARC DUBLAGENS INDUSTRIAIS LTDA","TECIDOS N.A. COMERCIAL LTDA.","TUTTO PRINT INDUSTRIA E COMERCIO LTDA","VIDA-LOKA CONFECCOES LTDA","VIENAS COMERCIO DE TECIDOS LTDA","WARDY CONFECCOES LTDA","YANN COMERCIO E INDUSTRIA LTDA","ZAYAN COMERCIO E CONFECCAO LTDA","ZEAIT IND E COM DE CONFECÇÕES LTDA"]};
 const M = DATA.meses, CUR = DATA.atual, FX = DATA.fx;
-const COLS = [...M].reverse();               // mês atual primeiro
-const R = DATA.rows.map(r => ({mes:r[0],rep:r[1],wh:r[2],st:r[3],cli:r[4],brl:r[5],qtd:r[6],ped:r[7],dt:r[8]}));
+const COLS = [...M].reverse();
+const R = DATA.rows.map(r => ({mes:r[0],rep:r[1],wh:r[2],st:r[3],cli:r[4],brl:r[5],
+                               qtd:r[6],ped:r[7],dt:r[8],com:r[9],mg:r[10]}));
 
-const S = {rep:'', uf:'', geo:'wh', cur:'BRL', q:'', sort:'tot', dir:-1};
+const MES_EN = {JAN:'JAN',FEV:'FEB',MAR:'MAR',ABR:'APR',MAI:'MAY',JUN:'JUN',
+                JUL:'JUL',AGO:'AUG',SET:'SEP',OUT:'OCT',NOV:'NOV',DEZ:'DEC'};
+const T = {
+ pt:{
+  htitle:'Relatório de Vendas', hsub:'Wendell Global Interlining · Brasil',
+  gsub:'Wendell Global Interlining · acesso restrito', gpass:'Senha', gbtn:'Entrar',
+  gerr:'Senha incorreta.', theme:'Tema',
+  filters:'Filtros', rep:'Representante', all:'Todos', state:'Estado',
+  geo:'Base geográfica', geoWh:'Armazém', geoUf:'UF do cliente', cur:'Moeda',
+  search:'Buscar cliente', searchPh:'Ex.: CONFECCOES, LUPO, TUTTO…',
+  k1:'Faturamento Total', k2:'Faturamento por Estado', k3:'Média Anual de Faturamento',
+  k4:'Clientes Novos', k5:'Comissão Média Ponderada',
+  chart1:'Faturamento mensal', chart2:'Margem mensal', chart3:'Por estado',
+  legInv:'Faturado', legBack:'Carteira (a faturar)', legMg:'Margem ponderada',
+  legPart:'Cobertura parcial',
+  table:'Vendas por cliente', tCli:'Cliente', tCart:'Carteira', tTot:'Total ano',
+  tTotal:'Total', newTitle:'Clientes novos', newTag:'novo',
+  lines:(a,b)=>a+' linhas faturadas · '+b+' em carteira',
+  vs:(m,p,v)=>m+' vs '+p+' · '+v,
+  share:(v,p,n)=>v+' · '+p+'% do total · '+n+' '+(n>1?'estados':'estado'),
+  avgMeta:(n,p)=>'média/mês em '+n+' meses · projeção 12m '+p,
+  newMeta:(m,n)=>'em '+m+' · '+n+' clientes ativos no ano',
+  comMeta:(v,n)=>v+' em comissões · '+n+' pedidos com comissão',
+  tcount:(n,c)=>n+' clientes · valores em '+c+' · ● mês atual',
+  newSub:n=>n+' clientes no ano',
+  noData:'Sem dados para os filtros atuais.',
+  noRows:'Nenhum cliente para os filtros selecionados.',
+  noNew:'Sem clientes novos no período filtrado.',
+  geoLabWh:'Armazém de origem', geoLabUf:'UF do cliente',
+  hintWh:'A planilha não traz a UF do cliente; esta visão usa o armazém de origem (coluna WH). Para faturamento por UF real, preencha <code>UF_CLIENTE</code> no script.',
+  hintUfOk:'UF informada no mapa <code>UF_CLIENTE</code> no topo do script. Clientes sem UF aparecem como “—”.',
+  hintUfEmpty:'⚠ O mapa <code>UF_CLIENTE</code> ainda está vazio — preencha a sigla de cada cliente no topo do script para usar esta visão.',
+  mgHint:c=>'Margem ponderada pelo valor de venda. A planilha só informa margem em '+c+'% do faturamento — barras hachuradas marcam meses com cobertura abaixo de 60%.',
+  tipInv:'faturado', tipBack:'em carteira', tipMg:'margem ponderada',
+  tipCov:'cobertura', tipNoMg:'sem margem informada',
+  foot:'Fonte: SALES REPORT — WENDELL BRAZIL (aba BASE), '+DATA.rows.length+' linhas de item · câmbio fixo R$ 5,10/US$ (aba FX Rates).<br>Faturamento = soma do valor por item das linhas <b>Invoiced</b>. Carteira = linhas <b>TBI</b> (a faturar). Comissão e margem ponderadas pelo valor de venda.'
+ },
+ en:{
+  htitle:'Sales Report', hsub:'Wendell Global Interlining · Brazil',
+  gsub:'Wendell Global Interlining · restricted access', gpass:'Password', gbtn:'Enter',
+  gerr:'Wrong password.', theme:'Theme',
+  filters:'Filters', rep:'Sales rep', all:'All', state:'State',
+  geo:'Geographic basis', geoWh:'Warehouse', geoUf:'Customer state', cur:'Currency',
+  search:'Search customer', searchPh:'e.g. CONFECCOES, LUPO, TUTTO…',
+  k1:'Total Revenue', k2:'Revenue by State', k3:'Annual Average Revenue',
+  k4:'New Customers', k5:'Weighted Average Commission',
+  chart1:'Monthly revenue', chart2:'Monthly margin', chart3:'By state',
+  legInv:'Invoiced', legBack:'Backlog (to invoice)', legMg:'Weighted margin',
+  legPart:'Partial coverage',
+  table:'Sales by customer', tCli:'Customer', tCart:'Backlog', tTot:'YTD total',
+  tTotal:'Total', newTitle:'New customers', newTag:'new',
+  lines:(a,b)=>a+' invoiced lines · '+b+' in backlog',
+  vs:(m,p,v)=>m+' vs '+p+' · '+v,
+  share:(v,p,n)=>v+' · '+p+'% of total · '+n+' '+(n>1?'states':'state'),
+  avgMeta:(n,p)=>'avg/month over '+n+' months · 12m projection '+p,
+  newMeta:(m,n)=>'in '+m+' · '+n+' active customers YTD',
+  comMeta:(v,n)=>v+' in commissions · '+n+' orders with commission',
+  tcount:(n,c)=>n+' customers · values in '+c+' · ● current month',
+  newSub:n=>n+' customers YTD',
+  noData:'No data for the current filters.',
+  noRows:'No customers match the selected filters.',
+  noNew:'No new customers in the filtered period.',
+  geoLabWh:'Origin warehouse', geoLabUf:'Customer state',
+  hintWh:'The workbook has no customer state; this view uses the origin warehouse (WH column). For revenue by actual state, fill in <code>UF_CLIENTE</code> in the script.',
+  hintUfOk:'States taken from the <code>UF_CLIENTE</code> map at the top of the script. Customers with no state show as “—”.',
+  hintUfEmpty:'⚠ The <code>UF_CLIENTE</code> map is still empty — fill in each customer’s state code at the top of the script to use this view.',
+  mgHint:c=>'Margin weighted by sales value. The workbook reports margin on only '+c+'% of revenue — hatched bars mark months with coverage below 60%.',
+  tipInv:'invoiced', tipBack:'in backlog', tipMg:'weighted margin',
+  tipCov:'coverage', tipNoMg:'no margin reported',
+  foot:'Source: SALES REPORT — WENDELL BRAZIL (BASE sheet), '+DATA.rows.length+' item lines · fixed rate BRL 5.10/USD (FX Rates sheet).<br>Revenue = sum of item value on <b>Invoiced</b> lines. Backlog = <b>TBI</b> lines (to invoice). Commission and margin weighted by sales value.'
+ }
+};
 
-/* ---------- helpers ---------- */
+const S = {rep:'', uf:'', geo:'wh', cur:'BRL', q:'', sort:'tot', dir:-1, lang:'pt'};
+const t = () => T[S.lang];
+const mn = m => S.lang==='en' ? MES_EN[m] : m;
+const loc = () => S.lang==='en' ? 'en-US' : 'pt-BR';
+
 const conv = v => S.cur==='BRL' ? v : v/FX;
 const sym  = () => S.cur==='BRL' ? 'R$' : 'US$';
-const nf0  = new Intl.NumberFormat('pt-BR',{maximumFractionDigits:0});
-const nf1  = new Intl.NumberFormat('pt-BR',{minimumFractionDigits:1,maximumFractionDigits:1});
-const money = v => sym()+' '+nf0.format(conv(v));
+const nf0 = v => new Intl.NumberFormat(loc(),{maximumFractionDigits:0}).format(v);
+const nf1 = v => new Intl.NumberFormat(loc(),{minimumFractionDigits:1,maximumFractionDigits:1}).format(v);
+const money = v => sym()+' '+nf0(conv(v));
 function compact(v){
-  const x = conv(v);
-  if (Math.abs(x) >= 1e6) return nf1.format(x/1e6)+' mi';
-  if (Math.abs(x) >= 1e3) return nf0.format(Math.round(x/1e3))+' mil';
-  return nf0.format(x);
+  const x = conv(v), MI = S.lang==='en' ? 'M' : ' mi', K = S.lang==='en' ? 'k' : ' mil';
+  if (Math.abs(x) >= 1e6) return nf1(x/1e6)+MI;
+  if (Math.abs(x) >= 1e3) return nf0(Math.round(x/1e3))+K;
+  return nf0(x);
 }
+const pct = v => nf1(v)+'%';
 const ufOf = r => S.geo==='uf' ? (UF_CLIENTE[r.cli] || '—') : r.wh;
 const hasUf = () => Object.values(UF_CLIENTE).some(v => v && v.trim());
 
-/* primeira compra faturada de cada cliente (independe dos filtros) */
 const FIRST = {};
 R.filter(r=>r.st==='I').forEach(r=>{
   const i = M.indexOf(r.mes);
   if (FIRST[r.cli]===undefined || i < FIRST[r.cli]) FIRST[r.cli] = i;
 });
 
-function filtered(){
+const filtered = () => {
   const q = S.q.trim().toUpperCase();
-  return R.filter(r =>
-    (!S.rep || r.rep===S.rep) &&
-    (!S.uf  || ufOf(r)===S.uf) &&
-    (!q     || r.cli.includes(q))
-  );
-}
+  return R.filter(r => (!S.rep||r.rep===S.rep) && (!S.uf||ufOf(r)===S.uf) && (!q||r.cli.includes(q)));
+};
 
-/* ---------- tooltip ---------- */
 const tip = document.getElementById('tip');
 function showTip(e, html){
   tip.innerHTML = html; tip.style.opacity = 1;
@@ -461,94 +543,128 @@ function showTip(e, html){
   tip.style.left = x+'px'; tip.style.top = y+'px';
 }
 const hideTip = () => tip.style.opacity = 0;
+const el = id => document.getElementById(id);
+const set  = (id,v) => { const n = el(id); if (n) n.textContent = v; };
+const setH = (id,v) => { const n = el(id); if (n) n.innerHTML = v; };
 
-/* ---------- render ---------- */
+function applyLang(){
+  const L = t();
+  document.documentElement.lang = S.lang==='en' ? 'en' : 'pt-BR';
+  document.title = S.lang==='en' ? 'Wendell Brazil Sales' : 'Vendas Wendell Brasil';
+  set('hTitle',L.htitle); set('hSub',L.hsub); set('themeBtn',L.theme);
+  set('gTitle',L.htitle); set('gSub',L.gsub); set('gBtn',L.gbtn);
+  const gp = el('gPass');
+  if (gp){ gp.placeholder = L.gpass; gp.setAttribute('aria-label',L.gpass); }
+  set('lFilters',L.filters); set('lRep',L.rep); set('lState',L.state);
+  set('lGeo',L.geo); set('lGeoWh',L.geoWh); set('lGeoUf',L.geoUf);
+  set('lCur',L.cur); set('lSearch',L.search);
+  el('fQ').placeholder = L.searchPh;
+  set('lK1',L.k1); set('lK2',L.k2); set('lK3',L.k3); set('lK4',L.k4); set('lK5',L.k5);
+  set('lChart1',L.chart1); set('lChart2',L.chart2); set('lChart3',L.chart3);
+  set('lLegInv',L.legInv); set('lLegBack',L.legBack);
+  set('lLegMg',L.legMg); set('lLegPart',L.legPart);
+  set('lTable',L.table); set('lNew',L.newTitle);
+  setH('foot',L.foot);
+  set('period', DATA.ano+' · '+mn(M[0])+'–'+mn(M[M.length-1]));
+  setH('fRep', '<option value="">'+L.all+'</option>'
+    + DATA.reps.map(r=>'<option'+(r===S.rep?' selected':'')+'>'+r+'</option>').join(''));
+}
+
 function render(){
-  const rows = filtered();
-  const inv  = rows.filter(r=>r.st==='I');
-  const tbi  = rows.filter(r=>r.st==='T');
+  const L = t(), rows = filtered();
+  const inv = rows.filter(r=>r.st==='I'), tbi = rows.filter(r=>r.st==='T');
 
-  /* por mês */
-  const byM = {}; M.forEach(m=>byM[m]=0);
-  inv.forEach(r=>byM[r.mes]+=r.brl);
+  const byM = {}; M.forEach(m=>byM[m]={v:0, cw:0, mw:0, mb:0});
+  inv.forEach(r=>{
+    const a = byM[r.mes];
+    a.v += r.brl; a.cw += r.brl*r.com;
+    if (r.mg !== null){ a.mw += r.brl*r.mg; a.mb += r.brl; }
+  });
   const totalInv = inv.reduce((a,r)=>a+r.brl,0);
   const totalTbi = tbi.reduce((a,r)=>a+r.brl,0);
-  const active = M.filter(m=>byM[m]>0);
+  const active = M.filter(m=>byM[m].v>0);
   const avg = active.length ? totalInv/active.length : 0;
-
-  /* KPI 1 — total */
   const iCur = M.indexOf(CUR), prev = M[iCur-1];
-  const dPct = prev && byM[prev] ? (byM[CUR]-byM[prev])/byM[prev]*100 : null;
-  document.getElementById('kTot').innerHTML = '<small>'+sym()+'</small>'+compact(totalInv);
-  document.getElementById('kTotMeta').innerHTML =
-    (dPct===null ? '' : '<span class="delta '+(dPct>=0?'up':'down')+'">'+(dPct>=0?'▲':'▼')+' '+nf1.format(Math.abs(dPct))+'%</span> ') +
-    CUR+' vs '+prev+' · '+money(byM[CUR]);
-  spark('kSpark', M.map(m=>byM[m]), M.indexOf(CUR));
 
-  /* KPI 2 + gráfico — por estado */
+  /* 1 — faturamento total */
+  const dPct = prev && byM[prev].v ? (byM[CUR].v-byM[prev].v)/byM[prev].v*100 : null;
+  setH('kTot','<small>'+sym()+'</small>'+compact(totalInv));
+  setH('kTotMeta',
+    (dPct===null?'':'<span class="delta '+(dPct>=0?'up':'down')+'">'+(dPct>=0?'▲':'▼')+' '+pct(Math.abs(dPct))+'</span> ')
+    + L.vs(mn(CUR), mn(prev), money(byM[CUR].v)));
+  spark('kSpark', M.map(m=>byM[m].v), iCur);
+
+  /* 2 — por estado */
   const byU = {};
   inv.forEach(r=>{ const u=ufOf(r); byU[u]=(byU[u]||0)+r.brl; });
   const uList = Object.entries(byU).sort((a,b)=>b[1]-a[1]);
   const top = uList[0];
-  document.getElementById('kUf').textContent = top ? top[0] : '—';
-  document.getElementById('kUfMeta').innerHTML = top
-    ? money(top[1])+' · '+nf1.format(top[1]/totalInv*100)+'% do total · '+uList.length+' '+(uList.length>1?'estados':'estado')
-    : 'sem dados';
+  set('kUf', top ? top[0] : '—');
+  set('kUfMeta', top ? L.share(money(top[1]), nf1(top[1]/totalInv*100), uList.length) : '—');
   spark('kUfSpark', uList.map(u=>u[1]), 0);
-  document.getElementById('geoLab').textContent = S.geo==='uf' ? 'UF do cliente' : 'Armazém de origem';
+  set('geoLab', S.geo==='uf' ? L.geoLabUf : L.geoLabWh);
   const maxU = top ? top[1] : 1;
-  document.getElementById('ufbars').innerHTML = uList.map(([u,v])=>`
-    <div class="hb" data-uf="${u}" data-v="${v}">
-      <span class="uf">${u}</span>
-      <span class="track"><span class="fill" style="width:${Math.max(2,v/maxU*100)}%"></span></span>
-      <span class="amt">${money(v)}</span>
-    </div>`).join('') || '<p class="hint">Sem dados para os filtros atuais.</p>';
-  document.getElementById('ufHint').innerHTML = S.geo==='uf'
-    ? (hasUf() ? 'UF informada no mapa <code>UF_CLIENTE</code> no topo do script. Clientes sem UF aparecem como “—”.'
-               : '⚠ O mapa <code>UF_CLIENTE</code> ainda está vazio — preencha a sigla de cada cliente no topo do script para usar esta visão.')
-    : 'A planilha não traz a UF do cliente; esta visão usa o armazém de origem (coluna WH). Para faturamento por UF real, preencha <code>UF_CLIENTE</code> no script.';
+  setH('ufbars', uList.map(([u,v])=>
+    '<div class="hb" data-uf="'+u+'" data-v="'+v+'"><span class="uf">'+u+'</span>'
+    +'<span class="track"><span class="fill" style="width:'+Math.max(2,v/maxU*100)+'%"></span></span>'
+    +'<span class="amt">'+money(v)+'</span></div>').join('')
+    || '<p class="hint">'+L.noData+'</p>');
+  setH('ufHint', S.geo==='uf' ? (hasUf()?L.hintUfOk:L.hintUfEmpty) : L.hintWh);
 
-  /* KPI 3 — média */
-  document.getElementById('kAvg').innerHTML = '<small>'+sym()+'</small>'+compact(avg);
-  document.getElementById('kAvgMeta').textContent =
-    'média/mês em '+active.length+' meses · projeção 12m '+money(avg*12);
-  spark('kAvgSpark', M.map(m=>byM[m]), -1, avg);
+  /* 3 — média */
+  setH('kAvg','<small>'+sym()+'</small>'+compact(avg));
+  set('kAvgMeta', L.avgMeta(active.length, money(avg*12)));
+  spark('kAvgSpark', M.map(m=>byM[m].v), -1);
 
-  /* KPI 4 — clientes novos */
+  /* 4 — clientes novos */
   const clis = [...new Set(inv.map(r=>r.cli))];
   const newByM = {}; M.forEach(m=>newByM[m]=0);
   const novosMes = [];
   clis.forEach(c=>{
     const i = FIRST[c]; if (i===undefined) return;
-    newByM[M[i]]++;
-    if (M[i]===CUR) novosMes.push(c);
+    newByM[M[i]]++; if (M[i]===CUR) novosMes.push(c);
   });
-  document.getElementById('kNew').textContent = novosMes.length;
-  document.getElementById('kNewMeta').textContent = 'em '+CUR+' · '+clis.length+' clientes ativos no ano';
-  spark('kNewSpark', M.map(m=>newByM[m]), M.indexOf(CUR));
+  set('kNew', novosMes.length);
+  set('kNewMeta', L.newMeta(mn(CUR), clis.length));
+  spark('kNewSpark', M.map(m=>newByM[m]), iCur);
 
-  /* gráfico mensal */
-  const maxBar = Math.max(...M.map(m=>byM[m]), totalTbi ? byM[CUR]+totalTbi : 0, 1);
-  document.getElementById('glines').innerHTML = [0,25,50,75].map(p=>`<div style="top:${p}%"></div>`).join('');
-  const chart = document.getElementById('chart');
-  chart.querySelectorAll('.mcol').forEach(n=>n.remove());
-  M.forEach(m=>{
-    const v = byM[m], t = m===CUR ? totalTbi : 0;
-    const el = document.createElement('div');
-    el.className = 'mcol'+(m===CUR?' cur':'');
-    el.innerHTML = `
-      <div class="stack">
-        <span class="mval">${v?compact(v):''}</span>
-        ${t?`<div class="bar b2" style="height:${t/maxBar*100}%"></div>`:''}
-        <div class="bar" style="height:${v/maxBar*100}%"></div>
-      </div>
-      <span class="mlab">${m}</span>`;
-    el.addEventListener('mousemove', e=>showTip(e,
-      `<span class="k">${m}/${DATA.ano}</span><b>${money(v)}</b> faturado` +
-      (t?`<br><b style="color:var(--s2)">${money(t)}</b> em carteira`:'')));
-    el.addEventListener('mouseleave', hideTip);
-    chart.appendChild(el);
+  /* 5 — comissão média ponderada pelo valor de venda */
+  const comW = inv.reduce((a,r)=>a+r.brl*r.com, 0);
+  const nPed = new Set(inv.filter(r=>r.com>0).map(r=>r.mes+'|'+r.ped+'|'+r.cli)).size;
+  set('kCom', totalInv ? pct(comW/totalInv*100) : '—');
+  set('kComMeta', L.comMeta(money(comW), nPed));
+  spark('kComSpark', M.map(m=>byM[m].v ? byM[m].cw/byM[m].v*100 : 0), iCur);
+
+  /* gráfico 1 — faturamento */
+  const maxBar = Math.max(...M.map(m=>byM[m].v), byM[CUR].v+totalTbi, 1);
+  setH('glines',[0,25,50,75].map(p=>'<div style="top:'+p+'%"></div>').join(''));
+  drawBars('chart', M.map(m=>{
+    const v = byM[m].v, tb = (m===CUR ? totalTbi : 0);
+    return {m, label: v?compact(v):'',
+      segs: (tb?[{cls:'bar b2', h:tb/maxBar*100}]:[]).concat([{cls:'bar', h:v/maxBar*100}]),
+      tip:'<span class="k">'+mn(m)+'/'+DATA.ano+'</span><b>'+money(v)+'</b> '+L.tipInv
+        + (tb?'<br><b style="color:var(--s2)">'+money(tb)+'</b> '+L.tipBack:'')};
+  }));
+
+  /* gráfico 2 — margem ponderada */
+  const mg = M.map(m=>{
+    const a = byM[m];
+    return {m, p: a.mb ? a.mw/a.mb*100 : null, cov: a.v ? a.mb/a.v*100 : 0};
   });
+  const maxMg = Math.max.apply(null, mg.map(x=>Math.abs(x.p||0)).concat([1]));
+  setH('glinesM',[0,33,66].map(p=>'<div style="top:'+p+'%"></div>').join(''));
+  drawBars('chartM', mg.map(x=>({
+    m: x.m,
+    label: x.p===null ? '–' : pct(x.p),
+    labelCls: x.p===null ? 'na' : '',
+    segs: x.p===null ? [{cls:'bar b3', h:0}]
+        : [{cls:'bar b3'+(x.p<0?' negv':'')+(x.cov<60?' part':''), h:Math.abs(x.p)/maxMg*100}],
+    tip: '<span class="k">'+mn(x.m)+'/'+DATA.ano+'</span>'
+       + (x.p===null ? L.tipNoMg
+         : '<b>'+pct(x.p)+'</b> '+L.tipMg+'<br>'+L.tipCov+': '+nf0(x.cov)+'% '+L.tipInv)
+  })));
+  const covTot = totalInv ? M.reduce((a,m)=>a+byM[m].mb,0)/totalInv*100 : 0;
+  setH('mgHint', L.mgHint(nf0(covTot)));
 
   /* tabela */
   const byCli = {};
@@ -557,63 +673,68 @@ function render(){
     if (r.st==='T') o.cart += r.brl;
     else { o.m[r.mes] = (o.m[r.mes]||0)+r.brl; o.tot += r.brl; }
   });
-  let list = Object.values(byCli);
-  list.sort((a,b)=>{
-    let x,y;
-    if (S.sort==='cli'){ x=a.cli; y=b.cli; return x<y ? -S.dir : x>y ? S.dir : 0; }
-    x = S.sort==='tot'?a.tot : S.sort==='cart'?a.cart : (a.m[S.sort]||0);
-    y = S.sort==='tot'?b.tot : S.sort==='cart'?b.cart : (b.m[S.sort]||0);
-    return (x-y)*S.dir;
+  const list = Object.values(byCli).sort((a,b)=>{
+    if (S.sort==='cli') return a.cli<b.cli ? -S.dir : a.cli>b.cli ? S.dir : 0;
+    const g = o => S.sort==='tot'?o.tot : S.sort==='cart'?o.cart : (o.m[S.sort]||0);
+    return (g(a)-g(b))*S.dir;
   });
-
   const th = (id,lab,cls) =>
-    `<th data-sort="${id}" class="${cls||''}" tabindex="0" aria-sort="${S.sort===id?(S.dir===1?'asc':'desc'):'none'}">${lab}</th>`;
-  document.getElementById('thr').innerHTML =
-    th('cli','Cliente') + th('cart','Carteira','cart') +
-    COLS.map(m=>th(m, m + (m===CUR?' ●':''), m===CUR?'cur':'')).join('') +
-    th('tot','Total ano','tot');
+    '<th data-sort="'+id+'" class="'+(cls||'')+'" tabindex="0" aria-sort="'
+    + (S.sort===id?(S.dir===1?'asc':'desc'):'none')+'">'+lab+'</th>';
+  setH('thr', th('cli',L.tCli) + th('cart',L.tCart,'cart')
+    + COLS.map(m=>th(m, mn(m)+(m===CUR?' ●':''), m===CUR?'cur':'')).join('')
+    + th('tot',L.tTot,'tot'));
+  setH('tb', list.length ? list.map(o=>{
+    const nv = FIRST[o.cli]===iCur;
+    return '<tr><td class="cli'+(nv?' novo':'')+'" title="'+o.cli+'">'+o.cli
+      + (nv?'<span class="tag">'+L.newTag+'</span>':'')+'</td>'
+      + '<td class="cart'+(o.cart?'':' zero')+'">'+(o.cart?nf0(conv(o.cart)):'–')+'</td>'
+      + COLS.map(m=>{const v=o.m[m]||0;
+          return '<td class="'+(m===CUR?'cur':'')+(v?'':' zero')+'">'+(v?nf0(conv(v)):'–')+'</td>';}).join('')
+      + '<td class="tot">'+nf0(conv(o.tot))+'</td></tr>';
+  }).join('') : '<tr><td colspan="'+(COLS.length+3)+'" class="empty">'+L.noRows+'</td></tr>');
+  setH('tf', '<td>'+L.tTotal+' · '+sym()+'</td>'
+    + '<td style="color:var(--s2)">'+(totalTbi?nf0(conv(totalTbi)):'–')+'</td>'
+    + COLS.map(m=>'<td>'+(byM[m].v?nf0(conv(byM[m].v)):'–')+'</td>').join('')
+    + '<td>'+nf0(conv(totalInv))+'</td>');
 
-  document.getElementById('tb').innerHTML = list.length ? list.map(o=>`
-    <tr>
-      <td class="cli${FIRST[o.cli]===M.indexOf(CUR)?' novo':''}" title="${o.cli}${FIRST[o.cli]===M.indexOf(CUR)?' — cliente novo em '+CUR:''}">${o.cli}${FIRST[o.cli]===M.indexOf(CUR)?'<span class="tag">novo</span>':''}</td>
-      <td class="cart${o.cart?'':' zero'}">${o.cart?nf0.format(conv(o.cart)):'–'}</td>
-      ${COLS.map(m=>{const v=o.m[m]||0;
-        return `<td class="${m===CUR?'cur':''}${v?'':' zero'}">${v?nf0.format(conv(v)):'–'}</td>`;}).join('')}
-      <td class="tot">${nf0.format(conv(o.tot))}</td>
-    </tr>`).join('')
-    : `<tr><td colspan="${COLS.length+3}" class="empty">Nenhum cliente para os filtros selecionados.</td></tr>`;
+  set('tcount', L.tcount(list.length, sym()));
+  set('fcount', L.lines(inv.length, tbi.length));
 
-  document.getElementById('tf').innerHTML =
-    `<td>Total · ${sym()}</td><td style="color:var(--s2)">${totalTbi?nf0.format(conv(totalTbi)):'–'}</td>` +
-    COLS.map(m=>`<td>${byM[m]?nf0.format(conv(byM[m])):'–'}</td>`).join('') +
-    `<td>${nf0.format(conv(totalInv))}</td>`;
-
-  document.getElementById('tcount').textContent =
-    list.length+' clientes · valores em '+sym()+' · ● mês atual';
-  document.getElementById('fcount').textContent =
-    inv.length+' linhas faturadas · '+tbi.length+' em carteira';
-
-  /* clientes novos — lista */
   const novosPorMes = M.map(m=>[m, clis.filter(c=>M[FIRST[c]]===m)]).filter(x=>x[1].length).reverse();
-  document.getElementById('newSub').textContent = clis.length+' clientes no ano';
-  document.getElementById('newList').innerHTML = novosPorMes.map(([m,cs])=>
-    `<span><b>${m}</b> · ${cs.length}: ${cs.map(c=>c.split(' ').slice(0,2).join(' ')).join(', ')}</span>`).join('')
-    || '<span>Sem clientes novos no período filtrado.</span>';
+  set('newSub', L.newSub(clis.length));
+  setH('newList', novosPorMes.map(x=>
+    '<span><b>'+mn(x[0])+'</b> · '+x[1].length+': '
+    + x[1].map(c=>c.split(' ').slice(0,2).join(' ')).join(', ')+'</span>').join('')
+    || '<span>'+L.noNew+'</span>');
 
-  /* filtro de UF — repopula conforme base geográfica */
-  const fu = document.getElementById('fUf'), keep = S.uf;
+  const keep = S.uf;
   const opts = [...new Set(R.filter(r=>r.st==='I').map(ufOf))].sort();
-  fu.innerHTML = '<option value="">Todos</option>'+opts.map(u=>`<option${u===keep?' selected':''}>${u}</option>`).join('');
+  setH('fUf', '<option value="">'+L.all+'</option>'
+    + opts.map(u=>'<option'+(u===keep?' selected':'')+'>'+u+'</option>').join(''));
 }
 
-function spark(id, vals, hi, ref){
-  const max = Math.max(...vals, ref||0, 1);
-  document.getElementById(id).innerHTML = vals.map((v,i)=>
-    `<i class="${i===hi?'on':''}" style="height:${Math.max(6,v/max*100)}%"></i>`).join('');
+function drawBars(id, cols){
+  const host = document.getElementById(id);
+  host.querySelectorAll('.mcol').forEach(n=>n.remove());
+  cols.forEach(c=>{
+    const el = document.createElement('div');
+    el.className = 'mcol'+(c.m===CUR?' cur':'');
+    el.innerHTML = '<div class="stack"><span class="mval '+(c.labelCls||'')+'">'+c.label+'</span>'
+      + c.segs.map(s=>'<div class="'+s.cls+'" style="height:'+s.h+'%"></div>').join('')
+      + '</div><span class="mlab">'+mn(c.m)+'</span>';
+    el.addEventListener('mousemove', e=>showTip(e, c.tip));
+    el.addEventListener('mouseleave', hideTip);
+    host.appendChild(el);
+  });
 }
 
-/* ---------- eventos ---------- */
-document.getElementById('fRep').innerHTML = '<option value="">Todos</option>'+DATA.reps.map(r=>`<option>${r}</option>`).join('');
+function spark(id, vals, hi){
+  const max = Math.max.apply(null, vals.map(Math.abs).concat([1]));
+  setH(id, vals.map((v,i)=>
+    '<i class="'+(i===hi?'on':'')+'" style="height:'+Math.max(6,Math.abs(v)/max*100)+'%"></i>').join(''));
+}
+
 document.getElementById('fRep').onchange = e => { S.rep = e.target.value; render(); };
 document.getElementById('fUf').onchange  = e => { S.uf  = e.target.value; render(); };
 document.getElementById('fQ').oninput    = e => { S.q   = e.target.value; render(); };
@@ -622,13 +743,17 @@ function pillGroup(id, key, after){
   const g = document.getElementById(id);
   const sync = () => g.querySelectorAll('button').forEach(b=>b.setAttribute('aria-pressed', S[key]===b.dataset.v));
   g.addEventListener('click', e=>{
-    const b = e.target.closest('button'); if(!b) return;
-    S[key] = b.dataset.v; if (after) after(); sync(); render();
+    const b = e.target.closest('button'); if(!b || S[key]===b.dataset.v) return;
+    S[key] = b.dataset.v; if (after) after(); sync();
+    if (key==='lang') applyLang();
+    render();
   });
-  sync();
+  sync(); return sync;
 }
 pillGroup('fGeo','geo', ()=>{ S.uf=''; });
-pillGroup('fCur','cur');
+const syncCur = pillGroup('fCur','cur');
+/* EN traduz o texto e converte a moeda para USD; PT volta para BRL */
+pillGroup('fLang','lang', ()=>{ S.cur = S.lang==='en' ? 'USD' : 'BRL'; syncCur(); });
 
 document.getElementById('thr').addEventListener('click', e=>{
   const th = e.target.closest('th[data-sort]'); if(!th) return;
@@ -639,20 +764,36 @@ document.getElementById('thr').addEventListener('click', e=>{
 document.getElementById('thr').addEventListener('keydown', e=>{
   if (e.key==='Enter'||e.key===' '){ e.preventDefault(); e.target.click(); }
 });
-document.getElementById('ufbars').addEventListener('mousemove', e=>{
+const ufb = document.getElementById('ufbars');
+ufb.addEventListener('mousemove', e=>{
   const hb = e.target.closest('.hb'); if(!hb) return;
-  showTip(e, `<span class="k">${hb.dataset.uf}</span><b>${money(+hb.dataset.v)}</b>`);
+  showTip(e, '<span class="k">'+hb.dataset.uf+'</span><b>'+money(+hb.dataset.v)+'</b>');
 });
-document.getElementById('ufbars').addEventListener('mouseleave', hideTip);
+ufb.addEventListener('mouseleave', hideTip);
 
 document.getElementById('themeBtn').onclick = () => {
   const cur = document.documentElement.getAttribute('data-theme');
   const dark = cur ? cur==='dark' : matchMedia('(prefers-color-scheme:dark)').matches;
   document.documentElement.setAttribute('data-theme', dark ? 'light' : 'dark');
 };
-document.getElementById('period').textContent = DATA.ano+' · '+M[0]+'–'+M[M.length-1];
 
-render();
+/* ---------- acesso ---------- */
+function hash(s){ let x=5381; for (const c of s) x=((x*33)^c.charCodeAt(0))>>>0; return x; }
+const KEY = 2519394238;
+document.getElementById('gateForm').addEventListener('submit', e=>{
+  e.preventDefault();
+  const f = document.getElementById('gPass');
+  if (hash(f.value.trim()) === KEY){
+    document.getElementById('gate').remove();
+    document.getElementById('app').hidden = false;
+    render();
+  } else { set('gErr', t().gerr); f.select(); }
+});
+document.getElementById('fLang').addEventListener('click', e=>{
+  if (e.target.closest('button')) set('gErr','');
+});
+applyLang();
+document.getElementById('gPass').focus();
 </script>
 
 </body>
