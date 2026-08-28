@@ -185,7 +185,10 @@ input[type="search"]{
 
 /* ---------- charts ---------- */
 .two{display:grid;grid-template-columns:1.45fr 1fr;gap:12px;align-items:start}
-.stackcol{display:flex;flex-direction:column;gap:12px}
+.stackcol,.sidecol{display:flex;flex-direction:column;gap:12px}
+.hdright{margin-left:auto;display:flex;align-items:center;gap:8px}
+.pills.mini{padding:2px}
+.pills.mini button{font-size:11px;padding:4px 9px}
 .legend{display:flex;gap:14px;align-items:center;font-size:11px;color:var(--ink-2);
   margin-left:auto;flex-wrap:wrap;justify-content:flex-end}
 .legend span{display:inline-flex;align-items:center;gap:5px}
@@ -226,6 +229,24 @@ input[type="search"]{
   white-space:nowrap;text-align:right;min-width:46px;font-variant-numeric:tabular-nums}
 .hb.semuf .uf,.hb.semuf .amt,.hb.semuf .pc{color:var(--ink-3);font-weight:500}
 .hb.semuf .fill{background:var(--ink-3);opacity:.55}
+/* dentro x fora do estado */
+.split{display:flex;height:24px;border-radius:6px;overflow:hidden;background:var(--sunk);margin-bottom:11px}
+.split span{display:flex;align-items:center;justify-content:center;min-width:0;white-space:nowrap;
+  font-family:"Archivo Narrow",Archivo,sans-serif;font-size:10.5px;font-weight:700;color:#fff}
+.split .in{background:var(--s4)}
+.split .out{background:var(--s3)}
+.split .nou{background:var(--ink-3)}
+.hbars.whb .hb{grid-template-columns:86px 1fr auto auto;font-size:11.5px}
+.hbars.whb .hb .uf{letter-spacing:.02em;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.hb .fill.in{background:var(--s4)}
+.hb .fill.out{background:var(--s3)}
+.hb .fill.nou{background:var(--ink-3);opacity:.55}
+.dests{display:flex;flex-wrap:wrap;align-items:center;gap:6px;margin-top:10px}
+.dests .dlab{font-size:10px;font-weight:700;letter-spacing:.07em;text-transform:uppercase;
+  color:var(--ink-3);margin-right:2px}
+.dests b{font-family:"Archivo Narrow",Archivo,sans-serif;font-size:10.5px;font-weight:600;
+  background:var(--chip);border:1px solid var(--line);border-radius:5px;padding:3px 7px;color:var(--ink-2)}
+.dests b i{font-style:normal;font-weight:700;color:var(--ink);margin-left:5px}
 .hint{font-size:11px;color:var(--ink-3);margin-top:9px;line-height:1.45}
 .tabhint{margin:0;padding:8px 14px 11px}
 .tabhint:empty{display:none}
@@ -410,12 +431,20 @@ footer{font-size:10.5px;color:var(--ink-3);text-align:center;padding:2px 0 0;lin
   .hdr-right,.no-print,#toast,#tip,.hint,.tabs,#newCard{display:none!important}
   .pfilters{display:block;font-size:9px;color:#444;padding:5px 14px 0}
   main{padding:4px 7px 0;gap:5px;max-width:none}
-  .two{grid-template-columns:1fr 1fr 1fr;gap:6px}
-  .stackcol{display:contents}
+  .two{grid-template-columns:1.25fr 1fr 1fr .95fr;gap:6px}
+  .stackcol,.sidecol{display:contents}
   .legend{font-size:8px;gap:7px}
   .mval{font-size:8px;min-height:11px}
   .mlab{font-size:8px;padding-top:3px}
   .hb{font-size:9px;gap:6px;grid-template-columns:28px 1fr auto auto}
+  .hbars.whb .hb{grid-template-columns:66px 1fr auto auto;font-size:8.5px;gap:5px}
+  .sidecol{gap:6px}
+  .split{height:14px;margin-bottom:6px}
+  .split span{font-size:7.5px}
+  .dests{display:none}
+  .pills.mini{background:none;border:0;padding:0}
+  .pills.mini button[aria-pressed="false"]{display:none}
+  .pills.mini button[aria-pressed="true"]{background:none;color:var(--wine);font-size:9.5px;padding:0}
   .hb .pc{min-width:36px}
   .hb .track{height:11px}
   thead th{font-size:8px;padding:4px 5px}
@@ -604,9 +633,23 @@ footer{font-size:10.5px;color:var(--ink-3);text-align:center;padding:2px 0 0;lin
         </div>
       </div>
     </div>
-    <div class="card">
-      <div class="card-hd"><h2 id="lChart3"></h2><span class="sub" id="geoLab"></span></div>
-      <div class="card-bd"><div class="hbars" id="ufbars"></div><p class="hint" id="ufHint"></p></div>
+    <div class="sidecol">
+      <div class="card">
+        <div class="card-hd"><h2 id="lChart3"></h2><span class="sub" id="geoLab"></span></div>
+        <div class="card-bd"><div class="hbars" id="ufbars"></div><p class="hint" id="ufHint"></p></div>
+      </div>
+      <div class="card" id="cardWh">
+        <div class="card-hd"><h2 id="lChart4"></h2>
+          <span class="hdright"><span class="sub" id="lWhCrit"></span>
+            <div class="pills mini" id="fWh"></div></span>
+        </div>
+        <div class="card-bd">
+          <div class="split" id="whsplit"></div>
+          <div class="hbars whb" id="whbars"></div>
+          <div class="dests" id="whdest"></div>
+          <p class="hint" id="whHint"></p>
+        </div>
+      </div>
     </div>
   </section>
 
@@ -731,6 +774,7 @@ const normUf = v => {
   return (!x || x === '#N/A' || x === '#N/D' || x === 'N/A' || x === '-' || x === '0') ? null : x;
 };
 let DATA = DATA0, M, MS, CUR, FX, COLS, R, ANOS, FIRST, LAST, FIRSTD, TEM_UF = false, SEM_UF = 0;
+let WHS = [];
 function boot(d){
   DATA = d;
   M = DATA.meses; FX = DATA.fx;
@@ -740,6 +784,9 @@ function boot(d){
                            uf:normUf(r[12]),
                            ano:(r[8]?String(r[8]).slice(0,4):String(DATA.ano))}));
   TEM_UF = R.some(r=>r.uf);
+  const whv = {};
+  R.filter(r=>r.st==='I' && r.wh).forEach(r=>{ whv[r.wh] = (whv[r.wh]||0) + r.brl; });
+  WHS = Object.keys(whv).sort((a,b)=> whv[b]-whv[a] || (a<b?-1:1));
   SEM_UF = R.filter(r=>r.st==='I' && !r.uf && !UF_CLIENTE[r.cli]).length;
   /* a planilha repete o frete do pedido em cada linha de item: consolida por
      pedido e lanca o valor uma unica vez, na primeira linha do pedido */
@@ -848,6 +895,11 @@ const T = {
   noRows:'Nada para exibir com os filtros selecionados.',
   noNew:'Sem clientes novos no período filtrado.',
   geoLabWh:'Armazém de origem', geoLabUf:'UF do cliente',
+  chart4:'Dentro × fora do estado', whCrit:'Armazém',
+  whIn:u=>'Dentro de '+u, whOut:u=>'Fora de '+u, whNoUf:'Sem UF',
+  whDest:'Destinos fora do estado',
+  whHint:u=>'Faturamento saído do armazém <b>'+u+'</b>, separado entre clientes do próprio estado (<code>WH = Customer UF</code>) e clientes de outros estados (<code>WH ≠ Customer UF</code>). Respeita todos os filtros ativos.',
+  whNone:u=>'Sem faturamento do armazém '+u+' nos filtros atuais.',
   hintWh:'Esta visão usa o armazém de origem (coluna WH), não o estado do cliente. Para o estado real, mude a base geográfica para “UF do cliente”.',
   hintUfOk:'UF do cliente, coluna <code>Customer UF</code> da planilha.',
   hintUfFalta:n=>' <b>'+n+' linha'+(n>1?'s':'')+'</b> sem UF na planilha (#N/A ou em branco) aparecem como “—”. Corrija na origem ou preencha <code>UF_CLIENTE</code> no topo do script.',
@@ -944,6 +996,11 @@ const T = {
   noRows:'Nothing to show with the selected filters.',
   noNew:'No new customers in the filtered period.',
   geoLabWh:'Origin warehouse', geoLabUf:'Customer state',
+  chart4:'In-state × out-of-state', whCrit:'Warehouse',
+  whIn:u=>'Within '+u, whOut:u=>'Outside '+u, whNoUf:'No state',
+  whDest:'Out-of-state destinations',
+  whHint:u=>'Revenue shipped from warehouse <b>'+u+'</b>, split between customers in the same state (<code>WH = Customer UF</code>) and customers in other states (<code>WH ≠ Customer UF</code>). Follows every active filter.',
+  whNone:u=>'No revenue from warehouse '+u+' under the current filters.',
   hintWh:'This view uses the origin warehouse (WH column), not the customer state. For the real state, switch the geographic basis to “Customer state”.',
   hintUfOk:'Customer state, from the <code>Customer UF</code> column of the workbook.',
   hintUfFalta:n=>' <b>'+n+' row'+(n>1?'s':'')+'</b> with no state in the workbook (#N/A or blank) show as “—”. Fix it at the source or fill in <code>UF_CLIENTE</code> at the top of the script.',
@@ -968,7 +1025,8 @@ const T = {
 };
 
 const S = {reps:new Set(), ufs:new Set(), anos:new Set(), meses:new Set(),
-           geo: TEM_UF ? 'uf' : 'wh', cur:'BRL', q:'', sort:'tot', dir:-1, lang:'pt', tab:'all'};
+           geo: TEM_UF ? 'uf' : 'wh', wh: WHS[0] || null,
+           cur:'BRL', q:'', sort:'tot', dir:-1, lang:'pt', tab:'all'};
 /* recalcula o periodo visivel: meses selecionados (ou todos), o "mes atual"
    passa a ser o ultimo mes da selecao */
 function syncPeriod(){
@@ -1123,6 +1181,7 @@ function applyLang(){
       n.innerHTML = triLab(TRIS[i]) + ' <small>' + L2.triMeses[TRIS[i]] + ' · ' + el('aAno').value + '</small>');
   }
   set('lChart1',L.chart1); set('lChart2',L.chart2); set('lChart3',L.chart3);
+  set('lChart4',L.chart4); set('lWhCrit',L.whCrit);
   set('lLegInv',L.legInv); set('lLegBack',L.legBack);
   set('lLegTgt',L.legTgt);
   set('lLegMg',L.legMg); set('lLegPart',L.legPart);
@@ -1181,6 +1240,9 @@ function render(){
   }).join('') || '<p class="hint">'+L.noData+'</p>');
   setH('ufHint', S.geo!=='uf' ? L.hintWh
     : (TEM_UF ? L.hintUfOk + (SEM_UF ? L.hintUfFalta(SEM_UF) : '') : L.hintUfEmpty));
+
+  /* 2b · dentro x fora do estado (WH x Customer UF) */
+  renderWh(inv);
 
   /* 3 · média */
   setH('kAvg','<small>'+sym()+'</small>'+compact(avg));
@@ -1619,6 +1681,55 @@ function spark(id, vals, hi){
     '<i class="'+(i===hi?'on':'')+'" style="height:'+Math.max(6,Math.abs(v)/max*100)+'%"></i>').join(''));
 }
 
+/* dentro x fora do estado: compara o armazem de origem (WH) com a UF do cliente */
+function syncWhPills(){
+  const g = el('fWh'); if (!g) return;
+  const k = WHS.join('|');
+  if (g.dataset.k !== k){
+    g.dataset.k = k;
+    setH('fWh', WHS.map(w=>'<button type="button" data-v="'+esc(w)+'">'+esc(w)+'</button>').join(''));
+  }
+  g.querySelectorAll('button').forEach(b=>b.setAttribute('aria-pressed', S.wh===b.dataset.v));
+}
+function renderWh(inv){
+  const L = t(), box = el('cardWh'); if (!box) return;
+  if (!WHS.length){ box.hidden = true; return; }
+  box.hidden = false;
+  if (!WHS.includes(S.wh)) S.wh = WHS[0];
+  syncWhPills();
+  const w = S.wh;
+  let dentro = 0, fora = 0, semuf = 0; const dest = {};
+  inv.filter(r=>r.wh===w).forEach(r=>{
+    const u = r.uf || UF_CLIENTE[r.cli] || null;
+    if (!u) semuf += r.brl;
+    else if (u === w) dentro += r.brl;
+    else { fora += r.brl; dest[u] = (dest[u]||0) + r.brl; }
+  });
+  const tot = dentro + fora + semuf;
+  setH('whHint', L.whHint(w));
+  if (!tot){
+    setH('whsplit',''); setH('whdest','');
+    setH('whbars','<p class="hint">'+L.whNone(w)+'</p>');
+    return;
+  }
+  const p = v => v/tot*100;
+  const seg = (cls,v) => v<=0 ? ''
+    : '<span class="'+cls+'" style="width:'+p(v)+'%">'+(p(v)>=11 ? nf0(p(v))+'%' : '')+'</span>';
+  setH('whsplit', seg('in',dentro) + seg('out',fora) + seg('nou',semuf));
+  const linha = (cls,lab,v) =>
+    '<div class="hb'+(cls==='nou'?' semuf':'')+'" data-uf="'+esc(lab)+'" data-v="'+v+'" data-p="'+nf1(p(v))+'">'
+    +'<span class="uf">'+esc(lab)+'</span>'
+    +'<span class="track"><span class="fill '+cls+'" style="width:'+Math.max(2,p(v))+'%"></span></span>'
+    +'<span class="amt">'+money(v)+'</span>'
+    +'<span class="pc">'+pct(p(v))+'</span></div>';
+  setH('whbars', linha('in', L.whIn(w), dentro) + linha('out', L.whOut(w), fora)
+    + (semuf ? linha('nou', L.whNoUf, semuf) : ''));
+  const dl = Object.entries(dest).sort((a,b)=>b[1]-a[1]);
+  setH('whdest', dl.length
+    ? '<span class="dlab">'+esc(L.whDest)+'</span>' + dl.map(x=>'<b>'+esc(x[0])+'<i>'+money(x[1])+'</i></b>').join('')
+    : '');
+}
+
 /* ================= eventos ================= */
 el('fQ').oninput = e => { S.q = e.target.value; render(); };
 
@@ -1637,6 +1748,7 @@ const syncGeo = pillGroup('fGeo','geo', ()=>{ S.ufs.clear(); });
 /* chamado sempre que a base muda: se a planilha tem UF, usa UF */
 function afterBoot(){
   S.geo = TEM_UF ? 'uf' : 'wh';
+  if (!WHS.includes(S.wh)) S.wh = WHS[0] || null;
   S.ufs.clear(); syncGeo();
 }
 const syncCur = pillGroup('fCur','cur', ()=>{ const a = CUR_ANT; CUR_ANT = S.cur; admMoeda(a); });
@@ -1657,12 +1769,20 @@ el('thr').addEventListener('click', e=>{
 el('thr').addEventListener('keydown', e=>{
   if (e.key==='Enter'||e.key===' '){ e.preventDefault(); e.target.click(); }
 });
-const ufb = el('ufbars');
-ufb.addEventListener('mousemove', e=>{
+const hbTip = e => {
   const hb = e.target.closest('.hb'); if(!hb) return;
   showTip(e, '<span class="k">'+esc(hb.dataset.uf)+'</span><b>'+money(+hb.dataset.v)+'</b> · '+hb.dataset.p+'%');
-});
+};
+const ufb = el('ufbars');
+ufb.addEventListener('mousemove', hbTip);
 ufb.addEventListener('mouseleave', hideTip);
+const whb = el('whbars');
+whb.addEventListener('mousemove', hbTip);
+whb.addEventListener('mouseleave', hideTip);
+el('fWh').addEventListener('click', e=>{
+  const b = e.target.closest('button'); if(!b || S.wh===b.dataset.v) return;
+  S.wh = b.dataset.v; render();
+});
 el('themeBtn').onclick = () => {
   const c = document.documentElement.getAttribute('data-theme');
   const dark = c ? c==='dark' : matchMedia('(prefers-color-scheme:dark)').matches;
