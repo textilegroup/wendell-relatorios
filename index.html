@@ -157,7 +157,7 @@ input[type="search"]{
 .ms-list input{accent-color:var(--wine);margin:0}
 
 /* ---------- kpis ---------- */
-.kpis{display:grid;grid-template-columns:repeat(4,1fr);gap:11px}
+.kpis{display:grid;grid-template-columns:repeat(5,1fr);gap:10px}
 .kpi{background:var(--card);border:1px solid var(--line);border-radius:10px;box-shadow:var(--shadow);
   padding:10px 12px 11px;display:flex;flex-direction:column;gap:2px;min-width:0}
 .kpi .lab{font-size:9.5px;font-weight:700;letter-spacing:.08em;text-transform:uppercase;color:var(--ink-3)}
@@ -203,12 +203,52 @@ input[type="search"]{
 .mval.na{color:var(--ink-3);font-weight:400}
 
 .hbars{display:flex;flex-direction:column;gap:7px}
-.hb{display:grid;grid-template-columns:44px 1fr auto;align-items:center;gap:9px;font-size:12px}
+.hb{display:grid;grid-template-columns:40px 1fr auto auto;align-items:center;gap:9px;font-size:12px}
 .hb .uf{font-weight:700;letter-spacing:.04em;color:var(--ink)}
 .hb .track{display:block;background:var(--sunk);border-radius:4px;height:15px;overflow:hidden}
 .hb .fill{display:block;height:100%;background:var(--s1);border-radius:4px}
 .hb .amt{font-family:"Archivo Narrow",Archivo,sans-serif;font-weight:600;color:var(--ink-2);white-space:nowrap}
+.hb .pc{font-family:"Archivo Narrow",Archivo,sans-serif;font-weight:700;color:var(--ink);
+  white-space:nowrap;text-align:right;min-width:46px;font-variant-numeric:tabular-nums}
+.hb.semuf .uf,.hb.semuf .amt,.hb.semuf .pc{color:var(--ink-3);font-weight:500}
+.hb.semuf .fill{background:var(--ink-3);opacity:.55}
 .hint{font-size:11px;color:var(--ink-3);margin-top:9px;line-height:1.45}
+
+/* faixa de metas sob o grafico mensal */
+.metas{display:grid;grid-template-columns:repeat(4,1fr);gap:9px;margin-top:11px;
+  padding-top:10px;border-top:1px solid var(--line-2)}
+.metas:empty{display:none}
+.mt{display:flex;flex-direction:column;gap:3px;min-width:0}
+.mt .k{font-size:9.5px;font-weight:700;letter-spacing:.07em;text-transform:uppercase;color:var(--ink-3);
+  white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.mt .v{font-family:"Archivo Narrow",Archivo,sans-serif;font-size:12.5px;font-weight:700;color:var(--ink)}
+.mt .v small{font-weight:500;color:var(--ink-2);font-size:11px;margin-left:3px}
+.mt .tr{background:var(--sunk);border-radius:3px;height:5px;overflow:hidden}
+.mt .fi{display:block;height:100%;border-radius:3px;background:var(--s1)}
+.mt.ok .fi{background:var(--pos)} .mt.ok .v{color:var(--pos)}
+.mt.low .fi{background:var(--neg)} .mt.low .v{color:var(--neg)}
+
+/* linhas de referencia no grafico */
+/* z-index acima das colunas: sem isso a linha fica escondida atras das barras */
+.refline{position:absolute;left:0;right:0;z-index:3;pointer-events:none;
+  border-top:2px dashed var(--wine-soft);opacity:.85}
+.refline.eq{border-top:2px solid var(--neg);opacity:.6}
+.refline span{position:absolute;left:0;top:-13px;font-size:9px;font-weight:700;letter-spacing:.04em;
+  color:var(--wine);background:var(--card);padding:0 5px;border-radius:3px;text-transform:uppercase;
+  box-shadow:0 0 0 1px var(--line)}
+.refline.eq span{color:var(--neg)}
+
+/* area ADM */
+.admrow input[type="number"]{font:inherit;font-size:13px;color:var(--ink);background:var(--card);
+  border:1px solid var(--line);border-radius:8px;padding:6px 9px;width:134px;font-variant-numeric:tabular-nums}
+.admrow select{font:inherit;font-size:12.5px;color:var(--ink);background:var(--card);
+  border:1px solid var(--line);border-radius:8px;padding:6px 9px;min-width:100px}
+.admsave{font:inherit;font-size:12px;font-weight:700;letter-spacing:.05em;text-transform:uppercase;
+  padding:7px 16px;border:0;border-radius:8px;background:var(--wine);color:#fff;cursor:pointer}
+.admsave:hover{background:var(--wine-soft)}
+.admsave[disabled]{opacity:.6;cursor:progress}
+#admCard .card-hd{border-bottom-color:var(--s2)}
+#admCard .card-hd h2{color:var(--s2)}
 code{font-size:.94em;background:var(--sunk);padding:1px 4px;border-radius:4px}
 
 /* ---------- tabs ---------- */
@@ -300,8 +340,10 @@ footer{font-size:10.5px;color:var(--ink-3);text-align:center;padding:2px 0 0;lin
 .pfilters{display:none}
 #pmore{display:none}
 
-@media (max-width:1180px){.kpis{grid-template-columns:repeat(3,1fr)}}
+@media (max-width:1420px){.kpis{grid-template-columns:repeat(4,1fr)}}
+@media (max-width:1120px){.kpis{grid-template-columns:repeat(3,1fr)}}
 @media (max-width:900px){.two{grid-template-columns:1fr}.kpis{grid-template-columns:repeat(2,1fr)}}
+@media (max-width:760px){.metas{grid-template-columns:repeat(2,1fr)}}
 @media (max-width:560px){
   body{font-size:12.5px}
   main{padding:10px 10px 30px;gap:10px}
@@ -337,7 +379,8 @@ footer{font-size:10.5px;color:var(--ink-3);text-align:center;padding:2px 0 0;lin
   .legend{font-size:8px;gap:7px}
   .mval{font-size:8px;min-height:11px}
   .mlab{font-size:8px;padding-top:3px}
-  .hb{font-size:9px;gap:6px;grid-template-columns:32px 1fr auto}
+  .hb{font-size:9px;gap:6px;grid-template-columns:28px 1fr auto auto}
+  .hb .pc{min-width:36px}
   .hb .track{height:11px}
   thead th{font-size:8px;padding:4px 5px}
   tfoot td{font-size:9px;padding:4px 5px}
@@ -345,18 +388,24 @@ footer{font-size:10.5px;color:var(--ink-3);text-align:center;padding:2px 0 0;lin
   tbody td.cli{max-width:210px;font-size:9px}
   footer{font-size:7.5px;padding-top:3px}
   .card-hd h2{font-size:9.5px}
-  .kpi .lab{font-size:7.5px}
-  .kpi .meta{font-size:8px}
+  .kpi .lab{font-size:7px}
+  .kpi .meta{font-size:7.5px;margin-top:1px}
   .card,.kpi{box-shadow:none}
   .kpi{break-inside:avoid}
   tr{break-inside:avoid}
-  .kpis{gap:5px;grid-template-columns:repeat(4,1fr)}
-  .kpi{padding:6px 9px 7px}
+  .kpis{gap:5px;grid-template-columns:repeat(5,1fr)}
+  .kpi{padding:5px 8px 6px}
   .kpi .val{font-size:16px}
   .kpi .spark{display:none}
   .card-bd{padding:7px 9px 8px}
   .card-hd{padding:6px 10px 5px}
   .bars{height:88px}.bars.short{height:76px}
+  .metas{gap:6px;margin-top:6px;padding-top:5px}
+  .mt{gap:1px}
+  .mt .k{font-size:7.5px}
+  .mt .v{font-size:9.5px}
+  .mt .v small{font-size:8px}
+  .mt .tr{height:3px}
   .tscroll{overflow:visible}
   thead th{position:static}
   /* impede o Chrome de tratar o tfoot como rodape repetido da pagina */
@@ -476,8 +525,12 @@ footer{font-size:10.5px;color:var(--ink-3);text-align:center;padding:2px 0 0;lin
       <span class="meta" id="kUfMeta"></span><div class="spark" id="kUfSpark"></div></div>
     <div class="kpi"><span class="lab" id="lK3"></span><span class="val" id="kAvg"></span>
       <span class="meta" id="kAvgMeta"></span><div class="spark" id="kAvgSpark"></div></div>
+    <div class="kpi"><span class="lab" id="lK8"></span><span class="val" id="kTk"></span>
+      <span class="meta" id="kTkMeta"></span><div class="spark" id="kTkSpark"></div></div>
     <div class="kpi"><span class="lab" id="lK4"></span><span class="val" id="kNew"></span>
       <span class="meta" id="kNewMeta"></span><div class="spark" id="kNewSpark"></div></div>
+    <div class="kpi"><span class="lab" id="lK9"></span><span class="val" id="kConc"></span>
+      <span class="meta" id="kConcMeta"></span><div class="spark c2" id="kConcSpark"></div></div>
     <div class="kpi"><span class="lab" id="lK5"></span><span class="val" id="kCom"></span>
       <span class="meta" id="kComMeta"></span><div class="spark c2" id="kComSpark"></div></div>
     <div class="kpi"><span class="lab" id="lK6"></span><span class="val" id="kMg"></span>
@@ -495,7 +548,10 @@ footer{font-size:10.5px;color:var(--ink-3);text-align:center;padding:2px 0 0;lin
             <span><i style="background:var(--s2)"></i><b id="lLegBack"></b></span>
           </span>
         </div>
-        <div class="card-bd"><div class="bars" id="chart"><div class="grid-lines" id="glines"></div></div></div>
+        <div class="card-bd">
+          <div class="bars" id="chart"><div class="grid-lines" id="glines"></div></div>
+          <div class="metas" id="metas"></div>
+        </div>
       </div>
       <div class="card">
         <div class="card-hd"><h2 id="lChart2"></h2>
@@ -522,6 +578,21 @@ footer{font-size:10.5px;color:var(--ink-3);text-align:center;padding:2px 0 0;lin
     <div class="tscroll">
       <table><thead><tr id="thr"></tr></thead><tbody id="tb"></tbody>
         <tfoot><tr id="pmore"><td id="pmoreTd"></td></tr><tr id="tf"></tr></tfoot></table>
+    </div>
+  </section>
+
+  <section class="card no-print" id="admCard" hidden>
+    <div class="card-hd"><h2 id="lAdm"></h2><span class="sub" id="admSub"></span></div>
+    <div class="card-bd">
+      <div class="frow admrow">
+        <div class="fgrp"><label for="aAno" id="lAdmAno"></label><select id="aAno"></select></div>
+        <div class="fgrp"><label for="aEq" id="lAdmEq"></label><input type="number" id="aEq" min="0" step="1000"></div>
+        <div class="fgrp"><label for="aMes" id="lAdmMes"></label><input type="number" id="aMes" min="0" step="1000"></div>
+        <div class="fgrp"><label for="aTri" id="lAdmTri"></label><input type="number" id="aTri" min="0" step="1000"></div>
+        <div class="fgrp"><label for="aAnual" id="lAdmAnual"></label><input type="number" id="aAnual" min="0" step="10000"></div>
+        <div class="fgrp"><span class="lb">&nbsp;</span><button class="admsave" type="button" id="aSalvar"></button></div>
+      </div>
+      <p class="hint" id="admHint"></p>
     </div>
   </section>
 
@@ -634,8 +705,9 @@ boot(DATA0);
 
 const MES_EN = {JAN:'JAN',FEV:'FEB',MAR:'MAR',ABR:'APR',MAI:'MAY',JUN:'JUN',
                 JUL:'JUL',AGO:'AUG',SET:'SEP',OUT:'OCT',NOV:'NOV',DEZ:'DEC'};
-const TABS = ['all','top10','novos','inativos','reps','estados'];
-const PRINT_ROWS = 10;
+const TABS = ['all','top10','novos','queda','inativos','reps','estados'];
+const DEFSORT = {novos:'in', queda:'perda', inativos:'tot'};
+const PRINT_ROWS = 8;
 
 const T = {
  pt:{
@@ -658,13 +730,29 @@ const T = {
   search:'Buscar cliente', searchPh:'Ex.: CONFECCOES, LUPO, TUTTO…',
   k1:'Faturamento Total', k2:'Faturamento por Estado', k3:'Média Anual de Faturamento',
   k4:'Clientes Novos', k5:'Comissão Média Ponderada', k6:'Margem Média Ponderada',
-  k7:'Frete Médio Ponderado',
+  k7:'Frete Médio Ponderado', k8:'Ticket Médio por Pedido', k9:'Concentração da Carteira',
+  tkMeta:(n,i)=>n+' pedido'+(n===1?'':'s')+' · '+i+' itens por pedido',
+  concMeta:(t10,n)=>'top 5 clientes · top 10 = '+t10+' · '+n+' clientes no total',
+  adm:'ADM · Metas e ponto de equilíbrio', admSub:'visível só com a senha de administração',
+  admAno:'Ano', admEq:'Ponto de equilíbrio (mês)', admMes:'Meta mensal',
+  admTri:'Meta trimestral', admAnual:'Meta anual', admSalvar:'Salvar metas',
+  admHint:'Valores em reais, sem centavos. O ponto de equilíbrio e a meta mensal viram linhas no gráfico de faturamento; as três metas viram as barrinhas de alcance embaixo dele. Deixe 0 para não exibir.',
+  admOk:a=>'Metas de '+a+' salvas. Todo mundo que abrir o painel já vê.',
+  admErr:'Não consegui salvar as metas: ',
+  admIncoer:(a,b)=>'⚠ A meta anual ('+a+') difere de 12× a mensal ('+b+'). Se for intencional, ignore.',
+  mtEq:'Equilíbrio mensal', mtMes:'Mês', mtTri:'Trimestre', mtAno:'Ano',
+  mtMeses:(a,b)=>a+' de '+b+' meses',
+  mtSemMeta:'Metas não definidas — configure na área ADM.',
+  mtFiltro:'Metas são da empresa inteira; limpe os filtros de representante, estado e cliente para comparar.',
+  refEq:'equilíbrio', refMeta:'meta',
+  tabQueda:'Em queda', colAntes:'3m anteriores', colAgora:'3m recentes', colPerda:'Perda', colVar:'Var.',
+  quedaVazio:'Nenhum cliente em queda nos últimos 3 meses.',
   chart1:'Faturamento mensal', chart2:'Margem mensal', chart3:'Por estado',
   legInv:'Faturado', legBack:'Carteira (a faturar)', legMg:'Margem ponderada',
   legPart:'Cobertura parcial',
   table:'Vendas por cliente', tCli:'Cliente', tCart:'Carteira', tTot:'Total ano',
   tTotal:'Total', newTitle:'Clientes novos', newTag:'novo',
-  tabs:{all:'Todos',top10:'Top 10',novos:'Clientes novos',inativos:'Inativos no mês',
+  tabs:{all:'Todos',top10:'Top 10',novos:'Clientes novos',queda:'Em queda',inativos:'Inativos no mês',
         reps:'Top representantes',estados:'Top estados'},
   colRep:'Representante', colUf:'Estado', colIn:'Entrou em', colLast:'Última compra',
   colGap:'Meses parado', colShare:'% do total', colCom:'Com. %',
@@ -723,13 +811,29 @@ const T = {
   search:'Search customer', searchPh:'e.g. CONFECCOES, LUPO, TUTTO…',
   k1:'Total Revenue', k2:'Revenue by State', k3:'Annual Average Revenue',
   k4:'New Customers', k5:'Weighted Average Commission', k6:'Weighted Average Margin',
-  k7:'Weighted Average Freight',
+  k7:'Weighted Average Freight', k8:'Average Order Value', k9:'Customer Concentration',
+  tkMeta:(n,i)=>n+' order'+(n===1?'':'s')+' · '+i+' items per order',
+  concMeta:(t10,n)=>'top 5 customers · top 10 = '+t10+' · '+n+' customers overall',
+  adm:'ADMIN · Targets and break-even', admSub:'only visible with the admin password',
+  admAno:'Year', admEq:'Break-even (month)', admMes:'Monthly target',
+  admTri:'Quarterly target', admAnual:'Annual target', admSalvar:'Save targets',
+  admHint:'Values in BRL, no cents. Break-even and the monthly target become lines on the revenue chart; the three targets become the progress bars below it. Leave 0 to hide.',
+  admOk:a=>'Targets for '+a+' saved. Everyone opening the report sees them.',
+  admErr:'Could not save the targets: ',
+  admIncoer:(a,b)=>'⚠ The annual target ('+a+') differs from 12× the monthly one ('+b+'). Ignore if intentional.',
+  mtEq:'Monthly break-even', mtMes:'Month', mtTri:'Quarter', mtAno:'Year',
+  mtMeses:(a,b)=>a+' of '+b+' months',
+  mtSemMeta:'No targets set — configure them in the ADMIN area.',
+  mtFiltro:'Targets are company-wide; clear the sales rep, state and customer filters to compare.',
+  refEq:'break-even', refMeta:'target',
+  tabQueda:'Declining', colAntes:'prev 3m', colAgora:'last 3m', colPerda:'Lost', colVar:'Chg.',
+  quedaVazio:'No customer declining over the last 3 months.',
   chart1:'Monthly revenue', chart2:'Monthly margin', chart3:'By state',
   legInv:'Invoiced', legBack:'Backlog (to invoice)', legMg:'Weighted margin',
   legPart:'Partial coverage',
   table:'Sales by customer', tCli:'Customer', tCart:'Backlog', tTot:'YTD total',
   tTotal:'Total', newTitle:'New customers', newTag:'new',
-  tabs:{all:'All',top10:'Top 10',novos:'New customers',inativos:'Inactive this month',
+  tabs:{all:'All',top10:'Top 10',novos:'New customers',queda:'Declining',inativos:'Inactive this month',
         reps:'Top reps',estados:'Top states'},
   colRep:'Sales rep', colUf:'State', colIn:'First order', colLast:'Last order',
   colGap:'Months idle', colShare:'% of total', colCom:'Comm. %',
@@ -909,6 +1013,10 @@ function applyLang(){
   el('fQ').placeholder = L.searchPh;
   set('lK1',L.k1); set('lK2',L.k2); set('lK3',L.k3);
   set('lK4',L.k4); set('lK5',L.k5); set('lK6',L.k6); set('lK7',L.k7);
+  set('lK8',L.k8); set('lK9',L.k9);
+  set('lAdm',L.adm); set('admSub',L.admSub); set('lAdmAno',L.admAno); set('lAdmEq',L.admEq);
+  set('lAdmMes',L.admMes); set('lAdmTri',L.admTri); set('lAdmAnual',L.admAnual);
+  set('aSalvar',L.admSalvar); setH('admHint',L.admHint);
   set('lChart1',L.chart1); set('lChart2',L.chart2); set('lChart3',L.chart3);
   set('lLegInv',L.legInv); set('lLegBack',L.legBack);
   set('lLegMg',L.legMg); set('lLegPart',L.legPart);
@@ -957,11 +1065,14 @@ function render(){
   spark('kUfSpark', uList.map(u=>u[1]), 0);
   set('geoLab', S.geo==='uf' ? L.geoLabUf : L.geoLabWh);
   const maxU = top ? top[1] : 1;
-  setH('ufbars', uList.map(x=>
-    '<div class="hb" data-uf="'+esc(x[0])+'" data-v="'+x[1]+'"><span class="uf">'+esc(x[0])+'</span>'
-    +'<span class="track"><span class="fill" style="width:'+Math.max(2,x[1]/maxU*100)+'%"></span></span>'
-    +'<span class="amt">'+money(x[1])+'</span></div>').join('')
-    || '<p class="hint">'+L.noData+'</p>');
+  setH('ufbars', uList.map(x=>{
+    const sh = totalInv ? x[1]/totalInv*100 : 0;
+    return '<div class="hb'+(x[0]==='—'?' semuf':'')+'" data-uf="'+esc(x[0])+'" data-v="'+x[1]+'" data-p="'+nf1(sh)+'">'
+      +'<span class="uf">'+esc(x[0])+'</span>'
+      +'<span class="track"><span class="fill" style="width:'+Math.max(2,x[1]/maxU*100)+'%"></span></span>'
+      +'<span class="amt">'+money(x[1])+'</span>'
+      +'<span class="pc">'+pct(sh)+'</span></div>';
+  }).join('') || '<p class="hint">'+L.noData+'</p>');
   setH('ufHint', S.geo!=='uf' ? L.hintWh
     : (TEM_UF ? L.hintUfOk + (SEM_UF ? L.hintUfFalta(SEM_UF) : '') : L.hintUfEmpty));
 
@@ -1003,9 +1114,37 @@ function render(){
   set('kFrtMeta', L.frtMeta(money(frT), nf0(totalInv ? frB/totalInv*100 : 0)));
   spark('kFrtSpark', MS.map(m=>byM[m].fb ? byM[m].ft/byM[m].fb*100 : 0), iSel);
 
+  /* 8 · ticket médio por pedido */
+  const pedidos = new Set(inv.map(r=>r.mes+'|'+r.ped+'|'+r.cli));
+  const nTk = pedidos.size;
+  setH('kTk','<small>'+sym()+'</small>'+nf0(conv(nTk ? totalInv/nTk : 0)));
+  set('kTkMeta', L.tkMeta(nTk, nTk ? nf1(inv.length/nTk) : '0'));
+  spark('kTkSpark', MS.map(m=>{
+    const ps = new Set(inv.filter(r=>r.mes===m).map(r=>r.ped+'|'+r.cli)).size;
+    return ps ? byM[m].v/ps : 0;
+  }), iSel);
+
+  /* 9 · concentração da carteira */
+  const porCli = {};
+  inv.forEach(r=>{ porCli[r.cli] = (porCli[r.cli]||0) + r.brl; });
+  const ord = Object.values(porCli).sort((a,b)=>b-a);
+  const share = n => totalInv ? ord.slice(0,n).reduce((a,v)=>a+v,0)/totalInv*100 : 0;
+  set('kConc', ord.length ? pct(share(5)) : '—');
+  set('kConcMeta', L.concMeta(pct(share(10)), ord.length));
+  spark('kConcSpark', ord.slice(0,8), 0);
+
   /* gráfico faturamento */
-  const maxBar = Math.max.apply(null, MS.map(m=>byM[m].v).concat([byM[CUR].v+totalTbi, 1]));
-  setH('glines',[0,25,50,75].map(p=>'<div style="top:'+p+'%"></div>').join(''));
+  const MT = metaAno();
+  const semFiltro = !S.reps.size && !S.ufs.size && !S.q.trim();
+  const refs = (MT && semFiltro) ? [MT.eq, MT.mes].filter(v=>v>0) : [];
+  const maxBar = Math.max.apply(null,
+    MS.map(m=>byM[m].v).concat([byM[CUR].v+totalTbi, 1]).concat(refs.map(v=>v*1.05)));
+  setH('glines',[0,25,50,75].map(p=>'<div style="top:'+p+'%"></div>').join('')
+    + ((MT && semFiltro && MT.eq>0)
+        ? '<div class="refline eq" style="top:'+(100-MT.eq/maxBar*100)+'%"><span>'+L.refEq+' '+compact(MT.eq)+'</span></div>' : '')
+    + ((MT && semFiltro && MT.mes>0)
+        ? '<div class="refline" style="top:'+(100-MT.mes/maxBar*100)+'%"><span>'+L.refMeta+' '+compact(MT.mes)+'</span></div>' : ''));
+  renderMetas(MT, byM, totalInv, semFiltro);
   drawBars('chart', MS.map(m=>{
     const v = byM[m].v, tb = (m===CUR ? totalTbi : 0);
     return {m, label: v?compact(v):'',
@@ -1064,8 +1203,13 @@ function agg(rows, keyOf){
 function buildTabs(rows, inv, clis){
   const L = t();
   const nInat = clis.filter(c=>LAST[c] !== M.indexOf(CUR)).length;
+  const recM = MS.slice(-3), antM = MS.slice(-6, -3);
+  const nQueda = agg(rows, r=>r.cli).filter(o=>{
+    const a = antM.reduce((x,m)=>x+(o.m[m]||0),0), b = recM.reduce((x,m)=>x+(o.m[m]||0),0);
+    return a > 0 && a > b;
+  }).length;
   const counts = {all:agg(rows,r=>r.cli).length, top10:Math.min(10,agg(inv,r=>r.cli).length),
-    novos:clis.filter(c=>FIRST[c]===M.indexOf(CUR)).length, inativos:nInat,
+    novos:clis.filter(c=>FIRST[c]===M.indexOf(CUR)).length, queda:nQueda, inativos:nInat,
     reps:agg(inv,r=>r.rep||'—').length, estados:agg(inv,r=>ufOf(r)).length};
   setH('tabs', TABS.map(k=>
     '<button class="tab" role="tab" data-tab="'+k+'" aria-selected="'+(S.tab===k)+'">'
@@ -1097,6 +1241,21 @@ function renderTable(rows, inv, byM, totalInv, totalTbi, iCur){
       extra = [{id:'in', lab:L.colIn,
                 get:o=>FIRSTD[o.key] ? fdate(FIRSTD[o.key]) : mn(M[FIRST[o.key]]),
                 sortv:o=>FIRSTD[o.key]||''}];
+    } else if (S.tab === 'queda'){
+      /* últimos 3 meses da seleção contra os 3 anteriores */
+      const rec = MS.slice(-3), ant = MS.slice(-6, -3);
+      const soma = (o, ms) => ms.reduce((a,m)=>a+(o.m[m]||0), 0);
+      list = list.map(o=>{
+        o.ant = soma(o, ant); o.rec = soma(o, rec); o.perda = o.ant - o.rec;
+        return o;
+      }).filter(o=>o.ant > 0 && o.perda > 0);
+      extra = [
+        {id:'ant',   lab:L.colAntes, num:true, get:o=>nf0(conv(o.ant)),  sortv:o=>o.ant},
+        {id:'rec',   lab:L.colAgora, num:true, get:o=>o.rec?nf0(conv(o.rec)):'–', sortv:o=>o.rec},
+        {id:'perda', lab:L.colPerda, num:true, cls:'warn', get:o=>nf0(conv(o.perda)), sortv:o=>o.perda},
+        {id:'var',   lab:L.colVar,   num:true, cls:'warn',
+         get:o=>o.ant?pct(-(o.perda/o.ant*100)):'–', sortv:o=>o.ant?-(o.perda/o.ant):0}
+      ];
     } else if (S.tab === 'inativos'){
       list = list.filter(o=>FIRST[o.key] !== undefined && LAST[o.key] !== iCur);
       extra = [
@@ -1125,7 +1284,7 @@ function renderTable(rows, inv, byM, totalInv, totalTbi, iCur){
     '<th data-sort="'+id+'" class="'+(cls||'')+'" tabindex="0" aria-sort="'
     + (S.sort===id?(S.dir===1?'asc':'desc'):'none')+'">'+lab+'</th>';
   setH('thr', th('key',firstLab)
-    + extra.map(x=>th(x.id,x.lab,'txt')).join('')
+    + extra.map(x=>th(x.id,x.lab,x.num?'':'txt')).join('')
     + th('cart',L.tCart,'cart')
     + COLS.map(m=>th(m, mn(m)+(m===CUR?' ●':''), m===CUR?'cur':'')).join('')
     + th('tot',L.tTot,'tot')
@@ -1138,14 +1297,15 @@ function renderTable(rows, inv, byM, totalInv, totalTbi, iCur){
       + '<td class="cli'+(nv?' novo':'')+(rank?' rk':'')+'" title="'+esc(o.key)+'">'
       + (rank?'<span class="pos">'+(i+1)+'</span>':'') + esc(o.key)
       + (nv?'<span class="tag">'+L.newTag+'</span>':'') + '</td>'
-      + extra.map(x=>'<td class="txt'+(x.cls?' '+x.cls:'')+'">'+x.get(o)+'</td>').join('')
+      + extra.map(x=>'<td class="'+(x.num?'':'txt')+(x.cls?' '+x.cls:'')+'">'+x.get(o)+'</td>').join('')
       + '<td class="cart'+(o.cart?'':' zero')+'">'+(o.cart?nf0(conv(o.cart)):'–')+'</td>'
       + COLS.map(m=>{const v=o.m[m]||0;
           return '<td class="'+(m===CUR?'cur':'')+(v?'':' zero')+'">'+(v?nf0(conv(v)):'–')+'</td>';}).join('')
       + '<td class="tot">'+nf0(conv(o.tot))+'</td>'
       + trail.map(x=>'<td>'+x.get(o)+'</td>').join('')
       + '</tr>';
-  }).join('') : '<tr><td colspan="'+nCols+'" class="empty">'+L.noRows+'</td></tr>');
+  }).join('') : '<tr><td colspan="'+nCols+'" class="empty">'
+      + (S.tab==='queda' ? L.quedaVazio : L.noRows) + '</td></tr>');
 
   el('pmoreTd').colSpan = nCols;
   set('pmoreTd', list.length>PRINT_ROWS ? L.pmore(list.length-PRINT_ROWS) : '');
@@ -1155,7 +1315,9 @@ function renderTable(rows, inv, byM, totalInv, totalTbi, iCur){
   const fTot  = list.reduce((a,o)=>a+o.tot,0);
   const fM = {}; COLS.forEach(m=>fM[m] = list.reduce((a,o)=>a+(o.m[m]||0),0));
   setH('tf', '<td>'+L.tTotal+' · '+sym()+'</td>'
-    + extra.map(()=>'<td></td>').join('')
+    + extra.map(x=>'<td>'+(x.id==='ant' ? nf0(conv(list.reduce((a,o)=>a+o.ant,0)))
+        : x.id==='rec' ? (list.reduce((a,o)=>a+o.rec,0) ? nf0(conv(list.reduce((a,o)=>a+o.rec,0))) : '–')
+        : x.id==='perda' ? nf0(conv(list.reduce((a,o)=>a+o.perda,0))) : '')+'</td>').join('')
     + '<td style="color:var(--s2)">'+(fCart?nf0(conv(fCart)):'–')+'</td>'
     + COLS.map(m=>'<td>'+(fM[m]?nf0(conv(fM[m])):'–')+'</td>').join('')
     + '<td>'+nf0(conv(fTot))+'</td>'
@@ -1168,6 +1330,50 @@ function renderTable(rows, inv, byM, totalInv, totalTbi, iCur){
 
   set('tcount', L.tcount(list.length, sym()));
   set('lTable', L.tabs[S.tab] === L.tabs.all ? L.table : L.table+' · '+L.tabs[S.tab]);
+}
+
+/* faixa de alcance sob o gráfico: equilíbrio, mês, trimestre e ano */
+function renderMetas(MT, byM, totalInv, semFiltro){
+  const L = t(), host = el('metas');
+  if (!MT || (!MT.eq && !MT.mes && !MT.tri && !MT.ano_)){
+    host.innerHTML = ADM ? '<p class="hint" style="margin:0;grid-column:1/-1">'+L.mtSemMeta+'</p>' : '';
+    return;
+  }
+  if (!semFiltro){
+    host.innerHTML = '<p class="hint" style="margin:0;grid-column:1/-1">'+L.mtFiltro+'</p>';
+    return;
+  }
+  const item = (k, txt, p, cls) =>
+    '<div class="mt '+(cls||'')+'"><span class="k">'+k+'</span><span class="v">'+txt+'</span>'
+    + '<span class="tr"><span class="fi" style="width:'+Math.min(100, Math.max(0,p))+'%"></span></span></div>';
+  const cls = p => p >= 100 ? 'ok' : (p >= 70 ? '' : 'low');
+  const out = [];
+
+  if (MT.eq > 0){
+    const ativos = MS.filter(m=>byM[m].v > 0);
+    const acima = ativos.filter(m=>byM[m].v >= MT.eq).length;
+    const p = ativos.length ? acima/ativos.length*100 : 0;
+    out.push(item(L.mtEq, L.mtMeses(acima, ativos.length), p, acima===ativos.length ? 'ok' : (acima ? '' : 'low')));
+  }
+  if (MT.mes > 0){
+    const p = byM[CUR].v / MT.mes * 100;
+    out.push(item(L.mtMes + ' · ' + mn(CUR),
+      pct(p) + '<small>' + money(byM[CUR].v) + ' / ' + compact(MT.mes) + '</small>', p, cls(p)));
+  }
+  if (MT.tri > 0){
+    const iq = Math.floor(MO_ALL.indexOf(CUR)/3);
+    const meses = MO_ALL.filter((m,i)=>Math.floor(i/3)===iq && MS.indexOf(m) >= 0);
+    const v = meses.reduce((a,m)=>a + (byM[m] ? byM[m].v : 0), 0);
+    const p = v / MT.tri * 100;
+    out.push(item(L.mtTri + ' · ' + (S.lang==='en'?'Q':'T') + (iq+1),
+      pct(p) + '<small>' + money(v) + ' / ' + compact(MT.tri) + '</small>', p, cls(p)));
+  }
+  if (MT.ano_ > 0){
+    const p = totalInv / MT.ano_ * 100;
+    out.push(item(L.mtAno + ' · ' + MT.ano,
+      pct(p) + '<small>' + money(totalInv) + ' / ' + compact(MT.ano_) + '</small>', p, cls(p)));
+  }
+  host.innerHTML = out.join('');
 }
 
 function drawBars(id, cols){
@@ -1215,7 +1421,7 @@ pillGroup('fLang','lang', ()=>{ S.cur = S.lang==='en' ? 'USD' : 'BRL'; syncCur()
 
 el('tabs').addEventListener('click', e=>{
   const b = e.target.closest('.tab'); if(!b || S.tab===b.dataset.tab) return;
-  S.tab = b.dataset.tab; S.sort = 'tot'; S.dir = -1; render();
+  S.tab = b.dataset.tab; S.sort = DEFSORT[S.tab] || 'tot'; S.dir = -1; render();
 });
 el('thr').addEventListener('click', e=>{
   const th = e.target.closest('th[data-sort]'); if(!th) return;
@@ -1229,7 +1435,7 @@ el('thr').addEventListener('keydown', e=>{
 const ufb = el('ufbars');
 ufb.addEventListener('mousemove', e=>{
   const hb = e.target.closest('.hb'); if(!hb) return;
-  showTip(e, '<span class="k">'+esc(hb.dataset.uf)+'</span><b>'+money(+hb.dataset.v)+'</b>');
+  showTip(e, '<span class="k">'+esc(hb.dataset.uf)+'</span><b>'+money(+hb.dataset.v)+'</b> · '+hb.dataset.p+'%');
 });
 ufb.addEventListener('mouseleave', hideTip);
 el('themeBtn').onclick = () => {
@@ -1469,6 +1675,7 @@ const SUPABASE = {
 let SENHA = '';
 const SB_ON = !!(SUPABASE.url && SUPABASE.key);
 const AUTH = {role:'gerencia'};
+let METAS = {}, ADM = false;
 
 async function sbRpc(fn, body){
   const r = await fetch(SUPABASE.url + '/rest/v1/rpc/' + fn, {
@@ -1505,8 +1712,16 @@ function dataFromDb(rows, imp){
 }
 async function sbLoadData(senha){
   const d = await sbRpc('wgi_painel_dados', {p_senha: senha});
+  METAS = (d && d.metas) || {};
+  ADM = !!(d && d.adm);
   if (!d || d.vazio || !d.rows || !d.rows.length) return null;
   return dataFromDb(d.rows, d.imp || {});
+}
+/* metas do ano em foco (o ano selecionado no filtro, ou o ano dos dados) */
+function metaAno(){
+  const a = S.anos.size ? [...S.anos].sort().pop() : String(DATA.ano);
+  const m = METAS[a] || METAS[String(DATA.ano)] || null;
+  return m ? {ano:a, eq:+m.equilibrio||0, mes:+m.mensal||0, tri:+m.trimestral||0, ano_:+m.anual||0} : null;
 }
 async function sbSave(){
   const d = await sbRpc('wgi_painel_salvar', {
@@ -1520,12 +1735,49 @@ function applyRole(){
   const ger = AUTH.role === 'gerencia';
   el('btnOut').hidden = false;
   el('btnImport').hidden = !ger;
+  if (ADM){ el('admCard').hidden = false; admFill(); }
   if (!ger && AUTH.rep){
     S.reps = new Set([AUTH.rep]);
     const b = document.querySelector('#msRep .ms-btn');
     b.disabled = true; b.style.opacity = .6; b.style.cursor = 'not-allowed';
   }
 }
+
+/* ================= área ADM: metas e ponto de equilíbrio ================= */
+function admFill(){
+  const anos = [...new Set(ANOS.concat([String(DATA.ano), String(new Date().getFullYear())]))].sort();
+  const sel = el('aAno');
+  const atual = sel.value || String(DATA.ano);
+  setH('aAno', anos.map(a=>'<option'+(a===atual?' selected':'')+'>'+a+'</option>').join(''));
+  admCarrega();
+}
+function admCarrega(){
+  const m = METAS[el('aAno').value] || {};
+  el('aEq').value    = +m.equilibrio || '';
+  el('aMes').value   = +m.mensal     || '';
+  el('aTri').value   = +m.trimestral || '';
+  el('aAnual').value = +m.anual      || '';
+}
+el('aAno').onchange = admCarrega;
+el('aSalvar').onclick = async () => {
+  const L = t(), btn = el('aSalvar');
+  const ano = +el('aAno').value;
+  const eq = +el('aEq').value || 0, me = +el('aMes').value || 0;
+  const tr = +el('aTri').value || 0, an = +el('aAnual').value || 0;
+  btn.disabled = true;
+  try{
+    await sbRpc('wgi_painel_salvar_metas',
+      {p_senha: SENHA, p_ano: ano, p_equilibrio: eq, p_mensal: me, p_trimestral: tr, p_anual: an});
+    METAS[String(ano)] = {equilibrio: eq, mensal: me, trimestral: tr, anual: an};
+    render();
+    let msg = L.admOk(ano);
+    if (an > 0 && me > 0 && Math.abs(an - me*12) / an > 0.02)
+      msg += '  ' + L.admIncoer(compact(an), compact(me*12));
+    toast(msg);
+  } catch(err){
+    toast(L.admErr + ((err && err.message) ? err.message : err), true);
+  } finally { btn.disabled = false; }
+};
 
 /* ================= modelo .xlsx gerado na propria pagina =================
    Escreve um .xlsx valido sem biblioteca: zip com entradas "stored" (sem
