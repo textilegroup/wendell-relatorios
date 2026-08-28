@@ -538,11 +538,10 @@ footer{font-size:10.5px;color:var(--ink-3);text-align:center;padding:2px 0 0;lin
 
 <script>
 /* ============================================================
-   MAPA CLIENTE -> UF  ·  PREENCHA AQUI
-   Escreva a sigla do estado entre as aspas, ex.: "SP", "SC", "MG".
-   Enquanto estiver vazio, o painel usa o armazem (SP/SC) como base
-   geografica. Assim que houver UFs preenchidas, escolha "UF do
-   cliente" no filtro Base geografica.
+   MAPA CLIENTE -> UF  ·  APENAS COMPLEMENTO
+   A UF vem da coluna "Customer UF" da planilha. Este mapa serve so
+   para tapar buracos: se uma linha vier com #N/A ou em branco, o
+   painel procura o cliente aqui antes de mostrar "—".
    ============================================================ */
 const UF_CLIENTE = {
   "ARABELLA CONFECCOES LTDA": "",
@@ -591,14 +590,23 @@ const UF_CLIENTE = {
 /*DATA_START*/const DATA0 = {"meses":[],"atual":"","ano":2026,"fx":5.1,"rows":[],"reps":[],"clientes":[],"fonte":"Supabase"};/*DATA_END*/
 
 const MO_ALL = ['JAN','FEV','MAR','ABR','MAI','JUN','JUL','AGO','SET','OUT','NOV','DEZ'];
-let DATA = DATA0, M, MS, CUR, FX, COLS, R, ANOS, FIRST, LAST, FIRSTD;
+/* A planilha traz a UF em "Customer UF". Erros de fórmula (#N/A) e vazios
+   entram como "não informado" — nunca viram um estado de mentira. */
+const normUf = v => {
+  const x = String(v == null ? '' : v).trim().toUpperCase();
+  return (!x || x === '#N/A' || x === '#N/D' || x === 'N/A' || x === '-' || x === '0') ? null : x;
+};
+let DATA = DATA0, M, MS, CUR, FX, COLS, R, ANOS, FIRST, LAST, FIRSTD, TEM_UF = false, SEM_UF = 0;
 function boot(d){
   DATA = d;
   M = DATA.meses; FX = DATA.fx;
   R = DATA.rows.map(r => ({mes:r[0],rep:r[1],wh:r[2],st:r[3],cli:r[4],brl:r[5],
                            qtd:r[6],ped:r[7],dt:r[8],com:r[9],mg:r[10],
                            frRaw:(r[11]===undefined?null:r[11]), frt:0, frb:0,
+                           uf:normUf(r[12]),
                            ano:(r[8]?String(r[8]).slice(0,4):String(DATA.ano))}));
+  TEM_UF = R.some(r=>r.uf);
+  SEM_UF = R.filter(r=>r.st==='I' && !r.uf && !UF_CLIENTE[r.cli]).length;
   /* a planilha repete o frete do pedido em cada linha de item: consolida por
      pedido e lanca o valor uma unica vez, na primeira linha do pedido */
   const og = {};
@@ -674,9 +682,10 @@ const T = {
   noRows:'Nada para exibir com os filtros selecionados.',
   noNew:'Sem clientes novos no período filtrado.',
   geoLabWh:'Armazém de origem', geoLabUf:'UF do cliente',
-  hintWh:'A planilha não traz a UF do cliente; esta visão usa o armazém de origem (coluna WH). Para faturamento por UF real, preencha <code>UF_CLIENTE</code> no script.',
-  hintUfOk:'UF informada no mapa <code>UF_CLIENTE</code> no topo do script. Clientes sem UF aparecem como “—”.',
-  hintUfEmpty:'⚠ O mapa <code>UF_CLIENTE</code> ainda está vazio — preencha a sigla de cada cliente no topo do script para usar esta visão.',
+  hintWh:'Esta visão usa o armazém de origem (coluna WH), não o estado do cliente. Para o estado real, mude a base geográfica para “UF do cliente”.',
+  hintUfOk:'UF do cliente, coluna <code>Customer UF</code> da planilha.',
+  hintUfFalta:n=>' <b>'+n+' linha'+(n>1?'s':'')+'</b> sem UF na planilha (#N/A ou em branco) aparecem como “—”. Corrija na origem ou preencha <code>UF_CLIENTE</code> no topo do script.',
+  hintUfEmpty:'⚠ A planilha carregada não tem a coluna <code>Customer UF</code> preenchida. Importe uma planilha com essa coluna ou use a base “Armazém”.',
   mgHint:c=>'Margem ponderada pelo valor de venda. A planilha só informa margem em '+c+'% do faturamento — barras hachuradas marcam meses com cobertura abaixo de 60%.',
   tipInv:'faturado', tipBack:'em carteira', tipMg:'margem ponderada',
   tipCov:'cobertura', tipNoMg:'sem margem informada',
@@ -738,9 +747,10 @@ const T = {
   noRows:'Nothing to show with the selected filters.',
   noNew:'No new customers in the filtered period.',
   geoLabWh:'Origin warehouse', geoLabUf:'Customer state',
-  hintWh:'The workbook has no customer state; this view uses the origin warehouse (WH column). For revenue by actual state, fill in <code>UF_CLIENTE</code> in the script.',
-  hintUfOk:'States taken from the <code>UF_CLIENTE</code> map at the top of the script. Customers with no state show as “—”.',
-  hintUfEmpty:'⚠ The <code>UF_CLIENTE</code> map is still empty — fill in each customer’s state code at the top of the script to use this view.',
+  hintWh:'This view uses the origin warehouse (WH column), not the customer state. For the real state, switch the geographic basis to “Customer state”.',
+  hintUfOk:'Customer state, from the <code>Customer UF</code> column of the workbook.',
+  hintUfFalta:n=>' <b>'+n+' row'+(n>1?'s':'')+'</b> with no state in the workbook (#N/A or blank) show as “—”. Fix it at the source or fill in <code>UF_CLIENTE</code> at the top of the script.',
+  hintUfEmpty:'⚠ The loaded workbook has no <code>Customer UF</code> column filled in. Import one with that column or use the “Warehouse” basis.',
   mgHint:c=>'Margin weighted by sales value. The workbook reports margin on only '+c+'% of revenue — hatched bars mark months with coverage below 60%.',
   tipInv:'invoiced', tipBack:'in backlog', tipMg:'weighted margin',
   tipCov:'coverage', tipNoMg:'no margin reported',
@@ -761,7 +771,7 @@ const T = {
 };
 
 const S = {reps:new Set(), ufs:new Set(), anos:new Set(), meses:new Set(),
-           geo:'wh', cur:'BRL', q:'', sort:'tot', dir:-1, lang:'pt', tab:'all'};
+           geo: TEM_UF ? 'uf' : 'wh', cur:'BRL', q:'', sort:'tot', dir:-1, lang:'pt', tab:'all'};
 /* recalcula o periodo visivel: meses selecionados (ou todos), o "mes atual"
    passa a ser o ultimo mes da selecao */
 function syncPeriod(){
@@ -789,8 +799,7 @@ const pct = v => nf1(v)+'%';
 const fdate = iso => { const p = String(iso).split('-');
   return p.length===3 ? (S.lang==='en' ? p[1]+'/'+p[2] : p[2]+'/'+p[1]) : String(iso); };
 const esc = s => String(s).replace(/[&<>"]/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));
-const ufOf = r => S.geo==='uf' ? (UF_CLIENTE[r.cli] || '—') : r.wh;
-const hasUf = () => Object.values(UF_CLIENTE).some(v => v && v.trim());
+const ufOf = r => S.geo==='uf' ? (r.uf || UF_CLIENTE[r.cli] || '—') : r.wh;
 
 const filtered = () => {
   const q = S.q.trim().toUpperCase();
@@ -953,7 +962,8 @@ function render(){
     +'<span class="track"><span class="fill" style="width:'+Math.max(2,x[1]/maxU*100)+'%"></span></span>'
     +'<span class="amt">'+money(x[1])+'</span></div>').join('')
     || '<p class="hint">'+L.noData+'</p>');
-  setH('ufHint', S.geo==='uf' ? (hasUf()?L.hintUfOk:L.hintUfEmpty) : L.hintWh);
+  setH('ufHint', S.geo!=='uf' ? L.hintWh
+    : (TEM_UF ? L.hintUfOk + (SEM_UF ? L.hintUfFalta(SEM_UF) : '') : L.hintUfEmpty));
 
   /* 3 · média */
   setH('kAvg','<small>'+sym()+'</small>'+compact(avg));
@@ -1194,7 +1204,12 @@ function pillGroup(id, key, after){
   });
   sync(); return sync;
 }
-pillGroup('fGeo','geo', ()=>{ S.ufs.clear(); });
+const syncGeo = pillGroup('fGeo','geo', ()=>{ S.ufs.clear(); });
+/* chamado sempre que a base muda: se a planilha tem UF, usa UF */
+function afterBoot(){
+  S.geo = TEM_UF ? 'uf' : 'wh';
+  S.ufs.clear(); syncGeo();
+}
 const syncCur = pillGroup('fCur','cur');
 pillGroup('fLang','lang', ()=>{ S.cur = S.lang==='en' ? 'USD' : 'BRL'; syncCur(); });
 
@@ -1345,14 +1360,15 @@ function buildData(cells, fileName){
     dt:   findCol(head,'Date','Data'),
     com:  findCol(head,'Comission','Commission','Comissão'),
     mg:   findCol(head,'Margin','Margem'),
-    fr:   findCol(head,'Total Freight','Frete')
+    fr:   findCol(head,'Total Freight','Frete'),
+    uf:   findCol(head,'Customer UF','UF do Cliente','Estado do Cliente','UF','Estado')
   };
   const NOME = {mes:'Month', st:'Status', cli:'Customer', brl:'Total per item (BRL Value)',
                 rep:'Rep', wh:'WH', qtd:'Quantity (m)', ped:'Order Number', dt:'Date',
-                com:'Comission', mg:'Margin', fr:'Total Freight'};
+                com:'Comission', mg:'Margin', fr:'Total Freight', uf:'Customer UF'};
   const falta = ['mes','st','cli','brl'].filter(k=>c[k]<0).map(k=>NOME[k]);
   if (falta.length) throw new Error(t().impFalta(falta.join(', ')));
-  MISSING = ['rep','wh','ped','dt','com','mg','fr'].filter(k=>c[k]<0).map(k=>NOME[k]);
+  MISSING = ['rep','wh','ped','dt','com','mg','fr','uf'].filter(k=>c[k]<0).map(k=>NOME[k]);
   const rows = [];
   for (let i = 1; i < cells.length; i++){
     const r = cells[i] || [];
@@ -1372,7 +1388,8 @@ function buildData(cells, fileName){
       c.dt>=0 ? (typeof r[c.dt]==='number' ? serialToISO(r[c.dt]) : (r[c.dt]||null)) : null,
       c.com>=0 ? (+r[c.com]||0) : 0,
       mgv,
-      c.fr>=0 && typeof r[c.fr] === 'number' ? Math.round(r[c.fr]*100)/100 : null]);
+      c.fr>=0 && typeof r[c.fr] === 'number' ? Math.round(r[c.fr]*100)/100 : null,
+      c.uf>=0 ? normUf(r[c.uf]) : null]);
   }
   if (!rows.length) throw new Error(t().impSemLinhas);
   const meses = MO_ALL.filter(m => rows.some(r=>r[0]===m));
@@ -1422,7 +1439,7 @@ el('fFile').onchange = async e => {
       || Object.keys(files).filter(k=>/^xl\/worksheets\/sheet\d*\.xml$/.test(k)).sort()[0];
     if (!path) throw new Error(t().impNoBase);
     const nd = buildData(sheetRows(td(files[path]), shared), f.name);
-    boot(nd);
+    boot(nd); afterBoot();
     S.reps.clear(); S.ufs.clear(); S.anos.clear(); S.meses.clear();
     S.q = ''; el('fQ').value = '';
     S.tab = 'all'; S.sort = 'tot'; S.dir = -1;
@@ -1472,7 +1489,8 @@ function dataFromDb(rows, imp){
   const R2 = rows.map(r=>[r[0], r[1]||'', r[2]||'', r[3], r[4],
     +r[5]||0, +r[6]||0, r[7]||'', r[8]||null, +r[9]||0,
     (r[10]===null||r[10]===undefined) ? null : +r[10],
-    (r[11]===null||r[11]===undefined) ? null : +r[11]]);
+    (r[11]===null||r[11]===undefined) ? null : +r[11],
+    normUf(r[12])]);
   const meses = MO_ALL.filter(m=>R2.some(x=>x[0]===m));
   return {
     meses,
@@ -1521,6 +1539,7 @@ const COLUNAS = [
  ['WH','não','Armazém de origem. Alimenta o Faturamento por estado enquanto o mapa UF_CLIENTE estiver vazio.','Sigla curta','SP'],
  ['Status','sim','Separa faturamento de carteira.','Invoiced = faturado. Qualquer outro valor (TBI, etc.) entra como carteira.','Invoiced'],
  ['Customer','sim','Cliente. Primeira coluna da lista e base de clientes novos/inativos.','Texto livre — a grafia precisa ser sempre igual para o mesmo cliente','TUTTO PRINT INDUSTRIA E COMERCIO LTDA'],
+ ['Customer UF','não','Estado do cliente. É a fonte do Faturamento por estado e do filtro Estado.','Sigla de 2 letras. #N/A ou vazio entra como “não informado” e aparece como “—”.','SP'],
  ['Quantity (m)','não','Metros do item. Guardado para uso futuro, ainda não exibido.','Número','200'],
  ['Comission','não','Alíquota de comissão do item. Alimenta a Comissão média ponderada.','Número decimal: 0,02 = 2%. Não use 2.','0,02'],
  ['Total per item (BRL Value)','sim','Valor da linha de item em reais. É a base de TODO o faturamento do relatório.','Número em reais, sem símbolo','1124'],
@@ -1528,10 +1547,10 @@ const COLUNAS = [
  ['Total Freight','não','Frete do pedido em reais. Alimenta o Frete médio ponderado.','Número em reais. Pode repetir em cada item do pedido — o relatório consolida e conta uma vez só.','322,15']
 ];
 const EXEMPLO = [
- ['AGO','2026-08-24','ARTHUR','000057','SP','Invoiced','TUTTO PRINT INDUSTRIA E COMERCIO LTDA',200,0.02,1124,0.3235,322.15],
- ['AGO','2026-08-24','ARTHUR','000057','SP','Invoiced','TUTTO PRINT INDUSTRIA E COMERCIO LTDA',1200,0.02,6744,0.3235,322.15],
- ['AGO','2026-08-19','SIMONE','602451','SC','Invoiced','AVERARA CONFECCOES LTDA',2000,0.02,6000,0.1692,null],
- ['AGO','2026-08-24','ALICE','602452','SC','TBI','LMX CONFECCOES LTDA',200,0.02,1490,null,null]
+ ['AGO','2026-08-24','ARTHUR','000057','SP','Invoiced','TUTTO PRINT INDUSTRIA E COMERCIO LTDA','SP',200,0.02,1124,0.3235,322.15],
+ ['AGO','2026-08-24','ARTHUR','000057','SP','Invoiced','TUTTO PRINT INDUSTRIA E COMERCIO LTDA','SP',1200,0.02,6744,0.3235,322.15],
+ ['AGO','2026-08-19','SIMONE','602451','SC','Invoiced','AVERARA CONFECCOES LTDA','RJ',2000,0.02,6000,0.1692,null],
+ ['AGO','2026-08-24','ALICE','602452','SC','TBI','LMX CONFECCOES LTDA','CE',200,0.02,1490,null,null]
 ];
 const NOTAS = [
  'As 4 linhas de exemplo acima são só ilustração — apague-as e cole seus dados a partir da linha 2.',
@@ -1675,7 +1694,7 @@ function modeloXlsx(){
      + '<Relationship Id="rId3" Type="http://schemas.openxmlformats.org/officeDocument/2006/relationships/styles" Target="styles.xml"/>'
      + '</Relationships>'},
    {name:'xl/styles.xml', xml:styles},
-   {name:'xl/worksheets/sheet1.xml', xml:sheetXml(base,[10,12,14,15,8,11,40,13,12,26,11,14],{freeze:true})},
+   {name:'xl/worksheets/sheet1.xml', xml:sheetXml(base,[10,12,14,15,8,11,40,13,13,12,26,11,14],{freeze:true})},
    {name:'xl/worksheets/sheet2.xml', xml:sheetXml(leia,[30,12,52,52,26],{nogrid:true})}
   ]);
 }
@@ -1744,7 +1763,7 @@ el('gateForm').addEventListener('submit', async e=>{
     const senha = pw.value.trim();
     const d = await sbLoadData(senha);   /* a senha é conferida no banco */
     SENHA = senha;
-    if (d) boot(d);
+    if (d){ boot(d); afterBoot(); }
     applyRole();
     abrirPainel();
     if (!d) toast(t().semDados, true);
