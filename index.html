@@ -227,6 +227,8 @@ input[type="search"]{
 .hb.semuf .uf,.hb.semuf .amt,.hb.semuf .pc{color:var(--ink-3);font-weight:500}
 .hb.semuf .fill{background:var(--ink-3);opacity:.55}
 .hint{font-size:11px;color:var(--ink-3);margin-top:9px;line-height:1.45}
+.tabhint{margin:0;padding:8px 14px 11px}
+.tabhint:empty{display:none}
 
 /* faixa de metas sob o grafico mensal */
 .metas{display:grid;grid-template-columns:repeat(4,1fr);gap:9px;margin-top:11px;
@@ -236,29 +238,20 @@ input[type="search"]{
 .mt .k{font-size:9.5px;font-weight:700;letter-spacing:.07em;text-transform:uppercase;color:var(--ink-3);
   white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
 .mt .v{font-family:"Archivo Narrow",Archivo,sans-serif;font-size:12.5px;font-weight:700;color:var(--ink)}
-.mt .v small{font-weight:500;color:var(--ink-2);font-size:11px;margin-left:3px}
+.mt .v small{font-weight:500;color:var(--ink-2);font-size:11px;margin-left:5px}
+.mt .v small::before{content:'· '}
 .mt .tr{background:var(--sunk);border-radius:3px;height:5px;overflow:hidden}
 .mt .fi{display:block;height:100%;border-radius:3px;background:var(--s1)}
 .mt.ok .fi{background:var(--pos)} .mt.ok .v{color:var(--pos)}
 .mt.low .fi{background:var(--neg)} .mt.low .v{color:var(--neg)}
 
-/* linhas de referencia no grafico */
-/* z-index acima das colunas: sem isso a linha fica escondida atras das barras */
-.refline{position:absolute;left:0;right:0;z-index:3;pointer-events:none;
-  border-top:2px dashed var(--wine-soft);opacity:.85}
+/* marca da meta sobre a barra do mes; z-index acima das colunas */
 .tgt{position:absolute;left:0;right:0;z-index:4;pointer-events:none;
   border-top:2px dashed var(--wine-soft)}
 .tgt.hit{border-top-color:var(--pos)}
 /* meta acima da escala: fica presa no topo, com aviso visual */
 .tgt.fora{border-top-style:dotted;opacity:.6}
-.refline.eq.fora{border-top-style:dotted}
 .legend i.ln{width:14px;height:0;border-radius:0;border-top:2px dashed var(--wine-soft)}
-.legend i.ln.eq{border-top:2px solid var(--neg);opacity:.7}
-.refline.eq{border-top:2px solid var(--neg);opacity:.6}
-.refline span{position:absolute;left:0;top:2px;font-size:9px;font-weight:700;letter-spacing:.04em;
-  color:var(--wine);background:var(--card);padding:0 5px;border-radius:3px;text-transform:uppercase;
-  box-shadow:0 0 0 1px var(--line)}
-.refline.eq span{color:var(--neg)}
 
 /* area ADM */
 input.moeda{font:inherit;font-size:13px;color:var(--ink);background:var(--card);
@@ -403,7 +396,6 @@ footer{font-size:10.5px;color:var(--ink-3);text-align:center;padding:2px 0 0;lin
   tbody td.cli{max-width:126px;font-size:11px}
   .bars{height:132px}.bars.short{height:118px}
   /* no celular o rótulo da linha brigaria com os valores das barras */
-  .refline span{display:none}
   .mval{font-size:9px}.mlab{font-size:9.5px}
   .tabs{padding:7px 8px 0;gap:3px}
   .tab{font-size:10px;padding:6px 8px;letter-spacing:.04em}
@@ -592,7 +584,6 @@ footer{font-size:10.5px;color:var(--ink-3);text-align:center;padding:2px 0 0;lin
             <span><i style="background:var(--s1)"></i><b id="lLegInv"></b></span>
             <span><i style="background:var(--s2)"></i><b id="lLegBack"></b></span>
             <span id="legMeta" hidden><i class="ln meta"></i><b id="lLegTgt"></b></span>
-            <span id="legEq" hidden><i class="ln eq"></i><b id="lLegEq"></b></span>
           </span>
         </div>
         <div class="card-bd">
@@ -626,6 +617,7 @@ footer{font-size:10.5px;color:var(--ink-3);text-align:center;padding:2px 0 0;lin
       <table><thead><tr id="thr"></tr></thead><tbody id="tb"></tbody>
         <tfoot><tr id="pmore"><td id="pmoreTd"></td></tr><tr id="tf"></tr></tfoot></table>
     </div>
+    <p class="hint tabhint" id="tabHint"></p>
   </section>
 
   <section class="card no-print" id="admCard" hidden>
@@ -776,8 +768,8 @@ boot(DATA0);
 
 const MES_EN = {JAN:'JAN',FEV:'FEB',MAR:'MAR',ABR:'APR',MAI:'MAY',JUN:'JUN',
                 JUL:'JUL',AGO:'AUG',SET:'SEP',OUT:'OCT',NOV:'NOV',DEZ:'DEC'};
-const TABS = ['all','novos','queda','inativos','reps','estados'];
-const DEFSORT = {novos:'in', queda:'perda', inativos:'tot'};
+const TABS = ['all','margem','novos','queda','inativos','reps','estados'];
+const DEFSORT = {novos:'in', queda:'perda', inativos:'tot', margem:'mgm'};
 const PRINT_ROWS = 8;
 
 const T = {
@@ -832,10 +824,14 @@ const T = {
   foraEscala:'(acima da escala)',
   table:'Vendas por cliente', tCli:'Cliente', tCart:'Carteira', tTot:'Total ano',
   tTotal:'Total', newTitle:'Clientes novos', newTag:'novo',
-  tabs:{all:'Todos',novos:'Clientes novos',queda:'Em queda',inativos:'Inativos no mês',
-        reps:'Top representantes',estados:'Top estados'},
+  tabs:{all:'Todos',margem:'Margem por mês',novos:'Clientes novos',queda:'Em queda',
+        inativos:'Inativos no mês',reps:'Top representantes',estados:'Top estados'},
   colRep:'Representante', colUf:'Estado', colIn:'Entrou em', colLast:'Última compra',
   colGap:'Meses parado', colShare:'% do total', colCom:'Com. %', colMargem:'Margem',
+  colMes:'Mês', colFat:'Faturamento', colCob:'Cobertura', colClientes:'Clientes',
+  colMelhor:'Melhor margem', colPior:'Pior margem',
+  mesSemMargem:'Nenhum mês do período tem margem informada na planilha.',
+  mgMesHint:'Margem de cada mês ponderada pelo que cada cliente comprou naquele mês. A cobertura mostra sobre quanto do faturamento do mês a margem foi apurada — quanto menor, menos confiável o percentual.',
   mgCob:c=>'Margem ponderada sobre '+c+'% do faturamento deste cliente.',
   mgSem:'Nenhuma linha deste cliente tem margem informada na planilha.',
   lines:(a,b)=>a+' linhas faturadas · '+b+' em carteira',
@@ -924,10 +920,14 @@ const T = {
   foraEscala:'(above scale)',
   table:'Sales by customer', tCli:'Customer', tCart:'Backlog', tTot:'YTD total',
   tTotal:'Total', newTitle:'New customers', newTag:'new',
-  tabs:{all:'All',novos:'New customers',queda:'Declining',inativos:'Inactive this month',
-        reps:'Top reps',estados:'Top states'},
+  tabs:{all:'All',margem:'Margin by month',novos:'New customers',queda:'Declining',
+        inativos:'Inactive this month',reps:'Top reps',estados:'Top states'},
   colRep:'Sales rep', colUf:'State', colIn:'First order', colLast:'Last order',
   colGap:'Months idle', colShare:'% of total', colCom:'Comm. %', colMargem:'Margin',
+  colMes:'Month', colFat:'Revenue', colCob:'Coverage', colClientes:'Customers',
+  colMelhor:'Best margin', colPior:'Worst margin',
+  mesSemMargem:'No month in the period has a reported margin.',
+  mgMesHint:'Each month margin weighted by what every customer bought that month. Coverage shows how much of the month revenue the margin was computed over — the lower it is, the less reliable the percentage.',
   mgCob:c=>'Weighted margin over '+c+'% of this customer revenue.',
   mgSem:'No line of this customer has a reported margin.',
   lines:(a,b)=>a+' invoiced lines · '+b+' in backlog',
@@ -1124,7 +1124,7 @@ function applyLang(){
   }
   set('lChart1',L.chart1); set('lChart2',L.chart2); set('lChart3',L.chart3);
   set('lLegInv',L.legInv); set('lLegBack',L.legBack);
-  set('lLegTgt',L.legTgt); set('lLegEq',L.legEqui);
+  set('lLegTgt',L.legTgt);
   set('lLegMg',L.legMg); set('lLegPart',L.legPart);
   set('lTable',L.table); set('lNew',L.newTitle);
   setH('foot', S.lang==='en'
@@ -1252,15 +1252,10 @@ function render(){
   const foraEscala = v => v > maxBar;
   const posY = (v, off) => foraEscala(v) ? (off||0) : (100 - v/maxBar*100);
 
-  /* ponto de equilíbrio: linha única, fixa, valendo para o ano todo */
-  const eqFora = marcar && MT.eq > 0 && foraEscala(MT.eq);
-  const eqLinha = (marcar && MT.eq > 0)
-    ? '<div class="refline eq'+(eqFora ? ' fora' : '')+'" style="top:'+posY(MT.eq)+'%">'
-      + '<span>' + L.refEq + ' ' + compact(MT.eq) + (eqFora ? ' ' + L.foraEscala : '') + '</span></div>'
-    : '';
-  setH('glines',[0,25,50,75].map(p=>'<i class="gl" style="top:'+p+'%"></i>').join('') + eqLinha);
+  /* o ponto de equilíbrio saiu do gráfico: é anual e distorcia a escala.
+     Agora aparece só na faixa de metas, em reais. */
+  setH('glines',[0,25,50,75].map(p=>'<i class="gl" style="top:'+p+'%"></i>').join(''));
   el('legMeta').hidden = !(marcar && maxTgt > 0);
-  el('legEq').hidden   = !(marcar && MT.eq > 0);
   renderMetas(MT, byM, totalInv, semFiltro);
   drawBars('chart', MS.map(m=>{
     const v = byM[m].v, tb = (m===CUR ? totalTbi : 0);
@@ -1334,7 +1329,8 @@ function buildTabs(rows, inv, clis){
     const a = antM.reduce((x,m)=>x+(o.m[m]||0),0), b = recM.reduce((x,m)=>x+(o.m[m]||0),0);
     return a > 0 && a > b;
   }).length;
-  const counts = {all:agg(rows,r=>r.cli).length,
+  const nMesMg = MS.filter(m=>inv.some(r=>r.mes===m && r.mg!==null && r.mg!==undefined)).length;
+  const counts = {all:agg(rows,r=>r.cli).length, margem:nMesMg,
     novos:clis.filter(c=>FIRST[c]===M.indexOf(CUR)).length, queda:nQueda, inativos:nInat,
     reps:agg(inv,r=>r.rep||'—').length, estados:agg(inv,r=>ufOf(r)).length};
   setH('tabs', TABS.map(k=>
@@ -1342,8 +1338,82 @@ function buildTabs(rows, inv, clis){
     + L.tabs[k] + '<span class="n">'+counts[k]+'</span></button>').join(''));
 }
 
+/* Aba "Margem por mês": as linhas são os meses, ordenados pela margem
+   ponderada. A margem de cada mês sai do que cada cliente comprou nele. */
+function tabelaMargemMes(inv){
+  const L = t();
+  const meses = MS.map(m=>{
+    const linhas = inv.filter(r=>r.mes===m);
+    const cli = {};
+    linhas.forEach(r=>{
+      const a = cli[r.cli] || (cli[r.cli] = {mw:0, mb:0, tot:0});
+      a.tot += r.brl;
+      if (r.mg !== null && r.mg !== undefined){ a.mw += r.brl*r.mg; a.mb += r.brl; }
+    });
+    const lista = Object.keys(cli).filter(k=>cli[k].mb > 0)
+      .map(k=>({cli:k, mg:cli[k].mw/cli[k].mb}))
+      .sort((a,b)=>b.mg-a.mg);
+    let mw = 0, mb = 0, tot = 0;
+    linhas.forEach(r=>{
+      tot += r.brl;
+      if (r.mg !== null && r.mg !== undefined){ mw += r.brl*r.mg; mb += r.brl; }
+    });
+    return {m, tot, mw, mb, mg: mb ? mw/mb*100 : null, cob: tot ? mb/tot*100 : 0,
+            nCli: Object.keys(cli).length,
+            melhor: lista[0] || null, pior: lista.length ? lista[lista.length-1] : null};
+  }).filter(x=>x.tot > 0);
+
+  const cols = [
+    {id:'mgm',  lab:L.colMargem,   get:x=>x.mg===null?'–':pct(x.mg), sortv:x=>x.mg,
+     cls:x=>x.mg===null?'zero':(x.cob<60?'parc':'cur'),
+     tit:x=>x.mg===null?L.mgSem:L.mgCob(nf0(x.cob))},
+    {id:'cob',  lab:L.colCob,      get:x=>nf0(x.cob)+'%', sortv:x=>x.cob, cls:()=>'zero'},
+    {id:'fat',  lab:L.colFat,      get:x=>nf0(conv(x.tot)), sortv:x=>x.tot},
+    {id:'ncli', lab:L.colClientes, get:x=>String(x.nCli), sortv:x=>x.nCli, cls:()=>'zero'},
+    {id:'melhor', lab:L.colMelhor, txt:true, sortv:x=>x.melhor?x.melhor.mg:null,
+     get:x=>x.melhor ? esc(x.melhor.cli)+' <b>'+pct(x.melhor.mg*100)+'</b>' : '–'},
+    {id:'pior',   lab:L.colPior,   txt:true, sortv:x=>x.pior?x.pior.mg:null,
+     get:x=>x.pior ? esc(x.pior.cli)+' <b>'+pct(x.pior.mg*100)+'</b>' : '–'}
+  ];
+  const ord = cols.filter(c=>c.id===S.sort)[0] || cols[0];
+  meses.sort((a,b)=>{
+    const x = ord.sortv(a), y = ord.sortv(b);
+    if (x === null && y === null) return 0;
+    if (x === null) return 1;
+    if (y === null) return -1;
+    return (x-y)*S.dir;
+  });
+
+  const th = (id,lab,cls) =>
+    '<th data-sort="'+id+'" class="'+(cls||'')+'" tabindex="0" aria-sort="'
+    + (S.sort===id?(S.dir===1?'asc':'desc'):'none')+'">'+lab+'</th>';
+  setH('thr', th('key', L.colMes) + cols.map(c=>th(c.id, c.lab, c.txt?'txt':'')).join(''));
+  setH('tb', meses.length ? meses.map((x,i)=>
+    '<tr'+(i>=PRINT_ROWS?' class="pcut"':'')+'><td class="cli rk"><span class="pos">'+(i+1)+'</span>'
+    + mn(x.m)+'</td>'
+    + cols.map(c=>'<td class="'+(c.txt?'txt':'')+(c.cls?' '+c.cls(x):'')+'"'
+        + (c.tit?' title="'+esc(c.tit(x))+'"':'')+'>'+c.get(x)+'</td>').join('')
+    + '</tr>').join('')
+    : '<tr><td colspan="'+(cols.length+1)+'" class="empty">'+L.mesSemMargem+'</td></tr>');
+
+  let mw = 0, mb = 0, tot = 0;
+  meses.forEach(x=>{ mw += x.mw; mb += x.mb; tot += x.tot; });
+  setH('tf', '<td>'+L.tTotal+' · '+sym()+'</td>'
+    + '<td class="parc">'+(mb?pct(mw/mb*100):'–')+'</td>'
+    + '<td>'+(tot?nf0(mb/tot*100)+'%':'–')+'</td>'
+    + '<td>'+nf0(conv(tot))+'</td><td></td><td></td><td></td>');
+  el('pmoreTd').colSpan = cols.length+1;
+  set('pmoreTd', meses.length>PRINT_ROWS ? L.pmore(meses.length-PRINT_ROWS) : '');
+  el('pmore').style.visibility = meses.length>PRINT_ROWS ? 'visible' : 'collapse';
+  set('tcount', L.tcount(meses.length, sym()));
+  set('lTable', L.table + ' · ' + L.tabs.margem);
+  setH('tabHint', L.mgMesHint);
+}
+
 function renderTable(rows, inv, byM, totalInv, totalTbi, iCur){
   const L = t();
+  setH('tabHint','');
+  if (S.tab === 'margem'){ tabelaMargemMes(inv); return; }
   let list, extra = [], trail = [], showTot = true, firstLab = L.tCli, rank = false;
 
   if (S.tab === 'reps'){
@@ -1499,7 +1569,8 @@ function renderMetas(MT, byM, totalInv, semFiltro){
     const ativos = MS.filter(m=>byM[m].v > 0);
     const acima = ativos.filter(m=>byM[m].v >= MT.eq).length;
     const p = ativos.length ? acima/ativos.length*100 : 0;
-    out.push(item(L.mtEq, L.mtMeses(acima, ativos.length), p, acima===ativos.length ? 'ok' : (acima ? '' : 'low')));
+    out.push(item(L.mtEq, money(MT.eq) + '<small>' + L.mtMeses(acima, ativos.length) + '</small>',
+      p, acima===ativos.length ? 'ok' : (acima ? '' : 'low')));
   }
   const alvoMes = +MT.mes[CUR] || 0;
   if (alvoMes > 0){
