@@ -340,6 +340,9 @@ td.cart.zero{color:var(--ink-3);font-weight:400;background:none}
 td.cur{font-weight:700;color:var(--ink)}
 td.tot{font-weight:700;border-left:1px solid var(--line)}
 td.warn{color:var(--neg);font-weight:700}
+/* margem apurada sobre parte pequena do faturamento: sinaliza sem esconder */
+td.parc{color:var(--ink-2);text-decoration:underline dotted var(--ink-3);text-underline-offset:3px}
+tfoot td.parc{color:var(--ink-2);text-decoration:none}
 tfoot td{
   padding:7px 8px;text-align:right;font-weight:700;font-family:"Archivo Narrow",Archivo,sans-serif;
   border-top:2px solid var(--wine-soft);background:var(--sunk);white-space:nowrap;
@@ -832,7 +835,9 @@ const T = {
   tabs:{all:'Todos',novos:'Clientes novos',queda:'Em queda',inativos:'Inativos no mês',
         reps:'Top representantes',estados:'Top estados'},
   colRep:'Representante', colUf:'Estado', colIn:'Entrou em', colLast:'Última compra',
-  colGap:'Meses parado', colShare:'% do total', colCom:'Com. %',
+  colGap:'Meses parado', colShare:'% do total', colCom:'Com. %', colMargem:'Margem',
+  mgCob:c=>'Margem ponderada sobre '+c+'% do faturamento deste cliente.',
+  mgSem:'Nenhuma linha deste cliente tem margem informada na planilha.',
   lines:(a,b)=>a+' linhas faturadas · '+b+' em carteira',
   vs:(m,p,v)=>(p ? m+' vs '+p : m)+' · '+v,
   share:(v,p,n)=>v+' · '+p+'% do total · '+n+' '+(n>1?'estados':'estado'),
@@ -922,7 +927,9 @@ const T = {
   tabs:{all:'All',novos:'New customers',queda:'Declining',inativos:'Inactive this month',
         reps:'Top reps',estados:'Top states'},
   colRep:'Sales rep', colUf:'State', colIn:'First order', colLast:'Last order',
-  colGap:'Months idle', colShare:'% of total', colCom:'Comm. %',
+  colGap:'Months idle', colShare:'% of total', colCom:'Comm. %', colMargem:'Margin',
+  mgCob:c=>'Weighted margin over '+c+'% of this customer revenue.',
+  mgSem:'No line of this customer has a reported margin.',
   lines:(a,b)=>a+' invoiced lines · '+b+' in backlog',
   vs:(m,p,v)=>(p ? m+' vs '+p : m)+' · '+v,
   share:(v,p,n)=>v+' · '+p+'% of total · '+n+' '+(n>1?'states':'state'),
@@ -1308,9 +1315,13 @@ function agg(rows, keyOf){
   const o = {};
   rows.forEach(r=>{
     const k = keyOf(r); if (k===undefined || k===null) return;
-    const a = o[k] || (o[k] = {key:k, cart:0, tot:0, m:{}, cw:0});
+    const a = o[k] || (o[k] = {key:k, cart:0, tot:0, m:{}, cw:0, mw:0, mb:0});
     if (r.st==='T') a.cart += r.brl;
-    else { a.m[r.mes] = (a.m[r.mes]||0)+r.brl; a.tot += r.brl; a.cw += r.brl*r.com; }
+    else {
+      a.m[r.mes] = (a.m[r.mes]||0)+r.brl; a.tot += r.brl; a.cw += r.brl*r.com;
+      /* margem ponderada: só entram as linhas que têm margem informada */
+      if (r.mg !== null && r.mg !== undefined){ a.mw += r.brl*r.mg; a.mb += r.brl; }
+    }
   });
   return Object.values(o);
 }
@@ -1379,6 +1390,15 @@ function renderTable(rows, inv, byM, totalInv, totalTbi, iCur){
     }
   }
 
+  /* margem ponderada da linha: Σ(margem × valor) ÷ Σ(valor com margem) */
+  extra = [{
+    id:'mgm', lab:L.colMargem, num:true,
+    get: o => o.mb ? pct(o.mw/o.mb*100) : '–',
+    sortv: o => o.mb ? o.mw/o.mb : null,
+    clsOf: o => !o.mb ? 'zero' : (o.tot && o.mb/o.tot < 0.6 ? 'parc' : ''),
+    titOf: o => o.mb && o.tot ? L.mgCob(nf0(o.mb/o.tot*100)) : L.mgSem
+  }].concat(extra);
+
   const valOf = (o,k) => k==='tot' ? o.tot : k==='cart' ? o.cart
     : k==='key' ? o.key
     : (extra.concat(trail).find(x=>x.id===k)||{}).sortv ? extra.concat(trail).find(x=>x.id===k).sortv(o)
@@ -1388,6 +1408,10 @@ function renderTable(rows, inv, byM, totalInv, totalTbi, iCur){
   if (!fixed){
     list.sort((a,b)=>{
       const x = valOf(a,S.sort), y = valOf(b,S.sort);
+      /* linhas sem o dado (ex.: cliente sem margem) ficam sempre no fim */
+      if (x === null && y === null) return 0;
+      if (x === null) return 1;
+      if (y === null) return -1;
       if (typeof x === 'string' || typeof y === 'string')
         return String(x)<String(y) ? -S.dir : String(x)>String(y) ? S.dir : 0;
       return (x-y)*S.dir;
@@ -1411,7 +1435,12 @@ function renderTable(rows, inv, byM, totalInv, totalTbi, iCur){
       + '<td class="cli'+(nv?' novo':'')+(rank?' rk':'')+'" title="'+esc(o.key)+'">'
       + (rank?'<span class="pos">'+(i+1)+'</span>':'') + esc(o.key)
       + (nv?'<span class="tag">'+L.newTag+'</span>':'') + '</td>'
-      + extra.map(x=>'<td class="'+(x.num?'':'txt')+(x.cls?' '+x.cls:'')+'">'+x.get(o)+'</td>').join('')
+      + extra.map(x=>{
+          const cl = x.clsOf ? x.clsOf(o) : (x.cls || '');
+          const ti = x.titOf ? x.titOf(o) : '';
+          return '<td class="'+(x.num?'':'txt')+(cl?' '+cl:'')+'"'
+               + (ti?' title="'+esc(ti)+'"':'')+'>'+x.get(o)+'</td>';
+        }).join('')
       + '<td class="cart'+(o.cart?'':' zero')+'">'+(o.cart?nf0(conv(o.cart)):'–')+'</td>'
       + COLS.map(m=>{const v=o.m[m]||0;
           return '<td class="'+(m===CUR?'cur':'')+(v?'':' zero')+'">'+(v?nf0(conv(v)):'–')+'</td>';}).join('')
@@ -1429,7 +1458,10 @@ function renderTable(rows, inv, byM, totalInv, totalTbi, iCur){
   const fTot  = list.reduce((a,o)=>a+o.tot,0);
   const fM = {}; COLS.forEach(m=>fM[m] = list.reduce((a,o)=>a+(o.m[m]||0),0));
   setH('tf', '<td>'+L.tTotal+' · '+sym()+'</td>'
-    + extra.map(x=>'<td>'+(x.id==='ant' ? nf0(conv(list.reduce((a,o)=>a+o.ant,0)))
+    + extra.map(x=>'<td'+(x.id==='mgm'?' class="parc"':'')+'>'
+        +(x.id==='mgm' ? (()=>{ const w=list.reduce((a,o)=>a+o.mw,0), bs=list.reduce((a,o)=>a+o.mb,0);
+                                return bs ? pct(w/bs*100) : '–'; })()
+        : x.id==='ant' ? nf0(conv(list.reduce((a,o)=>a+o.ant,0)))
         : x.id==='rec' ? (list.reduce((a,o)=>a+o.rec,0) ? nf0(conv(list.reduce((a,o)=>a+o.rec,0))) : '–')
         : x.id==='perda' ? nf0(conv(list.reduce((a,o)=>a+o.perda,0))) : '')+'</td>').join('')
     + '<td style="color:var(--s2)">'+(fCart?nf0(conv(fCart)):'–')+'</td>'
