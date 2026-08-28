@@ -250,6 +250,7 @@ input[type="search"]{
 .dests b{font-family:"Archivo Narrow",Archivo,sans-serif;font-size:10.5px;font-weight:600;
   background:var(--chip);border:1px solid var(--line);border-radius:5px;padding:3px 7px;color:var(--ink-2)}
 .dests b i{font-style:normal;font-weight:700;color:var(--ink);margin-left:5px}
+thead th small{font-weight:600;opacity:.6;margin-left:3px;letter-spacing:.03em}
 .hint{font-size:11px;color:var(--ink-3);margin-top:9px;line-height:1.45}
 .tabhint{margin:0;padding:8px 14px 11px}
 .tabhint:empty{display:none}
@@ -878,6 +879,9 @@ const T = {
         inativos:'Inativos no mês',reps:'Top representantes',estados:'Top estados'},
   colRep:'Representante', colUf:'Estado', colIn:'Entrou em', colLast:'Última compra',
   colGap:'Meses parado', colShare:'% do total', colCom:'Com. %', colMargem:'Margem',
+  colMargemGer:'Margem geral', colMargemMes:'Margem do mês',
+  mgMesCob:(m,c)=>'Margem ponderada de '+m+', sobre '+c+'% do faturamento do cliente no mês.',
+  mgMesSem:m=>'Sem margem informada nas compras deste cliente em '+m+'.',
   colMes:'Mês', colFat:'Faturamento', colCob:'Cobertura', colClientes:'Clientes',
   colMelhor:'Melhor margem', colPior:'Pior margem',
   mesSemMargem:'Nenhum mês do período tem margem informada na planilha.',
@@ -979,6 +983,9 @@ const T = {
         inativos:'Inactive this month',reps:'Top reps',estados:'Top states'},
   colRep:'Sales rep', colUf:'State', colIn:'First order', colLast:'Last order',
   colGap:'Months idle', colShare:'% of total', colCom:'Comm. %', colMargem:'Margin',
+  colMargemGer:'Overall margin', colMargemMes:'Month margin',
+  mgMesCob:(m,c)=>'Weighted margin for '+m+', over '+c+'% of the customer revenue that month.',
+  mgMesSem:m=>'No reported margin on this customer purchases in '+m+'.',
   colMes:'Month', colFat:'Revenue', colCob:'Coverage', colClientes:'Customers',
   colMelhor:'Best margin', colPior:'Worst margin',
   mesSemMargem:'No month in the period has a reported margin.',
@@ -1375,12 +1382,16 @@ function agg(rows, keyOf){
   const o = {};
   rows.forEach(r=>{
     const k = keyOf(r); if (k===undefined || k===null) return;
-    const a = o[k] || (o[k] = {key:k, cart:0, tot:0, m:{}, cw:0, mw:0, mb:0});
+    const a = o[k] || (o[k] = {key:k, cart:0, tot:0, m:{}, cw:0, mw:0, mb:0, mwM:{}, mbM:{}});
     if (r.st==='T') a.cart += r.brl;
     else {
       a.m[r.mes] = (a.m[r.mes]||0)+r.brl; a.tot += r.brl; a.cw += r.brl*r.com;
       /* margem ponderada: só entram as linhas que têm margem informada */
-      if (r.mg !== null && r.mg !== undefined){ a.mw += r.brl*r.mg; a.mb += r.brl; }
+      if (r.mg !== null && r.mg !== undefined){
+        a.mw += r.brl*r.mg; a.mb += r.brl;
+        a.mwM[r.mes] = (a.mwM[r.mes]||0) + r.brl*r.mg;
+        a.mbM[r.mes] = (a.mbM[r.mes]||0) + r.brl;
+      }
     }
   });
   return Object.values(o);
@@ -1525,13 +1536,22 @@ function renderTable(rows, inv, byM, totalInv, totalTbi, iCur){
     }
   }
 
-  /* margem ponderada da linha: Σ(margem × valor) ÷ Σ(valor com margem) */
+  /* margem ponderada da linha: Σ(margem × valor) ÷ Σ(valor com margem)
+     — a primeira sobre todo o período filtrado, a segunda só sobre o mês atual */
   extra = [{
-    id:'mgm', lab:L.colMargem, num:true,
+    id:'mgm', lab:L.colMargemGer, num:true,
     get: o => o.mb ? pct(o.mw/o.mb*100) : '–',
     sortv: o => o.mb ? o.mw/o.mb : null,
     clsOf: o => !o.mb ? 'zero' : (o.tot && o.mb/o.tot < 0.6 ? 'parc' : ''),
     titOf: o => o.mb && o.tot ? L.mgCob(nf0(o.mb/o.tot*100)) : L.mgSem
+  },{
+    id:'mgmes', lab:L.colMargemMes+' <small>'+mn(CUR)+'</small>', num:true,
+    get: o => o.mbM[CUR] ? pct(o.mwM[CUR]/o.mbM[CUR]*100) : '–',
+    sortv: o => o.mbM[CUR] ? o.mwM[CUR]/o.mbM[CUR] : null,
+    clsOf: o => !o.mbM[CUR] ? 'zero'
+              : ((o.m[CUR]||0) && o.mbM[CUR]/o.m[CUR] < 0.6 ? 'parc' : ''),
+    titOf: o => o.mbM[CUR] && o.m[CUR]
+              ? L.mgMesCob(mn(CUR), nf0(o.mbM[CUR]/o.m[CUR]*100)) : L.mgMesSem(mn(CUR))
   }].concat(extra);
 
   const valOf = (o,k) => k==='tot' ? o.tot : k==='cart' ? o.cart
@@ -1593,9 +1613,12 @@ function renderTable(rows, inv, byM, totalInv, totalTbi, iCur){
   const fTot  = list.reduce((a,o)=>a+o.tot,0);
   const fM = {}; COLS.forEach(m=>fM[m] = list.reduce((a,o)=>a+(o.m[m]||0),0));
   setH('tf', '<td>'+L.tTotal+' · '+sym()+'</td>'
-    + extra.map(x=>'<td'+(x.id==='mgm'?' class="parc"':'')+'>'
+    + extra.map(x=>'<td'+(x.id==='mgm'||x.id==='mgmes'?' class="parc"':'')+'>'
         +(x.id==='mgm' ? (()=>{ const w=list.reduce((a,o)=>a+o.mw,0), bs=list.reduce((a,o)=>a+o.mb,0);
                                 return bs ? pct(w/bs*100) : '–'; })()
+        : x.id==='mgmes' ? (()=>{ const w=list.reduce((a,o)=>a+(o.mwM[CUR]||0),0),
+                                        bs=list.reduce((a,o)=>a+(o.mbM[CUR]||0),0);
+                                  return bs ? pct(w/bs*100) : '–'; })()
         : x.id==='ant' ? nf0(conv(list.reduce((a,o)=>a+o.ant,0)))
         : x.id==='rec' ? (list.reduce((a,o)=>a+o.rec,0) ? nf0(conv(list.reduce((a,o)=>a+o.rec,0))) : '–')
         : x.id==='perda' ? nf0(conv(list.reduce((a,o)=>a+o.perda,0))) : '')+'</td>').join('')
