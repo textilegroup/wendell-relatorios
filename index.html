@@ -53,6 +53,15 @@ body{
   position:fixed;inset:0;z-index:100;display:grid;place-items:center;padding:20px;
   background:linear-gradient(150deg,var(--wine-deep) 0%,var(--wine) 55%,#3C0812 100%);
 }
+#admGate{position:fixed;inset:0;z-index:99;display:grid;place-items:center;padding:20px;
+  background:rgba(20,19,22,.55);backdrop-filter:blur(2px)}
+#admGate[hidden]{display:none}
+#admGate .logo{background:var(--s2);color:#fff;border-color:var(--s2)}
+.gate-box button.admcancel,.admcancel{width:100%;margin-top:7px;font:inherit;font-size:12px;font-weight:600;letter-spacing:.04em;
+  text-transform:uppercase;padding:9px;border:1px solid var(--line);border-radius:9px;
+  background:transparent;color:var(--ink-2);cursor:pointer}
+.gate-box button.admcancel:hover{background:var(--sunk);color:var(--ink)}
+#admGate .admsave{width:100%;margin-top:9px;padding:10px}
 .gate-box{
   background:var(--card);border-radius:14px;padding:26px 24px 20px;width:100%;max-width:340px;
   box-shadow:0 18px 50px rgba(0,0,0,.32);text-align:center;
@@ -232,6 +241,8 @@ input[type="search"]{
 /* z-index acima das colunas: sem isso a linha fica escondida atras das barras */
 .refline{position:absolute;left:0;right:0;z-index:3;pointer-events:none;
   border-top:2px dashed var(--wine-soft);opacity:.85}
+.tgt{position:absolute;z-index:3;pointer-events:none;border-top:2px dashed var(--wine-soft);opacity:.9}
+.tgt.hit{border-top-color:var(--pos);opacity:1}
 .refline.eq{border-top:2px solid var(--neg);opacity:.6}
 .refline span{position:absolute;left:0;top:-13px;font-size:9px;font-weight:700;letter-spacing:.04em;
   color:var(--wine);background:var(--card);padding:0 5px;border-radius:3px;text-transform:uppercase;
@@ -239,10 +250,27 @@ input[type="search"]{
 .refline.eq span{color:var(--neg)}
 
 /* area ADM */
-.admrow input[type="number"]{font:inherit;font-size:13px;color:var(--ink);background:var(--card);
-  border:1px solid var(--line);border-radius:8px;padding:6px 9px;width:134px;font-variant-numeric:tabular-nums}
-.admrow select{font:inherit;font-size:12.5px;color:var(--ink);background:var(--card);
+input.moeda{font:inherit;font-size:13px;color:var(--ink);background:var(--card);
+  border:1px solid var(--line);border-radius:8px;padding:6px 9px;width:100%;
+  font-variant-numeric:tabular-nums;text-align:right}
+input.moeda:focus{outline:2px solid var(--wine-soft);outline-offset:1px}
+.admtop input.moeda{width:150px}
+.admtop select{font:inherit;font-size:12.5px;color:var(--ink);background:var(--card);
   border:1px solid var(--line);border-radius:8px;padding:6px 9px;min-width:100px}
+.admgrid{display:grid;grid-template-columns:2fr 1fr;gap:16px;margin-top:14px}
+.admbloco{display:flex;flex-direction:column;gap:7px;min-width:0}
+.admbloco>.lb{font-size:10px;font-weight:700;letter-spacing:.09em;text-transform:uppercase;color:var(--ink-3)}
+.gridm{display:grid;grid-template-columns:repeat(6,1fr);gap:8px}
+.gridt{display:grid;grid-template-columns:repeat(2,1fr);gap:8px}
+.mcamp{display:flex;flex-direction:column;gap:3px;min-width:0}
+.mcamp label{font-size:9.5px;font-weight:700;letter-spacing:.06em;text-transform:uppercase;color:var(--ink-2)}
+.mcamp small{font-size:9px;color:var(--ink-3);letter-spacing:.02em}
+.mcamp.tri label{color:var(--s2)}
+.admcalc{font:inherit;font-size:11.5px;font-weight:600;letter-spacing:.03em;padding:7px 12px;
+  border:1px solid var(--line);border-radius:8px;background:var(--chip);color:var(--ink-2);cursor:pointer}
+.admcalc:hover{background:var(--sunk);color:var(--ink)}
+@media (max-width:1100px){.admgrid{grid-template-columns:1fr}.gridm{grid-template-columns:repeat(4,1fr)}}
+@media (max-width:560px){.gridm{grid-template-columns:repeat(3,1fr)}.admtop input.moeda{width:100%}}
 .admsave{font:inherit;font-size:12px;font-weight:700;letter-spacing:.05em;text-transform:uppercase;
   padding:7px 16px;border:0;border-radius:8px;background:var(--wine);color:#fff;cursor:pointer}
 .admsave:hover{background:var(--wine-soft)}
@@ -444,6 +472,7 @@ footer{font-size:10.5px;color:var(--ink-3);text-align:center;padding:2px 0 0;lin
     <button class="hdr-chip" id="btnModel" type="button"></button>
     <button class="hdr-chip" id="btnSave" type="button" hidden></button>
     <button class="hdr-chip" id="btnPdf" type="button"></button>
+    <button class="hdr-chip" id="btnAdm" type="button"></button>
     <div class="lang" id="fLang">
       <button type="button" data-v="pt">PT</button>
       <button type="button" data-v="en">EN</button>
@@ -584,13 +613,26 @@ footer{font-size:10.5px;color:var(--ink-3);text-align:center;padding:2px 0 0;lin
   <section class="card no-print" id="admCard" hidden>
     <div class="card-hd"><h2 id="lAdm"></h2><span class="sub" id="admSub"></span></div>
     <div class="card-bd">
-      <div class="frow admrow">
+      <div class="frow admtop">
         <div class="fgrp"><label for="aAno" id="lAdmAno"></label><select id="aAno"></select></div>
-        <div class="fgrp"><label for="aEq" id="lAdmEq"></label><input type="number" id="aEq" min="0" step="1000"></div>
-        <div class="fgrp"><label for="aMes" id="lAdmMes"></label><input type="number" id="aMes" min="0" step="1000"></div>
-        <div class="fgrp"><label for="aTri" id="lAdmTri"></label><input type="number" id="aTri" min="0" step="1000"></div>
-        <div class="fgrp"><label for="aAnual" id="lAdmAnual"></label><input type="number" id="aAnual" min="0" step="10000"></div>
-        <div class="fgrp"><span class="lb">&nbsp;</span><button class="admsave" type="button" id="aSalvar"></button></div>
+        <div class="fgrp"><label for="aEq" id="lAdmEq"></label>
+          <input type="text" inputmode="decimal" id="aEq" class="moeda"></div>
+        <div class="fgrp"><label for="aAnual" id="lAdmAnual"></label>
+          <input type="text" inputmode="decimal" id="aAnual" class="moeda"></div>
+        <div class="fgrp"><span class="lb">&nbsp;</span>
+          <button class="admcalc" type="button" id="aCalc"></button></div>
+        <div class="fgrp"><span class="lb">&nbsp;</span>
+          <button class="admsave" type="button" id="aSalvar"></button></div>
+      </div>
+      <div class="admgrid">
+        <div class="admbloco">
+          <span class="lb" id="lAdmMeses"></span>
+          <div class="gridm" id="aMeses"></div>
+        </div>
+        <div class="admbloco">
+          <span class="lb" id="lAdmTris"></span>
+          <div class="gridt" id="aTris"></div>
+        </div>
       </div>
       <p class="hint" id="admHint"></p>
     </div>
@@ -605,6 +647,17 @@ footer{font-size:10.5px;color:var(--ink-3);text-align:center;padding:2px 0 0;lin
 </main></div>
 <div id="tip" role="status" aria-live="polite"></div>
 <div id="toast" role="status" aria-live="polite"></div>
+<div id="admGate" hidden>
+  <form class="gate-box" id="admForm">
+    <div class="logo">ADM</div>
+    <h2 id="admTitulo"></h2>
+    <p id="admTxt"></p>
+    <input type="password" id="admPass" autocomplete="off">
+    <button type="submit" class="admsave" id="admOkBtn"></button>
+    <button type="button" class="admcancel" id="admCancel"></button>
+    <div class="gate-err" id="admErr" role="alert"></div>
+  </form>
+</div>
 </div>
 
 <script>
@@ -705,7 +758,7 @@ boot(DATA0);
 
 const MES_EN = {JAN:'JAN',FEV:'FEB',MAR:'MAR',ABR:'APR',MAI:'MAY',JUN:'JUN',
                 JUL:'JUL',AGO:'AUG',SET:'SEP',OUT:'OCT',NOV:'NOV',DEZ:'DEC'};
-const TABS = ['all','top10','novos','queda','inativos','reps','estados'];
+const TABS = ['all','novos','queda','inativos','reps','estados'];
 const DEFSORT = {novos:'in', queda:'perda', inativos:'tot'};
 const PRINT_ROWS = 8;
 
@@ -733,10 +786,18 @@ const T = {
   k7:'Frete Médio Ponderado', k8:'Ticket Médio por Pedido', k9:'Concentração da Carteira',
   tkMeta:(n,i)=>n+' pedido'+(n===1?'':'s')+' · '+i+' itens por pedido',
   concMeta:(t10,n)=>'top 5 clientes · top 10 = '+t10+' · '+n+' clientes no total',
-  adm:'ADM · Metas e ponto de equilíbrio', admSub:'visível só com a senha de administração',
-  admAno:'Ano', admEq:'Ponto de equilíbrio (mês)', admMes:'Meta mensal',
-  admTri:'Meta trimestral', admAnual:'Meta anual', admSalvar:'Salvar metas',
-  admHint:'Valores em reais, sem centavos. O ponto de equilíbrio e a meta mensal viram linhas no gráfico de faturamento; as três metas viram as barrinhas de alcance embaixo dele. Deixe 0 para não exibir.',
+  adm:'ADM · Metas e ponto de equilíbrio', admSub:'aberto pelo botão ADM no topo',
+  admAno:'Ano', admEq:'Ponto de equilíbrio (mês)',
+  admMeses:m=>'Meta de cada mês de '+m, admTris:m=>'Meta de cada trimestre de '+m,
+  admAnual:'Meta anual', admSalvar:'Salvar metas', admCalc:'Somar meses',
+  admBtn:'ADM', admOn:'ADM ✓', admTitulo:'Área de administração',
+  admTxt:'Digite a senha de ADM para definir metas e ponto de equilíbrio.',
+  admEntrar:'Entrar', admCancelar:'Cancelar',
+  admLiberado:'Área ADM liberada. O card de metas está no fim da página.',
+  admMoeda:c=>'Valores em '+c+'. Deixe em branco ou 0 para não exibir a marca.',
+  admHint:'O ponto de equilíbrio vira uma linha contínua no gráfico; a meta de cada mês vira um tracinho sobre a barra daquele mês. As metas do trimestre e do ano alimentam as barrinhas de alcance embaixo do gráfico.',
+  admCalcOk:'Trimestres e ano preenchidos a partir dos meses.',
+  triMeses:{T1:'jan–mar', T2:'abr–jun', T3:'jul–set', T4:'out–dez'},
   admOk:a=>'Metas de '+a+' salvas. Todo mundo que abrir o painel já vê.',
   admErr:'Não consegui salvar as metas: ',
   admIncoer:(a,b)=>'⚠ A meta anual ('+a+') difere de 12× a mensal ('+b+'). Se for intencional, ignore.',
@@ -752,7 +813,7 @@ const T = {
   legPart:'Cobertura parcial',
   table:'Vendas por cliente', tCli:'Cliente', tCart:'Carteira', tTot:'Total ano',
   tTotal:'Total', newTitle:'Clientes novos', newTag:'novo',
-  tabs:{all:'Todos',top10:'Top 10',novos:'Clientes novos',queda:'Em queda',inativos:'Inativos no mês',
+  tabs:{all:'Todos',novos:'Clientes novos',queda:'Em queda',inativos:'Inativos no mês',
         reps:'Top representantes',estados:'Top estados'},
   colRep:'Representante', colUf:'Estado', colIn:'Entrou em', colLast:'Última compra',
   colGap:'Meses parado', colShare:'% do total', colCom:'Com. %',
@@ -814,10 +875,18 @@ const T = {
   k7:'Weighted Average Freight', k8:'Average Order Value', k9:'Customer Concentration',
   tkMeta:(n,i)=>n+' order'+(n===1?'':'s')+' · '+i+' items per order',
   concMeta:(t10,n)=>'top 5 customers · top 10 = '+t10+' · '+n+' customers overall',
-  adm:'ADMIN · Targets and break-even', admSub:'only visible with the admin password',
-  admAno:'Year', admEq:'Break-even (month)', admMes:'Monthly target',
-  admTri:'Quarterly target', admAnual:'Annual target', admSalvar:'Save targets',
-  admHint:'Values in BRL, no cents. Break-even and the monthly target become lines on the revenue chart; the three targets become the progress bars below it. Leave 0 to hide.',
+  adm:'ADMIN · Targets and break-even', admSub:'opened from the ADMIN button at the top',
+  admAno:'Year', admEq:'Break-even (month)',
+  admMeses:m=>'Target for each month of '+m, admTris:m=>'Target for each quarter of '+m,
+  admAnual:'Annual target', admSalvar:'Save targets', admCalc:'Sum months',
+  admBtn:'ADMIN', admOn:'ADMIN ✓', admTitulo:'Administration area',
+  admTxt:'Enter the admin password to set targets and break-even.',
+  admEntrar:'Enter', admCancelar:'Cancel',
+  admLiberado:'Admin area unlocked. The targets card is at the bottom of the page.',
+  admMoeda:c=>'Values in '+c+'. Leave blank or 0 to hide the mark.',
+  admHint:'Break-even becomes a solid line on the chart; each month target becomes a tick over that month bar. Quarter and year targets feed the progress bars under the chart.',
+  admCalcOk:'Quarters and year filled in from the months.',
+  triMeses:{T1:'jan–mar', T2:'apr–jun', T3:'jul–sep', T4:'oct–dec'},
   admOk:a=>'Targets for '+a+' saved. Everyone opening the report sees them.',
   admErr:'Could not save the targets: ',
   admIncoer:(a,b)=>'⚠ The annual target ('+a+') differs from 12× the monthly one ('+b+'). Ignore if intentional.',
@@ -833,7 +902,7 @@ const T = {
   legPart:'Partial coverage',
   table:'Sales by customer', tCli:'Customer', tCart:'Backlog', tTot:'YTD total',
   tTotal:'Total', newTitle:'New customers', newTag:'new',
-  tabs:{all:'All',top10:'Top 10',novos:'New customers',queda:'Declining',inativos:'Inactive this month',
+  tabs:{all:'All',novos:'New customers',queda:'Declining',inativos:'Inactive this month',
         reps:'Top reps',estados:'Top states'},
   colRep:'Sales rep', colUf:'State', colIn:'First order', colLast:'Last order',
   colGap:'Months idle', colShare:'% of total', colCom:'Comm. %',
@@ -1003,7 +1072,10 @@ function applyLang(){
   set('hTitle',L.htitle); set('hSub',L.hsub); set('themeBtn',L.theme);
   set('gTitle',L.htitle); set('gSub', SB_ON ? L.gsubDb : L.gsub); set('gBtn',L.gbtn);
   set('btnImport',L.imp); set('btnModel',L.model); set('btnSave',L.save); set('btnPdf',L.pdf);
-  set('btnOut',L.sair);
+  set('btnOut',L.sair); set('btnAdm', ADM ? L.admOn : L.admBtn);
+  set('admOkBtn',L.admEntrar); set('admCancel',L.admCancelar);
+  set('admTitulo',L.admTitulo); set('admTxt',L.admTxt);
+  const ap = el('admPass'); if (ap){ ap.placeholder = L.gpass; ap.setAttribute('aria-label',L.gpass); }
   const gp = el('gPass');
   if (gp){ gp.placeholder = L.gpass; gp.setAttribute('aria-label',L.gpass); }
   set('lFilters',L.filters); set('lRep',L.rep); set('lState',L.state);
@@ -1014,9 +1086,18 @@ function applyLang(){
   set('lK1',L.k1); set('lK2',L.k2); set('lK3',L.k3);
   set('lK4',L.k4); set('lK5',L.k5); set('lK6',L.k6); set('lK7',L.k7);
   set('lK8',L.k8); set('lK9',L.k9);
-  set('lAdm',L.adm); set('admSub',L.admSub); set('lAdmAno',L.admAno); set('lAdmEq',L.admEq);
-  set('lAdmMes',L.admMes); set('lAdmTri',L.admTri); set('lAdmAnual',L.admAnual);
-  set('aSalvar',L.admSalvar); setH('admHint',L.admHint);
+  set('lAdm',L.adm); set('admSub',L.admSub); set('lAdmAno',L.admAno);
+  set('lAdmEq',L.admEq + ' · ' + sym()); set('lAdmAnual',L.admAnual + ' · ' + sym());
+  set('aSalvar',L.admSalvar); set('aCalc',L.admCalc);
+  setH('admHint', L.admMoeda(sym()) + ' ' + L.admHint);
+  if (ADM){ const L2 = t();
+    set('lAdmMeses', L2.admMeses(el('aAno').value));
+    set('lAdmTris',  L2.admTris(el('aAno').value));
+    document.querySelectorAll('#aMeses .mcamp label').forEach((n,i)=>
+      n.innerHTML = mn(MO_ALL[i]) + ' <small>' + el('aAno').value + '</small>');
+    document.querySelectorAll('#aTris .mcamp label').forEach((n,i)=>
+      n.innerHTML = triLab(TRIS[i]) + ' <small>' + L2.triMeses[TRIS[i]] + ' · ' + el('aAno').value + '</small>');
+  }
   set('lChart1',L.chart1); set('lChart2',L.chart2); set('lChart3',L.chart3);
   set('lLegInv',L.legInv); set('lLegBack',L.legBack);
   set('lLegMg',L.legMg); set('lLegPart',L.legPart);
@@ -1136,14 +1217,22 @@ function render(){
   /* gráfico faturamento */
   const MT = metaAno();
   const semFiltro = !S.reps.size && !S.ufs.size && !S.q.trim();
-  const refs = (MT && semFiltro) ? [MT.eq, MT.mes].filter(v=>v>0) : [];
+  const marcar = MT && semFiltro;
+  const refs = marcar ? MS.map(m=>+MT.mes[m]||0).concat([MT.eq]).filter(v=>v>0) : [];
   const maxBar = Math.max.apply(null,
-    MS.map(m=>byM[m].v).concat([byM[CUR].v+totalTbi, 1]).concat(refs.map(v=>v*1.05)));
+    MS.map(m=>byM[m].v).concat([byM[CUR].v+totalTbi, 1]).concat(refs.map(v=>v*1.04)));
+  /* tracinho de meta sobre a barra de cada mês */
+  const n = MS.length, larg = 100/n;
+  const tgts = marcar ? MS.map((m,i)=>{
+    const v = +MT.mes[m] || 0; if (!v) return '';
+    return '<div class="tgt'+(byM[m].v >= v ? ' hit' : '')
+      + '" title="'+mn(m)+': '+L.refMeta+' '+money(v)+'" style="top:'+(100-v/maxBar*100)
+      + '%;left:'+(i*larg+1.2)+'%;width:'+(larg-2.4)+'%"></div>';
+  }).join('') : '';
   setH('glines',[0,25,50,75].map(p=>'<div style="top:'+p+'%"></div>').join('')
-    + ((MT && semFiltro && MT.eq>0)
+    + ((marcar && MT.eq>0)
         ? '<div class="refline eq" style="top:'+(100-MT.eq/maxBar*100)+'%"><span>'+L.refEq+' '+compact(MT.eq)+'</span></div>' : '')
-    + ((MT && semFiltro && MT.mes>0)
-        ? '<div class="refline" style="top:'+(100-MT.mes/maxBar*100)+'%"><span>'+L.refMeta+' '+compact(MT.mes)+'</span></div>' : ''));
+    + tgts);
   renderMetas(MT, byM, totalInv, semFiltro);
   drawBars('chart', MS.map(m=>{
     const v = byM[m].v, tb = (m===CUR ? totalTbi : 0);
@@ -1208,7 +1297,7 @@ function buildTabs(rows, inv, clis){
     const a = antM.reduce((x,m)=>x+(o.m[m]||0),0), b = recM.reduce((x,m)=>x+(o.m[m]||0),0);
     return a > 0 && a > b;
   }).length;
-  const counts = {all:agg(rows,r=>r.cli).length, top10:Math.min(10,agg(inv,r=>r.cli).length),
+  const counts = {all:agg(rows,r=>r.cli).length,
     novos:clis.filter(c=>FIRST[c]===M.indexOf(CUR)).length, queda:nQueda, inativos:nInat,
     reps:agg(inv,r=>r.rep||'—').length, estados:agg(inv,r=>ufOf(r)).length};
   setH('tabs', TABS.map(k=>
@@ -1233,9 +1322,8 @@ function renderTable(rows, inv, byM, totalInv, totalTbi, iCur){
     trail = [{id:'share', lab:L.colShare, get:o=>totalInv?pct(o.tot/totalInv*100):'–'}];
   } else {
     list = agg(rows, r=>r.cli);
-    if (S.tab === 'top10'){
+    if (S.tab === 'all'){
       rank = true;
-      list = list.filter(o=>o.tot>0).sort((a,b)=>b.tot-a.tot).slice(0,10);
     } else if (S.tab === 'novos'){
       list = list.filter(o=>FIRST[o.key] === iCur);
       extra = [{id:'in', lab:L.colIn,
@@ -1270,7 +1358,7 @@ function renderTable(rows, inv, byM, totalInv, totalTbi, iCur){
     : (extra.concat(trail).find(x=>x.id===k)||{}).sortv ? extra.concat(trail).find(x=>x.id===k).sortv(o)
     : k==='share' ? o.tot : k==='com' ? (o.tot?o.cw/o.tot:0)
     : (o.m[k]||0);
-  const fixed = (S.tab==='top10'||S.tab==='reps'||S.tab==='estados') && S.sort==='tot' && S.dir===-1;
+  const fixed = (S.tab==='all'||S.tab==='reps'||S.tab==='estados') && S.sort==='tot' && S.dir===-1;
   if (!fixed){
     list.sort((a,b)=>{
       const x = valOf(a,S.sort), y = valOf(b,S.sort);
@@ -1335,7 +1423,7 @@ function renderTable(rows, inv, byM, totalInv, totalTbi, iCur){
 /* faixa de alcance sob o gráfico: equilíbrio, mês, trimestre e ano */
 function renderMetas(MT, byM, totalInv, semFiltro){
   const L = t(), host = el('metas');
-  if (!MT || (!MT.eq && !MT.mes && !MT.tri && !MT.ano_)){
+  if (!temMeta(MT)){
     host.innerHTML = ADM ? '<p class="hint" style="margin:0;grid-column:1/-1">'+L.mtSemMeta+'</p>' : '';
     return;
   }
@@ -1355,18 +1443,20 @@ function renderMetas(MT, byM, totalInv, semFiltro){
     const p = ativos.length ? acima/ativos.length*100 : 0;
     out.push(item(L.mtEq, L.mtMeses(acima, ativos.length), p, acima===ativos.length ? 'ok' : (acima ? '' : 'low')));
   }
-  if (MT.mes > 0){
-    const p = byM[CUR].v / MT.mes * 100;
+  const alvoMes = +MT.mes[CUR] || 0;
+  if (alvoMes > 0){
+    const p = byM[CUR].v / alvoMes * 100;
     out.push(item(L.mtMes + ' · ' + mn(CUR),
-      pct(p) + '<small>' + money(byM[CUR].v) + ' / ' + compact(MT.mes) + '</small>', p, cls(p)));
+      pct(p) + '<small>' + money(byM[CUR].v) + ' / ' + compact(alvoMes) + '</small>', p, cls(p)));
   }
-  if (MT.tri > 0){
-    const iq = Math.floor(MO_ALL.indexOf(CUR)/3);
+  const iq = Math.floor(MO_ALL.indexOf(CUR)/3), qk = 'T'+(iq+1);
+  const alvoTri = +MT.tri[qk] || 0;
+  if (alvoTri > 0){
     const meses = MO_ALL.filter((m,i)=>Math.floor(i/3)===iq && MS.indexOf(m) >= 0);
     const v = meses.reduce((a,m)=>a + (byM[m] ? byM[m].v : 0), 0);
-    const p = v / MT.tri * 100;
+    const p = v / alvoTri * 100;
     out.push(item(L.mtTri + ' · ' + (S.lang==='en'?'Q':'T') + (iq+1),
-      pct(p) + '<small>' + money(v) + ' / ' + compact(MT.tri) + '</small>', p, cls(p)));
+      pct(p) + '<small>' + money(v) + ' / ' + compact(alvoTri) + '</small>', p, cls(p)));
   }
   if (MT.ano_ > 0){
     const p = totalInv / MT.ano_ * 100;
@@ -1416,8 +1506,10 @@ function afterBoot(){
   S.geo = TEM_UF ? 'uf' : 'wh';
   S.ufs.clear(); syncGeo();
 }
-const syncCur = pillGroup('fCur','cur');
-pillGroup('fLang','lang', ()=>{ S.cur = S.lang==='en' ? 'USD' : 'BRL'; syncCur(); });
+const syncCur = pillGroup('fCur','cur', ()=>{ const a = CUR_ANT; CUR_ANT = S.cur; admMoeda(a); });
+pillGroup('fLang','lang', ()=>{
+  const a = CUR_ANT; S.cur = S.lang==='en' ? 'USD' : 'BRL'; CUR_ANT = S.cur; syncCur(); admMoeda(a);
+});
 
 el('tabs').addEventListener('click', e=>{
   const b = e.target.closest('.tab'); if(!b || S.tab===b.dataset.tab) return;
@@ -1713,7 +1805,6 @@ function dataFromDb(rows, imp){
 async function sbLoadData(senha){
   const d = await sbRpc('wgi_painel_dados', {p_senha: senha});
   METAS = (d && d.metas) || {};
-  ADM = !!(d && d.adm);
   if (!d || d.vazio || !d.rows || !d.rows.length) return null;
   return dataFromDb(d.rows, d.imp || {});
 }
@@ -1721,8 +1812,15 @@ async function sbLoadData(senha){
 function metaAno(){
   const a = S.anos.size ? [...S.anos].sort().pop() : String(DATA.ano);
   const m = METAS[a] || METAS[String(DATA.ano)] || null;
-  return m ? {ano:a, eq:+m.equilibrio||0, mes:+m.mensal||0, tri:+m.trimestral||0, ano_:+m.anual||0} : null;
+  if (!m) return null;
+  return {ano:a, eq:+m.equilibrio||0, ano_:+m.anual||0,
+          mes: m.mensais || {}, tri: m.trimestrais || {}};
 }
+const TRIS = ['T1','T2','T3','T4'];
+const triLab = q => (S.lang==='en' ? 'Q' : 'T') + q.slice(1);
+const triDoMes = m => 'T' + (Math.floor(MO_ALL.indexOf(m)/3) + 1);
+const temMeta = MT => !!MT && (MT.eq > 0 || MT.ano_ > 0
+  || MO_ALL.some(m=>+MT.mes[m] > 0) || TRIS.some(q=>+MT.tri[q] > 0));
 async function sbSave(){
   const d = await sbRpc('wgi_painel_salvar', {
     p_senha: SENHA, p_arquivo: DATA.fonte, p_fx: DATA.fx,
@@ -1735,7 +1833,7 @@ function applyRole(){
   const ger = AUTH.role === 'gerencia';
   el('btnOut').hidden = false;
   el('btnImport').hidden = !ger;
-  if (ADM){ el('admCard').hidden = false; admFill(); }
+
   if (!ger && AUTH.rep){
     S.reps = new Set([AUTH.rep]);
     const b = document.querySelector('#msRep .ms-btn');
@@ -1744,40 +1842,139 @@ function applyRole(){
 }
 
 /* ================= área ADM: metas e ponto de equilíbrio ================= */
+let SENHA_ADM = '', CUR_ANT = 'BRL';
+
+/* trocar a moeda converte o que está digitado, sem perder edição não salva */
+function admMoeda(anterior){
+  const L = t();
+  set('lAdmEq',    L.admEq    + ' · ' + sym());
+  set('lAdmAnual', L.admAnual + ' · ' + sym());
+  setH('admHint',  L.admMoeda(sym()) + ' ' + L.admHint);
+  if (!ADM || anterior === S.cur) return;
+  document.querySelectorAll('input.moeda').forEach(i=>poeCampo(i, leCampo(i)));
+}
+
+/* campos de dinheiro: mostram 30.000 / 30,000 conforme o idioma e guardam BRL */
+const moedaFmt = v => v ? nf0(v) : '';
+const moedaLe = txt => {
+  const t = String(txt||'').replace(/[^\d,.-]/g,'');
+  if (!t) return 0;
+  const v = S.lang === 'en'
+    ? parseFloat(t.replace(/,/g,''))
+    : parseFloat(t.replace(/\./g,'').replace(',','.'));
+  return isFinite(v) && v > 0 ? v : 0;
+};
+/* Cada campo carrega o valor exato em BRL no data-brl; a tela é só a
+   apresentação na moeda escolhida. Assim trocar R$/US$ não gera arredondamento. */
+function poeCampo(input, brl){
+  if (!input) return;
+  input.dataset.brl = brl || 0;
+  input.value = brl ? moedaFmt(conv(brl)) : '';
+}
+function leCampo(input){
+  if (!input) return 0;
+  return +input.dataset.brl || 0;
+}
+/* o que o usuário digitou passa a ser o novo valor em BRL */
+function sincCampo(input){
+  const v = moedaLe(input.value), base = +input.dataset.brl || 0;
+  /* se o texto na tela ainda é a apresentação do valor guardado, mantém o
+     valor exato — evita R$ 22.000 virar 22.001 ao passear por US$ */
+  if (base && moedaFmt(conv(base)) === moedaFmt(v)){ input.value = moedaFmt(conv(base)); return; }
+  poeCampo(input, S.cur === 'BRL' ? v : v * FX);
+}
+
 function admFill(){
+  const L = t();
   const anos = [...new Set(ANOS.concat([String(DATA.ano), String(new Date().getFullYear())]))].sort();
-  const sel = el('aAno');
-  const atual = sel.value || String(DATA.ano);
+  const sel = el('aAno'), atual = sel.value || String(DATA.ano);
   setH('aAno', anos.map(a=>'<option'+(a===atual?' selected':'')+'>'+a+'</option>').join(''));
+  const ano = el('aAno').value;
+  set('lAdmMeses', L.admMeses(ano));
+  set('lAdmTris',  L.admTris(ano));
+  setH('aMeses', MO_ALL.map(m=>
+    '<div class="mcamp"><label for="am_'+m+'">'+mn(m)+' <small>'+ano+'</small></label>'
+    + '<input type="text" inputmode="decimal" class="moeda" id="am_'+m+'" data-mes="'+m+'"></div>').join(''));
+  setH('aTris', TRIS.map(q=>
+    '<div class="mcamp tri"><label for="at_'+q+'">'+triLab(q)+' <small>'+L.triMeses[q]+' · '+ano+'</small></label>'
+    + '<input type="text" inputmode="decimal" class="moeda" id="at_'+q+'" data-tri="'+q+'"></div>').join(''));
   admCarrega();
 }
 function admCarrega(){
   const m = METAS[el('aAno').value] || {};
-  el('aEq').value    = +m.equilibrio || '';
-  el('aMes').value   = +m.mensal     || '';
-  el('aTri').value   = +m.trimestral || '';
-  el('aAnual').value = +m.anual      || '';
+  const mm = m.mensais || {}, tt = m.trimestrais || {};
+  poeCampo(el('aEq'),    +m.equilibrio || 0);
+  poeCampo(el('aAnual'), +m.anual || 0);
+  MO_ALL.forEach(k=>poeCampo(el('am_'+k), +mm[k] || 0));
+  TRIS.forEach(k=>poeCampo(el('at_'+k), +tt[k] || 0));
 }
-el('aAno').onchange = admCarrega;
+/* ao sair do campo, reescreve formatado */
+document.addEventListener('blur', e=>{
+  if (e.target && e.target.classList && e.target.classList.contains('moeda')) sincCampo(e.target);
+}, true);
+
+el('aAno').onchange = admFill;
+el('aCalc').onclick = () => {
+  document.querySelectorAll('input.moeda').forEach(sincCampo);
+  const mv = MO_ALL.map(m=>leCampo(el('am_'+m)));
+  TRIS.forEach((q,i)=>poeCampo(el('at_'+q), mv[i*3] + mv[i*3+1] + mv[i*3+2]));
+  poeCampo(el('aAnual'), mv.reduce((a,v)=>a+v, 0));
+  toast(t().admCalcOk);
+};
 el('aSalvar').onclick = async () => {
-  const L = t(), btn = el('aSalvar');
-  const ano = +el('aAno').value;
-  const eq = +el('aEq').value || 0, me = +el('aMes').value || 0;
-  const tr = +el('aTri').value || 0, an = +el('aAnual').value || 0;
+  const L = t(), btn = el('aSalvar'), ano = +el('aAno').value;
+  document.querySelectorAll('input.moeda').forEach(sincCampo);
+  const mensais = {}, tris = {};
+  MO_ALL.forEach(m=>{ mensais[m] = leCampo(el('am_'+m)); });
+  TRIS.forEach(q=>{ tris[q] = leCampo(el('at_'+q)); });
+  const eq = leCampo(el('aEq')), anual = leCampo(el('aAnual'));
   btn.disabled = true;
   try{
     await sbRpc('wgi_painel_salvar_metas',
-      {p_senha: SENHA, p_ano: ano, p_equilibrio: eq, p_mensal: me, p_trimestral: tr, p_anual: an});
-    METAS[String(ano)] = {equilibrio: eq, mensal: me, trimestral: tr, anual: an};
+      {p_senha: SENHA_ADM, p_ano: ano, p_equilibrio: eq, p_anual: anual,
+       p_mensais: mensais, p_trimestrais: tris});
+    METAS[String(ano)] = {equilibrio: eq, anual: anual, mensais: mensais, trimestrais: tris};
     render();
+    const soma = MO_ALL.reduce((a,m)=>a + mensais[m], 0);
     let msg = L.admOk(ano);
-    if (an > 0 && me > 0 && Math.abs(an - me*12) / an > 0.02)
-      msg += '  ' + L.admIncoer(compact(an), compact(me*12));
+    if (anual > 0 && soma > 0 && Math.abs(anual - soma)/anual > 0.02)
+      msg += '  ' + L.admIncoer(compact(anual), compact(soma));
     toast(msg);
   } catch(err){
     toast(L.admErr + ((err && err.message) ? err.message : err), true);
   } finally { btn.disabled = false; }
 };
+
+/* botão ADM no topo: pede a senha só na hora */
+function abreAdmGate(){
+  el('admGate').hidden = false;
+  set('admErr',''); el('admPass').value = ''; el('admPass').focus();
+}
+el('btnAdm').onclick = () => {
+  if (ADM){ el('admCard').scrollIntoView({behavior:'smooth', block:'center'}); return; }
+  abreAdmGate();
+};
+el('admCancel').onclick = () => { el('admGate').hidden = true; };
+el('admGate').addEventListener('click', e=>{ if (e.target.id === 'admGate') el('admGate').hidden = true; });
+el('admForm').addEventListener('submit', async e=>{
+  e.preventDefault();
+  const L = t(), pw = el('admPass'), btn = el('admOkBtn');
+  btn.disabled = true; set('admErr','');
+  try{
+    const ok = await sbRpc('wgi_painel_eh_adm', {p_senha: pw.value.trim()});
+    if (!ok) throw new Error(L.gerr);
+    SENHA_ADM = pw.value.trim();
+    ADM = true;
+    el('admGate').hidden = true;
+    el('admCard').hidden = false;
+    set('btnAdm', L.admOn);
+    admFill();
+    el('admCard').scrollIntoView({behavior:'smooth', block:'center'});
+    toast(L.admLiberado);
+  } catch(err){
+    set('admErr', (err && err.message) ? err.message : String(err)); pw.select();
+  } finally { btn.disabled = false; }
+});
 
 /* ================= modelo .xlsx gerado na propria pagina =================
    Escreve um .xlsx valido sem biblioteca: zip com entradas "stored" (sem
