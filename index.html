@@ -14,6 +14,7 @@
   --ink:#26252A; --ink-2:#5A555C; --ink-3:#8B858E;
   --line:#E3E0DD; --line-2:#EFECE9;
   --s1:#9E2438; --s2:#B8801F; --s3:#1E6FB8; --s4:#4E7A1E;
+  --wh-in:#9E2438; --wh-in-tx:#FFFFFF; --wh-out:#80705C; --wh-out-tx:#FFFFFF;
   --pos:#2C6B4F; --neg:#A33A2A;
   --chip:#F6F4F1;
   --shadow:0 1px 2px rgba(38,37,42,.06),0 1px 8px rgba(38,37,42,.04);
@@ -24,7 +25,8 @@
     --bg:#141316; --card:#1E1C21; --sunk:#26232A;
     --ink:#F0EDEA; --ink-2:#B4ADB5; --ink-3:#847D88;
     --line:#332F38; --line-2:#2A272F;
-    --s1:#C4536A; --s2:#B8842C; --s3:#5B92E0; --s4:#6E9430; --s4:#6E9430;
+    --s1:#C4536A; --s2:#B8842C; --s3:#5B92E0; --s4:#6E9430;
+    --wh-in:#C4536A; --wh-in-tx:#FFFFFF; --wh-out:#B6A084; --wh-out-tx:#241F26;
     --pos:#5FA37E; --neg:#D97A62;
     --chip:#2A272F;
     --shadow:0 1px 2px rgba(0,0,0,.4);
@@ -36,6 +38,7 @@
   --ink:#F0EDEA; --ink-2:#B4ADB5; --ink-3:#847D88;
   --line:#332F38; --line-2:#2A272F;
   --s1:#C4536A; --s2:#B8842C; --s3:#5B92E0; --s4:#6E9430;
+  --wh-in:#C4536A; --wh-in-tx:#FFFFFF; --wh-out:#B6A084; --wh-out-tx:#241F26;
   --pos:#5FA37E; --neg:#D97A62;
   --chip:#2A272F;
   --shadow:0 1px 2px rgba(0,0,0,.4);
@@ -232,14 +235,14 @@ input[type="search"]{
 /* dentro x fora do estado */
 .split{display:flex;height:24px;border-radius:6px;overflow:hidden;background:var(--sunk);margin-bottom:11px}
 .split span{display:flex;align-items:center;justify-content:center;min-width:0;white-space:nowrap;
-  font-family:"Archivo Narrow",Archivo,sans-serif;font-size:10.5px;font-weight:700;color:#fff}
-.split .in{background:var(--s4)}
-.split .out{background:var(--s3)}
-.split .nou{background:var(--ink-3)}
+  font-family:"Archivo Narrow",Archivo,sans-serif;font-size:10.5px;font-weight:700}
+.split .in{background:var(--wh-in);color:var(--wh-in-tx)}
+.split .out{background:var(--wh-out);color:var(--wh-out-tx)}
+.split .nou{background:var(--ink-3);opacity:.5}
 .hbars.whb .hb{grid-template-columns:86px 1fr auto auto;font-size:11.5px}
 .hbars.whb .hb .uf{letter-spacing:.02em;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
-.hb .fill.in{background:var(--s4)}
-.hb .fill.out{background:var(--s3)}
+.hb .fill.in{background:var(--wh-in)}
+.hb .fill.out{background:var(--wh-out)}
 .hb .fill.nou{background:var(--ink-3);opacity:.55}
 .dests{display:flex;flex-wrap:wrap;align-items:center;gap:6px;margin-top:10px}
 .dests .dlab{font-size:10px;font-weight:700;letter-spacing:.07em;text-transform:uppercase;
