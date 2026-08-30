@@ -320,6 +320,17 @@ input.moeda:focus{outline:2px solid var(--wine-soft);outline-offset:1px}
   padding:6px 14px;border-radius:7px 7px 0 0;cursor:pointer;white-space:nowrap;margin-bottom:-1px}
 .cst-guia[aria-selected="true"]{background:var(--card);color:var(--s2);border-color:var(--line);
   box-shadow:inset 0 2px 0 var(--s2)}
+.cst-fil{display:flex;align-items:center;gap:9px;padding:9px 14px;
+  border-bottom:1px solid var(--line);background:var(--sunk)}
+.cst-fil input{flex:1;min-width:0;font:inherit;font-size:12.5px;color:var(--ink);
+  background:var(--card);border:1px solid var(--line);border-radius:8px;padding:6px 9px}
+.cst-fil input:focus{outline:2px solid var(--s2);outline-offset:-1px}
+.cst-fil .cnt{font-size:10.5px;color:var(--ink-3);white-space:nowrap;
+  font-variant-numeric:tabular-nums}
+.cst-fil button{font:inherit;font-size:11px;font-weight:600;padding:5px 10px;
+  border:1px solid var(--line);border-radius:8px;background:var(--card);
+  color:var(--ink-2);cursor:pointer;white-space:nowrap}
+.cst-fil button[aria-pressed="true"]{background:var(--s2);color:#fff;border-color:var(--s2)}
 .cst-grid{overflow:auto;flex:1;min-height:0}
 table.cst{border-collapse:separate;border-spacing:0;width:100%;font-size:12px}
 table.cst th{position:sticky;top:0;z-index:2;background:var(--sunk);color:var(--ink-3);
@@ -762,6 +773,11 @@ footer{font-size:10.5px;color:var(--ink-3);text-align:center;padding:2px 0 0;lin
       </span>
     </div>
     <div class="cst-guias" id="cstGuias" role="tablist"></div>
+    <div class="cst-fil">
+      <input type="search" id="cstQ" autocomplete="off">
+      <button type="button" id="cstUso" aria-pressed="false"></button>
+      <span class="cnt" id="cstCnt"></span>
+    </div>
     <div class="cst-grid" id="cstGrid"></div>
     <p class="hint" id="cstHint"></p>
   </div>
@@ -983,6 +999,9 @@ const T = {
   cstTitulo:'Tabela de custos', cstAdd:'+ Linha', cstSalvar:'Salvar', cstFechar:'Fechar',
   cstSub:(n,f)=>n+' itens · '+f,
   cstItem:'ID limpo', cstMenor:m=>'menor: '+m,
+  cstBusca:'Filtrar item (ex.: 7FB55, 9800, WENFUSE)…',
+  cstUso:'Só os vendidos', cstCnt:(n,tt)=>n+' de '+tt+' itens',
+  cstVazio:'Nenhum item com esse filtro.',
   cstHint:f=>'Cada guia é uma fonte de custo. Célula vazia = item não disponível em <b>'+f+'</b>: '
     +'o relatório usa então o menor custo do mesmo código entre as outras guias (o valor aparece em cinza na célula). '
     +'Custo unitário por metro, em reais. As linhas usadas nas vendas do período aparecem com o número destacado. '
@@ -1104,6 +1123,9 @@ const T = {
   cstTitulo:'Cost table', cstAdd:'+ Row', cstSalvar:'Save', cstFechar:'Close',
   cstSub:(n,f)=>n+' items · '+f,
   cstItem:'Clean ID', cstMenor:m=>'lowest: '+m,
+  cstBusca:'Filter item (e.g. 7FB55, 9800, WENFUSE)…',
+  cstUso:'Sold only', cstCnt:(n,tt)=>n+' of '+tt+' items',
+  cstVazio:'No item matches this filter.',
   cstHint:f=>'Each tab is one cost source. An empty cell means the item is not available in <b>'+f+'</b>: '
     +'the report then uses the lowest cost for the same code across the other tabs (shown greyed in the cell). '
     +'Unit cost per metre, in BRL. Rows used by sales in the period have a highlighted number. '
@@ -1279,6 +1301,9 @@ function applyLang(){
   set('lCusto',L.custo); set('lCur',L.cur); set('lSearch',L.search);
   set('btnCustos',L.verCustos); set('cstTitulo',L.cstTitulo);
   set('cstAdd',L.cstAdd); set('cstSave',L.cstSalvar); set('cstClose',L.cstFechar);
+  set('cstUso',L.cstUso);
+  const cq = el('cstQ');
+  if (cq){ cq.placeholder = L.cstBusca; cq.setAttribute('aria-label', L.cstBusca); }
   if (!el('cstModal').hidden) cstRender();
   el('fQ').placeholder = L.searchPh;
   set('lK1',L.k1); set('lK2',L.k2); set('lK3',L.k3);
@@ -1846,7 +1871,7 @@ function spark(id, vals, hi){
 /* ---------- tela de custos: uma guia por fonte, celulas simples ----------
    Nao e uma planilha de verdade: so linhas e colunas para conferir e digitar.
    O estado editado fica em CST_EDIT ate o botao Salvar. */
-let CST_EDIT = null, CST_GUIA = 0;
+let CST_EDIT = null, CST_GUIA = 0, CST_Q = '', CST_USO = false;
 const cstNum = v => {
   const x = String(v == null ? '' : v).trim().replace(/\s/g,'');
   if (!x) return 0;
@@ -1862,21 +1887,29 @@ function cstAbrir(){
     sku: k, v: CUSTOS.fontes.map((f,i)=> +CUSTOS.itens[k][i] || 0)
   }));
   CST_GUIA = Math.max(0, CUSTOS.fontes.indexOf(S.custo));
+  CST_Q = ''; CST_USO = false;
+  el('cstQ').value = ''; el('cstUso').setAttribute('aria-pressed','false');
   el('cstModal').hidden = false;
   cstRender();
 }
 function cstRender(){
   const L = t(), f = CUSTOS.fontes[CST_GUIA] || '';
   const usados = new Set(R.filter(r=>r.st==='I' && r.sku).map(r=>r.sku));
+  /* o filtro so esconde linhas: o indice de cada uma continua o mesmo,
+     entao editar uma celula filtrada altera o item certo */
+  const q = normSku(CST_Q);
+  const vis = CST_EDIT.map((o,i)=>[o,i]).filter(x=>
+    (!q || x[0].sku.indexOf(q) >= 0) && (!CST_USO || usados.has(x[0].sku)));
   set('cstSub', L.cstSub(CST_EDIT.length, CUSTOS.arquivo || f));
+  set('cstCnt', L.cstCnt(vis.length, CST_EDIT.length));
   setH('cstGuias', CUSTOS.fontes.map((x,i)=>
     '<button type="button" class="cst-guia" role="tab" data-g="'+i+'" aria-selected="'
     + (i===CST_GUIA) + '">' + esc(x) + '</button>').join(''));
   setH('cstGrid',
     '<table class="cst"><thead><tr><th class="rn"></th><th>'+esc(L.cstItem)+'</th>'
     + '<th class="num">'+esc(f)+' · R$</th></tr></thead><tbody>'
-    + CST_EDIT.map((o,i)=>{
-        const alt = o.v.filter(x=>x>0);
+    + (vis.length ? vis.map(x=>{
+        const o = x[0], i = x[1], alt = o.v.filter(y=>y>0);
         const ph = (!o.v[CST_GUIA] && alt.length) ? L.cstMenor(cstTxt(Math.min.apply(null,alt))) : '';
         return '<tr'+(usados.has(o.sku)?' class="usada"':'')+'>'
           + '<td class="rn">'+(i+1)+'</td>'
@@ -1884,9 +1917,17 @@ function cstRender(){
           + '<td><input class="num" data-i="'+i+'" data-k="v" value="'+esc(cstTxt(o.v[CST_GUIA]))+'"'
           + (ph ? ' placeholder="'+esc(ph)+'"' : '') + '></td></tr>';
       }).join('')
+      : '<tr><td class="empty" colspan="3" style="padding:14px;color:var(--ink-3)">'
+        + esc(L.cstVazio) + '</td></tr>')
     + '</tbody></table>');
   setH('cstHint', L.cstHint(f));
 }
+el('cstQ').addEventListener('input', e=>{ CST_Q = e.target.value; cstRender(); });
+el('cstUso').onclick = () => {
+  CST_USO = !CST_USO;
+  el('cstUso').setAttribute('aria-pressed', CST_USO);
+  cstRender();
+};
 el('cstGuias').addEventListener('click', e=>{
   const b = e.target.closest('button'); if (!b) return;
   CST_GUIA = +b.dataset.g; cstRender();
@@ -1899,6 +1940,8 @@ el('cstGrid').addEventListener('input', e=>{
 });
 el('cstAdd').onclick = () => {
   CST_EDIT.push({sku:'', v:CUSTOS.fontes.map(()=>0)});
+  CST_Q = ''; CST_USO = false;
+  el('cstQ').value = ''; el('cstUso').setAttribute('aria-pressed','false');
   cstRender();
   const ins = el('cstGrid').querySelectorAll('input[data-k="sku"]');
   const last = ins[ins.length-1]; if (last){ last.focus(); last.scrollIntoView({block:'center'}); }
