@@ -577,6 +577,9 @@ footer{font-size:10.5px;color:var(--ink-3);text-align:center;padding:2px 0 0;lin
             <button type="button" data-v="uf" id="lGeoUf"></button>
           </div>
         </div>
+        <div class="fgrp" id="grpCusto" hidden><span class="lb" id="lCusto"></span>
+          <div class="pills" id="fCusto"></div>
+        </div>
         <div class="fgrp"><span class="lb" id="lCur"></span>
           <div class="pills" id="fCur">
             <button type="button" data-v="BRL">R$</button>
@@ -735,7 +738,6 @@ const UF_CLIENTE = {
   "ELVA CONFECCOES LTDA": "",
   "EPELBAUM COMERCIO DE PRODUTOS LTDA": "",
   "F. F. FASHION FACTORY LTDA": "",
-  "FERNANDES CONFECÇÃO LTDA": "",
   "FLOR LINDA CONFECCOES LTDA": "",
   "HALAVE CONFECCOES LTDA": "",
   "IMAPER INDUSTRIA E COMERCIO LTDA": "",
@@ -759,6 +761,7 @@ const UF_CLIENTE = {
   "T. B. DE ANDRADE CONFECCAO LTDA": "",
   "TARC DUBLAGENS INDUSTRIAIS LTDA": "",
   "TECIDOS N.A. COMERCIAL LTDA.": "",
+  "THYAGO DALL EVEDOVE TEIXEIRA": "",
   "TUTTO PRINT INDUSTRIA E COMERCIO LTDA": "",
   "VIDA-LOKA CONFECCOES LTDA": "",
   "VIENAS COMERCIO DE TECIDOS LTDA": "",
@@ -777,15 +780,22 @@ const normUf = v => {
   const x = String(v == null ? '' : v).trim().toUpperCase();
   return (!x || x === '#N/A' || x === '#N/D' || x === 'N/A' || x === '-' || x === '0') ? null : x;
 };
+/* O SKU liga a venda (coluna "SKU LIMPO", AF) ao custo. Comparamos sem
+   espacos: "WENFUSE 15 0100" e "WENFUSE15 0100" sao o mesmo item. */
+const normSku = v => String(v == null ? '' : v).toUpperCase().replace(/\s+/g, '');
+/* custos por SKU: {fontes:['COGS1',...], itens:{SKU:[c1,c2,l1,l2]}} */
+let CUSTOS = {fontes:['COGS1','COGS2','LANDED1','LANDED2'], itens:{}, arquivo:''};
+let CUSTO_USO = {dir:0, alt:0, sem:0};
 let DATA = DATA0, M, MS, CUR, FX, COLS, R, ANOS, FIRST, LAST, FIRSTD, TEM_UF = false, SEM_UF = 0;
 let WHS = [];
 function boot(d){
   DATA = d;
   M = DATA.meses; FX = DATA.fx;
   R = DATA.rows.map(r => ({mes:r[0],rep:r[1],wh:r[2],st:r[3],cli:r[4],brl:r[5],
-                           qtd:r[6],ped:r[7],dt:r[8],com:r[9],mg:r[10],
+                           qtd:r[6],ped:r[7],dt:r[8],com:r[9],
+                           mg:r[10], mg0:r[10], cu:null, cufb:false,
                            frRaw:(r[11]===undefined?null:r[11]), frt:0, frb:0,
-                           uf:normUf(r[12]),
+                           uf:normUf(r[12]), sku:normSku(r[13]),
                            ano:(r[8]?String(r[8]).slice(0,4):String(DATA.ano))}));
   TEM_UF = R.some(r=>r.uf);
   const whv = {};
@@ -902,6 +912,13 @@ const T = {
   noRows:'Nada para exibir com os filtros selecionados.',
   noNew:'Sem clientes novos no período filtrado.',
   geoLabWh:'Armazém de origem', geoLabUf:'UF do cliente',
+  custo:'Custo', custoSem:'Nenhuma tabela de custo carregada.',
+  custoHint:(f,a,b,c)=>'Margem calculada por <b>'+f+'</b>: (venda − quantidade × custo unitário) ÷ venda, '
+    +'ligando a venda ao custo pelo <code>SKU LIMPO</code>. '+a+'% do faturamento usa o custo da própria fonte, '
+    +b+'% usa o menor custo disponível para o mesmo código (a fonte não tem preço para o item)'
+    +(+c>0 ? ' e '+c+'% fica com a margem informada na planilha de vendas (item sem custo em nenhuma tabela).' : '.'),
+  custoOk:(f,n)=>'Tabela de custos carregada: '+n+' itens de '+f+'.',
+  custoSalvo:n=>'Custos gravados no banco: '+n+' itens.',
   chart4:'Dentro × fora do estado', whCrit:'Armazém',
   whIn:u=>'Dentro de '+u, whOut:u=>'Fora de '+u, whNoUf:'Sem UF',
   whDest:'Destinos fora do estado',
@@ -1006,6 +1023,13 @@ const T = {
   noRows:'Nothing to show with the selected filters.',
   noNew:'No new customers in the filtered period.',
   geoLabWh:'Origin warehouse', geoLabUf:'Customer state',
+  custo:'Cost', custoSem:'No cost table loaded.',
+  custoHint:(f,a,b,c)=>'Margin from <b>'+f+'</b>: (sale − quantity × unit cost) ÷ sale, '
+    +'matching sale to cost by <code>SKU LIMPO</code>. '+a+'% of revenue uses the cost from that source, '
+    +b+'% uses the cheapest cost available for the same code (the source has no price for the item)'
+    +(+c>0 ? ' and '+c+'% keeps the margin reported in the sales workbook (item with no cost in any table).' : '.'),
+  custoOk:(f,n)=>'Cost table loaded: '+n+' items from '+f+'.',
+  custoSalvo:n=>'Costs saved to the database: '+n+' items.',
   chart4:'In-state × out-of-state', whCrit:'Warehouse',
   whIn:u=>'Within '+u, whOut:u=>'Outside '+u, whNoUf:'No state',
   whDest:'Out-of-state destinations',
@@ -1035,7 +1059,7 @@ const T = {
 };
 
 const S = {reps:new Set(), ufs:new Set(), anos:new Set(), meses:new Set(),
-           geo: TEM_UF ? 'uf' : 'wh', wh: WHS[0] || null,
+           geo: TEM_UF ? 'uf' : 'wh', wh: WHS[0] || null, custo: CUSTOS.fontes[0],
            cur:'BRL', q:'', sort:'tot', dir:-1, lang:'pt', tab:'all'};
 /* recalcula o periodo visivel: meses selecionados (ou todos), o "mes atual"
    passa a ser o ultimo mes da selecao */
@@ -1173,7 +1197,7 @@ function applyLang(){
   set('lFilters',L.filters); set('lRep',L.rep); set('lState',L.state);
   set('lYear',L.year); set('lMonth',L.month);
   set('lGeo',L.geo); set('lGeoWh',L.geoWh); set('lGeoUf',L.geoUf);
-  set('lCur',L.cur); set('lSearch',L.search);
+  set('lCusto',L.custo); set('lCur',L.cur); set('lSearch',L.search);
   el('fQ').placeholder = L.searchPh;
   set('lK1',L.k1); set('lK2',L.k2); set('lK3',L.k3);
   set('lK4',L.k4); set('lK5',L.k5); set('lK6',L.k6); set('lK7',L.k7);
@@ -1204,7 +1228,36 @@ function applyLang(){
 }
 
 /* ================= render ================= */
+/* Margem por custo: (venda - qtd x custo unitario) / venda.
+   A fonte escolhida manda; se o item estiver zerado nela, entra o MENOR
+   custo disponivel entre as outras tabelas do mesmo codigo. Sem custo em
+   nenhuma tabela, fica a margem que veio na planilha de vendas. */
+function aplicaCusto(){
+  const i = CUSTOS.fontes.indexOf(S.custo);
+  CUSTO_USO = {dir:0, alt:0, sem:0};
+  R.forEach(r=>{
+    const c = r.sku ? CUSTOS.itens[r.sku] : null;
+    let u = 0, fb = false;
+    if (c){
+      u = +c[i] || 0;
+      if (!u){
+        const d = c.map(x=>+x||0).filter(x=>x>0);
+        if (d.length){ u = Math.min.apply(null, d); fb = true; }
+      }
+    }
+    if (u > 0 && r.qtd > 0 && r.brl > 0){
+      r.cu = u; r.cufb = fb; r.mg = (r.brl - r.qtd*u)/r.brl;
+      if (r.st==='I') CUSTO_USO[fb ? 'alt' : 'dir'] += r.brl;
+    } else {
+      r.cu = null; r.cufb = false; r.mg = r.mg0;
+      if (r.st==='I') CUSTO_USO.sem += r.brl;
+    }
+  });
+}
+function temCustos(){ return !!Object.keys(CUSTOS.itens).length; }
+
 function render(){
+  if (temCustos()) aplicaCusto();
   setPeriod();
   const L = t(), rows = filtered();
   const inv = rows.filter(r=>r.st==='I'), tbi = rows.filter(r=>r.st==='T');
@@ -1253,6 +1306,7 @@ function render(){
 
   /* 2b · dentro x fora do estado (WH x Customer UF) */
   renderWh(inv);
+  syncCustoPills();
 
   /* 3 · média */
   setH('kAvg','<small>'+sym()+'</small>'+compact(avg));
@@ -1359,7 +1413,7 @@ function render(){
        + (x.p===null ? L.tipNoMg
          : '<b>'+pct(x.p)+'</b> '+L.tipMg+'<br>'+L.tipCov+': '+nf0(x.cov)+'% '+L.tipInv)
   })));
-  setH('mgHint', L.mgHint(nf0(covTot)));
+  setH('mgHint', temCustos() ? custoHintTxt() : L.mgHint(nf0(covTot)));
 
   /* abas + tabela */
   buildTabs(rows, inv, clis);
@@ -1707,6 +1761,28 @@ function spark(id, vals, hi){
     '<i class="'+(i===hi?'on':'')+'" style="height:'+Math.max(6,Math.abs(v)/max*100)+'%"></i>').join(''));
 }
 
+/* chave seletora da fonte de custo (COGS1 / COGS2 / LANDED1 / LANDED2) */
+function syncCustoPills(){
+  const g = el('fCusto'), grp = el('grpCusto'); if (!g) return;
+  const on = temCustos() && CUSTOS.fontes.length > 0;
+  grp.hidden = !on;
+  if (!on) return;
+  if (CUSTOS.fontes.indexOf(S.custo) < 0) S.custo = CUSTOS.fontes[0];
+  const k = CUSTOS.fontes.join('|');
+  if (g.dataset.k !== k){
+    g.dataset.k = k;
+    setH('fCusto', CUSTOS.fontes.map(f=>
+      '<button type="button" data-v="'+esc(f)+'">'+esc(f)+'</button>').join(''));
+  }
+  g.querySelectorAll('button').forEach(b=>b.setAttribute('aria-pressed', S.custo===b.dataset.v));
+}
+function custoHintTxt(){
+  const L = t(), tt = CUSTO_USO.dir + CUSTO_USO.alt + CUSTO_USO.sem;
+  if (!tt) return L.custoSem;
+  const p = v => nf0(v/tt*100);
+  return L.custoHint(S.custo, p(CUSTO_USO.dir), p(CUSTO_USO.alt), p(CUSTO_USO.sem));
+}
+
 /* dentro x fora do estado: compara o armazem de origem (WH) com a UF do cliente */
 function syncWhPills(){
   const g = el('fWh'); if (!g) return;
@@ -1808,6 +1884,10 @@ whb.addEventListener('mouseleave', hideTip);
 el('fWh').addEventListener('click', e=>{
   const b = e.target.closest('button'); if(!b || S.wh===b.dataset.v) return;
   S.wh = b.dataset.v; render();
+});
+el('fCusto').addEventListener('click', e=>{
+  const b = e.target.closest('button'); if(!b || S.custo===b.dataset.v) return;
+  S.custo = b.dataset.v; render();
 });
 el('themeBtn').onclick = () => {
   const c = document.documentElement.getAttribute('data-theme');
@@ -1938,14 +2018,16 @@ function buildData(cells, fileName){
     com:  findCol(head,'Comission','Commission','Comissão'),
     mg:   findCol(head,'Margin','Margem'),
     fr:   findCol(head,'Total Freight','Frete'),
-    uf:   findCol(head,'Customer UF','UF do Cliente','Estado do Cliente','UF','Estado')
+    uf:   findCol(head,'Customer UF','UF do Cliente','Estado do Cliente','UF','Estado'),
+    sku:  findCol(head,'SKU LIMPO','SKU','ID LIMPO','Código limpo','Codigo limpo')
   };
   const NOME = {mes:'Month', st:'Status', cli:'Customer', brl:'Total per item (BRL Value)',
                 rep:'Rep', wh:'WH', qtd:'Quantity (m)', ped:'Order Number', dt:'Date',
-                com:'Comission', mg:'Margin', fr:'Total Freight', uf:'Customer UF'};
+                com:'Comission', mg:'Margin', fr:'Total Freight', uf:'Customer UF',
+                sku:'SKU LIMPO'};
   const falta = ['mes','st','cli','brl'].filter(k=>c[k]<0).map(k=>NOME[k]);
   if (falta.length) throw new Error(t().impFalta(falta.join(', ')));
-  MISSING = ['rep','wh','ped','dt','com','mg','fr','uf'].filter(k=>c[k]<0).map(k=>NOME[k]);
+  MISSING = ['rep','wh','ped','dt','com','mg','fr','uf','sku'].filter(k=>c[k]<0).map(k=>NOME[k]);
   const rows = [];
   for (let i = 1; i < cells.length; i++){
     const r = cells[i] || [];
@@ -1966,7 +2048,8 @@ function buildData(cells, fileName){
       c.com>=0 ? (+r[c.com]||0) : 0,
       mgv,
       c.fr>=0 && typeof r[c.fr] === 'number' ? Math.round(r[c.fr]*100)/100 : null,
-      c.uf>=0 ? normUf(r[c.uf]) : null]);
+      c.uf>=0 ? normUf(r[c.uf]) : null,
+      c.sku>=0 ? String(r[c.sku]||'').trim().toUpperCase() : '']);
   }
   if (!rows.length) throw new Error(t().impSemLinhas);
   const meses = MO_ALL.filter(m => rows.some(r=>r[0]===m));
@@ -1979,6 +2062,40 @@ function buildData(cells, fileName){
     clientes: [...new Set(rows.map(r=>r[4]))].sort(),
     fonte: fileName
   };
+}
+/* A planilha de custos tem uma aba TABELA com ID LIMPO + as colunas de
+   cada fonte (COGS1, COGS2, LANDED1, LANDED2). Reconhecida pelo cabecalho,
+   entra pelo mesmo botao de importar e vai para o banco. */
+async function importarCustos(cells, fileName){
+  const head = (cells[0] || []).map(x=>String(x==null?'':x).trim());
+  if (head.findIndex(h=>norm(h)==='idlimpo') < 0) return false;
+  const iId = head.findIndex(h=>norm(h)==='idlimpo');
+  const fontes = [], idx = [];
+  head.forEach((h,i)=>{
+    const n = String(h).trim().toUpperCase().replace(/\s+/g,'');
+    if (/^(COGS|LANDED)\d+$/.test(n)){ fontes.push(n); idx.push(i); }
+  });
+  if (!fontes.length) return false;
+  const itens = {};
+  for (let i = 1; i < cells.length; i++){
+    const r = cells[i] || [], k = normSku(r[iId]);
+    if (!k) continue;
+    itens[k] = idx.map(j=>{ const v = +r[j]; return isFinite(v) && v > 0 ? Math.round(v*1e6)/1e6 : 0; });
+  }
+  const n = Object.keys(itens).length;
+  if (!n) return false;
+  CUSTOS = {fontes, itens, arquivo:fileName};
+  if (fontes.indexOf(S.custo) < 0) S.custo = fontes[0];
+  render();
+  toast(t().custoOk(fileName, n));
+  if (SB_ON && AUTH.role === 'gerencia'){
+    try{
+      const d = await sbRpc('wgi_painel_salvar_custos',
+        {p_senha: SENHA, p_arquivo: fileName, p_fontes: fontes, p_itens: itens});
+      toast(t().custoSalvo((d && d.itens) || n));
+    } catch(err){ toast(t().impErr + (err && err.message ? err.message : err), true); }
+  }
+  return true;
 }
 el('btnImport').onclick = () => el('fFile').click();
 el('fFile').onchange = async e => {
@@ -2010,6 +2127,10 @@ el('fFile').onchange = async e => {
         if (files[cand]) return cand;
       return null;
     };
+    /* planilha de custos? entra por aqui e nao mexe nos dados de venda */
+    const cst = sheets.find(x=>norm(x.name)==='tabela');
+    const cstPath = cst && resolve(relMap[cst.rid]);
+    if (cstPath && await importarCustos(sheetRows(td(files[cstPath]), shared), f.name)) return;
     const pick = sheets.find(x=>norm(x.name)==='base') || sheets[0];
     /* ultimo recurso: a primeira planilha que existir no pacote */
     const path = (pick && resolve(relMap[pick.rid]))
@@ -2068,7 +2189,7 @@ function dataFromDb(rows, imp){
     +r[5]||0, +r[6]||0, r[7]||'', r[8]||null, +r[9]||0,
     (r[10]===null||r[10]===undefined) ? null : +r[10],
     (r[11]===null||r[11]===undefined) ? null : +r[11],
-    normUf(r[12])]);
+    normUf(r[12]), r[13]||'']);
   const meses = MO_ALL.filter(m=>R2.some(x=>x[0]===m));
   return {
     meses,
@@ -2084,6 +2205,11 @@ function dataFromDb(rows, imp){
 async function sbLoadData(senha){
   const d = await sbRpc('wgi_painel_dados', {p_senha: senha});
   METAS = (d && d.metas) || {};
+  if (d && d.custos && d.custos.itens){
+    const it = {}; Object.keys(d.custos.itens).forEach(k=>it[normSku(k)] = d.custos.itens[k]);
+    CUSTOS = {fontes: d.custos.fontes || CUSTOS.fontes, itens: it, arquivo: d.custos.arquivo || ''};
+    if (CUSTOS.fontes.indexOf(S.custo) < 0) S.custo = CUSTOS.fontes[0];
+  }
   if (!d || d.vazio || !d.rows || !d.rows.length) return null;
   return dataFromDb(d.rows, d.imp || {});
 }
@@ -2272,13 +2398,14 @@ const COLUNAS = [
  ['Comission','não','Alíquota de comissão do item. Alimenta a Comissão média ponderada.','Número decimal: 0,02 = 2%. Não use 2.','0,02'],
  ['Total per item (BRL Value)','sim','Valor da linha de item em reais. É a base de TODO o faturamento do relatório.','Número em reais, sem símbolo','1124'],
  ['Margin','não','Margem do pedido. Alimenta a Margem média ponderada e o gráfico de margem.','Número decimal: 0,3235 = 32,35%. Vazio = mês sem margem informada.','0,3235'],
- ['Total Freight','não','Frete do pedido em reais. Alimenta o Frete médio ponderado.','Número em reais. Pode repetir em cada item do pedido — o relatório consolida e conta uma vez só.','322,15']
+ ['Total Freight','não','Frete do pedido em reais. Alimenta o Frete médio ponderado.','Número em reais. Pode repetir em cada item do pedido — o relatório consolida e conta uma vez só.','322,15'],
+ ['SKU LIMPO','não','Código do item já limpo (coluna AF). É a chave que liga a venda à tabela de custos e faz a margem por COGS/LANDED.','Texto igual ao ID LIMPO da planilha de custos. Espaços a mais não atrapalham.','7FB55PA 0100']
 ];
 const EXEMPLO = [
- ['AGO','2026-08-24','ARTHUR','000057','SP','Invoiced','TUTTO PRINT INDUSTRIA E COMERCIO LTDA','SP',200,0.02,1124,0.3235,322.15],
- ['AGO','2026-08-24','ARTHUR','000057','SP','Invoiced','TUTTO PRINT INDUSTRIA E COMERCIO LTDA','SP',1200,0.02,6744,0.3235,322.15],
- ['AGO','2026-08-19','SIMONE','602451','SC','Invoiced','AVERARA CONFECCOES LTDA','RJ',2000,0.02,6000,0.1692,null],
- ['AGO','2026-08-24','ALICE','602452','SC','TBI','LMX CONFECCOES LTDA','CE',200,0.02,1490,null,null]
+ ['AGO','2026-08-24','ARTHUR','000057','SP','Invoiced','TUTTO PRINT INDUSTRIA E COMERCIO LTDA','SP',200,0.02,1124,0.3235,322.15,'7FB55PA 9800'],
+ ['AGO','2026-08-24','ARTHUR','000057','SP','Invoiced','TUTTO PRINT INDUSTRIA E COMERCIO LTDA','SP',1200,0.02,6744,0.3235,322.15,'7FB55PA 0100'],
+ ['AGO','2026-08-19','SIMONE','602451','SC','Invoiced','AVERARA CONFECCOES LTDA','RJ',2000,0.02,6000,0.1692,null,'8J45PA 0100'],
+ ['AGO','2026-08-24','ALICE','602452','SC','TBI','LMX CONFECCOES LTDA','CE',200,0.02,1490,null,null,'8J65PA 0100']
 ];
 const NOTAS = [
  'As 4 linhas de exemplo acima são só ilustração — apague-as e cole seus dados a partir da linha 2.',
@@ -2287,7 +2414,9 @@ const NOTAS = [
  'Sem as 4 colunas obrigatórias a importação é recusada e o relatório diz qual está faltando.',
  'Uma coluna opcional ausente não quebra nada: o card correspondente fica vazio e o relatório avisa.',
  'Vazio em Margin ou Total Freight significa "não informado" e fica fora do cálculo — não é zero.',
- 'A aba pode ter qualquer nome; havendo uma chamada BASE, é ela que será lida.'
+ 'A aba pode ter qualquer nome; havendo uma chamada BASE, é ela que será lida.',
+ 'Custos: o mesmo botão Importar aceita a planilha de custos — aba TABELA com ID LIMPO e as colunas COGS1, COGS2, LANDED1 e LANDED2. Ela não mexe nos dados de venda, só atualiza a chave seletora de custo.',
+ 'Custo zerado na fonte escolhida faz o relatório usar o MENOR custo disponível para o mesmo código nas outras tabelas.'
 ];
 
 let CRCT;
