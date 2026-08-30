@@ -300,6 +300,47 @@ input.moeda:focus{outline:2px solid var(--wine-soft);outline-offset:1px}
 .admcalc:hover{background:var(--sunk);color:var(--ink)}
 @media (max-width:1100px){.admgrid{grid-template-columns:1fr}.gridm{grid-template-columns:repeat(4,1fr)}}
 @media (max-width:560px){.gridm{grid-template-columns:repeat(3,1fr)}.admtop input.moeda{width:100%}}
+/* tela de custos (planilha simples) — so abre no modulo ADM */
+#cstModal{position:fixed;inset:0;z-index:98;display:grid;place-items:center;padding:18px;
+  background:rgba(20,19,22,.55);backdrop-filter:blur(2px)}
+#cstModal[hidden]{display:none}
+.cst-box{background:var(--card);border:1px solid var(--line);border-radius:12px;
+  box-shadow:0 8px 40px rgba(0,0,0,.28);width:min(880px,100%);max-height:92vh;
+  display:flex;flex-direction:column;overflow:hidden}
+.cst-hd{display:flex;align-items:center;gap:10px;padding:11px 14px 10px;
+  border-bottom:2px solid var(--s2);flex-wrap:wrap}
+.cst-hd h2{margin:0;font-size:12px;font-weight:700;letter-spacing:.09em;
+  text-transform:uppercase;color:var(--s2)}
+.cst-hd .sub{font-size:11px;color:var(--ink-3)}
+.cst-acts{margin-left:auto;display:flex;gap:7px;align-items:center}
+.cst-guias{display:flex;flex-wrap:wrap;gap:3px;padding:10px 14px 0;
+  border-bottom:1px solid var(--line)}
+.cst-guia{font:inherit;font-size:11.5px;font-weight:700;letter-spacing:.04em;
+  border:1px solid var(--line);border-bottom:0;background:var(--chip);color:var(--ink-3);
+  padding:6px 14px;border-radius:7px 7px 0 0;cursor:pointer;white-space:nowrap;margin-bottom:-1px}
+.cst-guia[aria-selected="true"]{background:var(--card);color:var(--s2);border-color:var(--line);
+  box-shadow:inset 0 2px 0 var(--s2)}
+.cst-grid{overflow:auto;flex:1;min-height:0}
+table.cst{border-collapse:separate;border-spacing:0;width:100%;font-size:12px}
+table.cst th{position:sticky;top:0;z-index:2;background:var(--sunk);color:var(--ink-3);
+  font-size:9.5px;font-weight:700;letter-spacing:.08em;text-transform:uppercase;
+  text-align:left;padding:7px 9px;border-bottom:1px solid var(--line)}
+table.cst th.num,table.cst td.num{text-align:right}
+table.cst td{padding:0;border-bottom:1px solid var(--line-2)}
+table.cst td.rn{width:38px;text-align:right;padding:0 8px;font-size:10px;color:var(--ink-3);
+  background:var(--sunk);font-variant-numeric:tabular-nums;border-right:1px solid var(--line)}
+table.cst th.rn{width:38px}
+table.cst input{font:inherit;font-size:12px;color:var(--ink);background:transparent;
+  border:0;padding:6px 9px;width:100%;box-sizing:border-box}
+table.cst input:focus{outline:2px solid var(--s2);outline-offset:-2px;background:var(--card)}
+table.cst input.num{text-align:right;font-variant-numeric:tabular-nums}
+table.cst input::placeholder{color:var(--ink-3);opacity:.75;font-style:italic}
+table.cst tr.usada td.rn{background:var(--chip);color:var(--s2);font-weight:700}
+.cst-box .hint{margin:0;padding:9px 14px 12px;border-top:1px solid var(--line)}
+.vercustos{font:inherit;font-size:11px;font-weight:700;letter-spacing:.04em;
+  padding:6px 11px;border:1px solid var(--s2);border-radius:8px;background:transparent;
+  color:var(--s2);cursor:pointer;white-space:nowrap}
+.vercustos:hover{background:var(--s2);color:#fff}
 .admsave{font:inherit;font-size:12px;font-weight:700;letter-spacing:.05em;text-transform:uppercase;
   padding:7px 16px;border:0;border-radius:8px;background:var(--wine);color:#fff;cursor:pointer}
 .admsave:hover{background:var(--wine-soft)}
@@ -578,7 +619,10 @@ footer{font-size:10.5px;color:var(--ink-3);text-align:center;padding:2px 0 0;lin
           </div>
         </div>
         <div class="fgrp" id="grpCusto" hidden><span class="lb" id="lCusto"></span>
-          <div class="pills" id="fCusto"></div>
+          <div style="display:flex;gap:7px;align-items:center">
+            <div class="pills" id="fCusto"></div>
+            <button type="button" class="vercustos no-print" id="btnCustos"></button>
+          </div>
         </div>
         <div class="fgrp"><span class="lb" id="lCur"></span>
           <div class="pills" id="fCur">
@@ -707,6 +751,21 @@ footer{font-size:10.5px;color:var(--ink-3);text-align:center;padding:2px 0 0;lin
 </main></div>
 <div id="tip" role="status" aria-live="polite"></div>
 <div id="toast" role="status" aria-live="polite"></div>
+<div id="cstModal" class="no-print" hidden>
+  <div class="cst-box" role="dialog" aria-modal="true" aria-labelledby="cstTitulo">
+    <div class="cst-hd">
+      <h2 id="cstTitulo"></h2><span class="sub" id="cstSub"></span>
+      <span class="cst-acts">
+        <button type="button" class="admcalc" id="cstAdd"></button>
+        <button type="button" class="admsave" id="cstSave"></button>
+        <button type="button" class="admcalc" id="cstClose"></button>
+      </span>
+    </div>
+    <div class="cst-guias" id="cstGuias" role="tablist"></div>
+    <div class="cst-grid" id="cstGrid"></div>
+    <p class="hint" id="cstHint"></p>
+  </div>
+</div>
 <div id="admGate" hidden>
   <form class="gate-box" id="admForm">
     <div class="logo">ADM</div>
@@ -919,6 +978,16 @@ const T = {
     +(+c>0 ? ' e '+c+'% fica com a margem informada na planilha de vendas (item sem custo em nenhuma tabela).' : '.'),
   custoOk:(f,n)=>'Tabela de custos carregada: '+n+' itens de '+f+'.',
   custoSalvo:n=>'Custos gravados no banco: '+n+' itens.',
+  custoLocal:'Custos aplicados nesta sessão. Entre em ADM para gravar no banco.',
+  verCustos:'Ver custos',
+  cstTitulo:'Tabela de custos', cstAdd:'+ Linha', cstSalvar:'Salvar', cstFechar:'Fechar',
+  cstSub:(n,f)=>n+' itens · '+f,
+  cstItem:'ID limpo', cstMenor:m=>'menor: '+m,
+  cstHint:f=>'Cada guia é uma fonte de custo. Célula vazia = item não disponível em <b>'+f+'</b>: '
+    +'o relatório usa então o menor custo do mesmo código entre as outras guias (o valor aparece em cinza na célula). '
+    +'Custo unitário por metro, em reais. As linhas usadas nas vendas do período aparecem com o número destacado. '
+    +'<b>Salvar</b> grava a tabela no banco e deixa a guia aberta como padrão para quem não é ADM.',
+  cstSemSku:'Informe o ID limpo antes de salvar.',
   chart4:'Dentro × fora do estado', whCrit:'Armazém',
   whIn:u=>'Dentro de '+u, whOut:u=>'Fora de '+u, whNoUf:'Sem UF',
   whDest:'Destinos fora do estado',
@@ -1030,6 +1099,16 @@ const T = {
     +(+c>0 ? ' and '+c+'% keeps the margin reported in the sales workbook (item with no cost in any table).' : '.'),
   custoOk:(f,n)=>'Cost table loaded: '+n+' items from '+f+'.',
   custoSalvo:n=>'Costs saved to the database: '+n+' items.',
+  custoLocal:'Costs applied to this session only. Enter ADMIN to save them to the database.',
+  verCustos:'View costs',
+  cstTitulo:'Cost table', cstAdd:'+ Row', cstSalvar:'Save', cstFechar:'Close',
+  cstSub:(n,f)=>n+' items · '+f,
+  cstItem:'Clean ID', cstMenor:m=>'lowest: '+m,
+  cstHint:f=>'Each tab is one cost source. An empty cell means the item is not available in <b>'+f+'</b>: '
+    +'the report then uses the lowest cost for the same code across the other tabs (shown greyed in the cell). '
+    +'Unit cost per metre, in BRL. Rows used by sales in the period have a highlighted number. '
+    +'<b>Save</b> writes the table to the database and leaves the open tab as the default for non-admin users.',
+  cstSemSku:'Fill in the clean ID before saving.',
   chart4:'In-state × out-of-state', whCrit:'Warehouse',
   whIn:u=>'Within '+u, whOut:u=>'Outside '+u, whNoUf:'No state',
   whDest:'Out-of-state destinations',
@@ -1198,6 +1277,9 @@ function applyLang(){
   set('lYear',L.year); set('lMonth',L.month);
   set('lGeo',L.geo); set('lGeoWh',L.geoWh); set('lGeoUf',L.geoUf);
   set('lCusto',L.custo); set('lCur',L.cur); set('lSearch',L.search);
+  set('btnCustos',L.verCustos); set('cstTitulo',L.cstTitulo);
+  set('cstAdd',L.cstAdd); set('cstSave',L.cstSalvar); set('cstClose',L.cstFechar);
+  if (!el('cstModal').hidden) cstRender();
   el('fQ').placeholder = L.searchPh;
   set('lK1',L.k1); set('lK2',L.k2); set('lK3',L.k3);
   set('lK4',L.k4); set('lK5',L.k5); set('lK6',L.k6); set('lK7',L.k7);
@@ -1761,10 +1843,104 @@ function spark(id, vals, hi){
     '<i class="'+(i===hi?'on':'')+'" style="height:'+Math.max(6,Math.abs(v)/max*100)+'%"></i>').join(''));
 }
 
+/* ---------- tela de custos: uma guia por fonte, celulas simples ----------
+   Nao e uma planilha de verdade: so linhas e colunas para conferir e digitar.
+   O estado editado fica em CST_EDIT ate o botao Salvar. */
+let CST_EDIT = null, CST_GUIA = 0;
+const cstNum = v => {
+  const x = String(v == null ? '' : v).trim().replace(/\s/g,'');
+  if (!x) return 0;
+  const y = (x.indexOf(',') >= 0 && x.indexOf('.') >= 0) ? x.replace(/\./g,'').replace(',','.')
+          : x.replace(',','.');
+  const n = parseFloat(y);
+  return isFinite(n) && n > 0 ? Math.round(n*1e6)/1e6 : 0;
+};
+const cstTxt = v => !v ? '' : (S.lang==='en' ? String(v) : String(v).replace('.',','));
+function cstAbrir(){
+  if (!ADM || !temCustos()) return;
+  CST_EDIT = Object.keys(CUSTOS.itens).sort().map(k=>({
+    sku: k, v: CUSTOS.fontes.map((f,i)=> +CUSTOS.itens[k][i] || 0)
+  }));
+  CST_GUIA = Math.max(0, CUSTOS.fontes.indexOf(S.custo));
+  el('cstModal').hidden = false;
+  cstRender();
+}
+function cstRender(){
+  const L = t(), f = CUSTOS.fontes[CST_GUIA] || '';
+  const usados = new Set(R.filter(r=>r.st==='I' && r.sku).map(r=>r.sku));
+  set('cstSub', L.cstSub(CST_EDIT.length, CUSTOS.arquivo || f));
+  setH('cstGuias', CUSTOS.fontes.map((x,i)=>
+    '<button type="button" class="cst-guia" role="tab" data-g="'+i+'" aria-selected="'
+    + (i===CST_GUIA) + '">' + esc(x) + '</button>').join(''));
+  setH('cstGrid',
+    '<table class="cst"><thead><tr><th class="rn"></th><th>'+esc(L.cstItem)+'</th>'
+    + '<th class="num">'+esc(f)+' · R$</th></tr></thead><tbody>'
+    + CST_EDIT.map((o,i)=>{
+        const alt = o.v.filter(x=>x>0);
+        const ph = (!o.v[CST_GUIA] && alt.length) ? L.cstMenor(cstTxt(Math.min.apply(null,alt))) : '';
+        return '<tr'+(usados.has(o.sku)?' class="usada"':'')+'>'
+          + '<td class="rn">'+(i+1)+'</td>'
+          + '<td><input data-i="'+i+'" data-k="sku" value="'+esc(o.sku)+'" spellcheck="false"></td>'
+          + '<td><input class="num" data-i="'+i+'" data-k="v" value="'+esc(cstTxt(o.v[CST_GUIA]))+'"'
+          + (ph ? ' placeholder="'+esc(ph)+'"' : '') + '></td></tr>';
+      }).join('')
+    + '</tbody></table>');
+  setH('cstHint', L.cstHint(f));
+}
+el('cstGuias').addEventListener('click', e=>{
+  const b = e.target.closest('button'); if (!b) return;
+  CST_GUIA = +b.dataset.g; cstRender();
+});
+el('cstGrid').addEventListener('input', e=>{
+  const n = e.target; if (!n.dataset || n.dataset.i === undefined) return;
+  const o = CST_EDIT[+n.dataset.i]; if (!o) return;
+  if (n.dataset.k === 'sku') o.sku = normSku(n.value);
+  else o.v[CST_GUIA] = cstNum(n.value);
+});
+el('cstAdd').onclick = () => {
+  CST_EDIT.push({sku:'', v:CUSTOS.fontes.map(()=>0)});
+  cstRender();
+  const ins = el('cstGrid').querySelectorAll('input[data-k="sku"]');
+  const last = ins[ins.length-1]; if (last){ last.focus(); last.scrollIntoView({block:'center'}); }
+};
+el('cstClose').onclick = () => { el('cstModal').hidden = true; };
+el('cstModal').addEventListener('click', e=>{ if (e.target.id === 'cstModal') el('cstModal').hidden = true; });
+document.addEventListener('keydown', e=>{
+  if (e.key === 'Escape' && !el('cstModal').hidden) el('cstModal').hidden = true;
+});
+el('cstSave').onclick = async () => {
+  const L = t(), btn = el('cstSave');
+  const itens = {};
+  let vazio = false;
+  CST_EDIT.forEach(o=>{
+    const k = normSku(o.sku);
+    if (!k){ if (o.v.some(x=>x>0)) vazio = true; return; }
+    itens[k] = o.v.map(x=>+x||0);
+  });
+  if (vazio){ toast(L.cstSemSku, true); return; }
+  const n = Object.keys(itens).length;
+  if (!n) return;
+  CUSTOS = {fontes:CUSTOS.fontes, itens, arquivo:CUSTOS.arquivo, padrao:CUSTOS.fontes[CST_GUIA]};
+  S.custo = CUSTOS.fontes[CST_GUIA];
+  render();
+  if (!SB_ON){ toast(L.custoLocal); el('cstModal').hidden = true; return; }
+  btn.disabled = true;
+  try{
+    const d = await sbRpc('wgi_painel_salvar_custos', {p_senha: SENHA_ADM,
+      p_arquivo: CUSTOS.arquivo || 'ADM', p_fontes: CUSTOS.fontes,
+      p_itens: itens, p_padrao: CUSTOS.padrao});
+    toast(L.custoSalvo((d && d.itens) || n));
+    el('cstModal').hidden = true;
+  } catch(err){ toast(t().impErr + (err && err.message ? err.message : err), true); }
+  finally { btn.disabled = false; }
+};
+el('btnCustos').onclick = cstAbrir;
+
 /* chave seletora da fonte de custo (COGS1 / COGS2 / LANDED1 / LANDED2) */
 function syncCustoPills(){
   const g = el('fCusto'), grp = el('grpCusto'); if (!g) return;
-  const on = temCustos() && CUSTOS.fontes.length > 0;
+  /* a escolha da fonte de custo e a tela de custos vivem no modulo ADM */
+  const on = ADM && temCustos() && CUSTOS.fontes.length > 0;
   grp.hidden = !on;
   if (!on) return;
   if (CUSTOS.fontes.indexOf(S.custo) < 0) S.custo = CUSTOS.fontes[0];
@@ -2088,13 +2264,14 @@ async function importarCustos(cells, fileName){
   if (fontes.indexOf(S.custo) < 0) S.custo = fontes[0];
   render();
   toast(t().custoOk(fileName, n));
-  if (SB_ON && AUTH.role === 'gerencia'){
-    try{
-      const d = await sbRpc('wgi_painel_salvar_custos',
-        {p_senha: SENHA, p_arquivo: fileName, p_fontes: fontes, p_itens: itens});
-      toast(t().custoSalvo((d && d.itens) || n));
-    } catch(err){ toast(t().impErr + (err && err.message ? err.message : err), true); }
-  }
+  /* gravar a tabela de custos e coisa de ADM */
+  if (!SB_ON || !ADM){ toast(t().custoLocal); return true; }
+  try{
+    const d = await sbRpc('wgi_painel_salvar_custos',
+      {p_senha: SENHA_ADM, p_arquivo: fileName, p_fontes: fontes,
+       p_itens: itens, p_padrao: S.custo});
+    toast(t().custoSalvo((d && d.itens) || n));
+  } catch(err){ toast(t().impErr + (err && err.message ? err.message : err), true); }
   return true;
 }
 el('btnImport').onclick = () => el('fFile').click();
@@ -2207,8 +2384,9 @@ async function sbLoadData(senha){
   METAS = (d && d.metas) || {};
   if (d && d.custos && d.custos.itens){
     const it = {}; Object.keys(d.custos.itens).forEach(k=>it[normSku(k)] = d.custos.itens[k]);
-    CUSTOS = {fontes: d.custos.fontes || CUSTOS.fontes, itens: it, arquivo: d.custos.arquivo || ''};
-    if (CUSTOS.fontes.indexOf(S.custo) < 0) S.custo = CUSTOS.fontes[0];
+    CUSTOS = {fontes: d.custos.fontes || CUSTOS.fontes, itens: it,
+              arquivo: d.custos.arquivo || '', padrao: d.custos.padrao || ''};
+    S.custo = CUSTOS.fontes.indexOf(CUSTOS.padrao) >= 0 ? CUSTOS.padrao : CUSTOS.fontes[0];
   }
   if (!d || d.vazio || !d.rows || !d.rows.length) return null;
   return dataFromDb(d.rows, d.imp || {});
@@ -2374,6 +2552,7 @@ el('admForm').addEventListener('submit', async e=>{
     el('admCard').hidden = false;
     set('btnAdm', L.admOn);
     admFill();
+    syncCustoPills();
     el('admCard').scrollIntoView({behavior:'smooth', block:'center'});
     toast(L.admLiberado);
   } catch(err){
