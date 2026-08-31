@@ -936,7 +936,13 @@ const T = {
   admAnual:'Meta anual', admSalvar:'Salvar metas', admCalc:'Somar meses',
   carregando:'Verificando o acesso…',
   semAcesso:'Sua conta não tem acesso a este relatório. Fale com a gestão.',
-  semGuard:'Não consegui carregar a Central de Acesso (guard.js). Publique este arquivo no mesmo domínio do hub — textilegroup.github.io — e recarregue.',
+  semGuard:'Não consegui carregar a Central de Acesso (guard.js).',
+  semGuardOnde:(onde,src)=>'Esta página está aberta em <b>'+onde+'</b> e o login só funciona '
+    +'com o arquivo publicado em <b>textilegroup.github.io</b> — o mesmo domínio do hub. '
+    +'Pré-visualização e arquivo baixado no computador não carregam script externo nem '
+    +'compartilham a sessão.<br><span style="opacity:.7">Tentei carregar: '+src+'</span>',
+  semGuardLocal:'arquivo local no computador',
+  semGuardPrev:'uma pré-visualização',
   erroCarga:'Não consegui carregar os dados: ',
   admBtn:'ADM', admOn:'ADM ✓', admTitulo:'Área de administração',
   admTxt:'Digite a senha de ADM para definir metas e ponto de equilíbrio.',
@@ -1069,7 +1075,13 @@ const T = {
   admAnual:'Annual target', admSalvar:'Save targets', admCalc:'Sum months',
   carregando:'Checking access…',
   semAcesso:'Your account has no access to this report. Talk to management.',
-  semGuard:'Could not load the Access Hub (guard.js). Publish this file on the same domain as the hub — textilegroup.github.io — and reload.',
+  semGuard:'Could not load the Access Hub (guard.js).',
+  semGuardOnde:(onde,src)=>'This page is open from <b>'+onde+'</b>, and the login only works '
+    +'with the file published on <b>textilegroup.github.io</b> — the same domain as the hub. '
+    +'A preview or a downloaded copy loads no external script and shares no session.'
+    +'<br><span style="opacity:.7">Tried to load: '+src+'</span>',
+  semGuardLocal:'a local file on your computer',
+  semGuardPrev:'a preview',
   erroCarga:'Could not load the data: ',
   admBtn:'ADMIN', admOn:'ADMIN ✓', admTitulo:'Administration area',
   admTxt:'Enter the admin password to set targets and break-even.',
@@ -2894,7 +2906,18 @@ async function arranca(){
   applyRole();
   if (!SB_ON){ abrirPainel(); return; }
   /* sem o guard nao ha sessao: dizer isso, em vez de acusar falta de permissao */
-  if (!g){ gateErro(t().semGuard); return; }
+  if (!g){
+    const L2 = t();
+    const sc = document.querySelector('script[data-app]');
+    const src = (sc && (sc.src || sc.getAttribute('src'))) || '—';
+    const onde = location.protocol === 'file:' ? L2.semGuardLocal
+               : (!location.origin || location.origin === 'null') ? L2.semGuardPrev
+               : location.origin;
+    gateErro(L2.semGuard);
+    setH('gSub', L2.semGuardOnde(onde, esc(src)));
+    el('gSub').style.cssText = 'font-size:11.5px;line-height:1.5;text-align:left;margin-top:10px';
+    return;
+  }
   try{
     const d = await sbLoadData();
     if (d){ boot(d); afterBoot(); }
