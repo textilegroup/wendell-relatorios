@@ -3,6 +3,7 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1">
+<script src="/users-wendell/guard.js" data-app="dashboard" data-barra="nao"></script>
 <title>Vendas Wendell Brasil</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -44,6 +45,8 @@
   --shadow:0 1px 2px rgba(0,0,0,.4);
 }
 *{box-sizing:border-box}
+/* regras de classe (ex.: .fgrp{display:flex}) vencem o [hidden] do navegador */
+[hidden]{display:none!important}
 body{
   margin:0; background:var(--bg); color:var(--ink);
   font-family:"Archivo","Helvetica Neue",Arial,sans-serif;
@@ -56,15 +59,6 @@ body{
   position:fixed;inset:0;z-index:100;display:grid;place-items:center;padding:20px;
   background:linear-gradient(150deg,var(--wine-deep) 0%,var(--wine) 55%,#3C0812 100%);
 }
-#admGate{position:fixed;inset:0;z-index:99;display:grid;place-items:center;padding:20px;
-  background:rgba(20,19,22,.55);backdrop-filter:blur(2px)}
-#admGate[hidden]{display:none}
-#admGate .logo{background:var(--s2);color:#fff;border-color:var(--s2)}
-.gate-box button.admcancel,.admcancel{width:100%;margin-top:7px;font:inherit;font-size:12px;font-weight:600;letter-spacing:.04em;
-  text-transform:uppercase;padding:9px;border:1px solid var(--line);border-radius:9px;
-  background:transparent;color:var(--ink-2);cursor:pointer}
-.gate-box button.admcancel:hover{background:var(--sunk);color:var(--ink)}
-#admGate .admsave{width:100%;margin-top:9px;padding:10px}
 .gate-box{
   background:var(--card);border-radius:14px;padding:26px 24px 20px;width:100%;max-width:340px;
   box-shadow:0 18px 50px rgba(0,0,0,.32);text-align:center;
@@ -346,6 +340,22 @@ table.cst input{font:inherit;font-size:12px;color:var(--ink);background:transpar
 table.cst input:focus{outline:2px solid var(--s2);outline-offset:-2px;background:var(--card)}
 table.cst input.num{text-align:right;font-variant-numeric:tabular-nums}
 table.cst input::placeholder{color:var(--ink-3);opacity:.75;font-style:italic}
+/* escolha da fonte por item */
+.fsel{display:flex;gap:0;justify-content:flex-start}
+.fsel > *{width:46px;flex:0 0 46px;display:flex;align-items:center;justify-content:center}
+th .fsel span{font-size:8px;font-weight:700;letter-spacing:.02em;color:var(--ink-3);
+  text-transform:none;line-height:1.1;text-align:center}
+th .fsel span.auto{color:var(--s2)}
+table.cst td.fs{padding:3px 0}
+.fsel input[type=radio]{width:13px;height:13px;margin:0;accent-color:var(--s2);cursor:pointer}
+.fsel label{cursor:pointer}
+table.cst td.uso{padding:0 9px;text-align:right;white-space:nowrap;
+  font-variant-numeric:tabular-nums;color:var(--ink-2)}
+table.cst td.uso b{font-weight:700;color:var(--ink)}
+table.cst td.uso i{font-style:normal;font-size:9px;font-weight:700;letter-spacing:.03em;
+  color:var(--ink-3);margin-left:5px}
+table.cst td.uso i.fx{color:var(--s2)}
+table.cst tr.fixa td.rn{color:var(--s2)}
 table.cst tr.usada td.rn{background:var(--chip);color:var(--s2);font-weight:700}
 .cst-box .hint{margin:0;padding:9px 14px 12px;border-top:1px solid var(--line)}
 .vercustos{font:inherit;font-size:11px;font-weight:700;letter-spacing:.04em;
@@ -545,14 +555,12 @@ footer{font-size:10.5px;color:var(--ink-3);text-align:center;padding:2px 0 0;lin
 
 
 <div id="gate">
-  <form class="gate-box" id="gateForm">
+  <div class="gate-box">
     <div class="logo">WGI</div>
     <h2 id="gTitle">Relatório de Vendas</h2>
     <p id="gSub"></p>
-    <input type="password" id="gPass" autocomplete="current-password">
-    <button type="submit" id="gBtn">Entrar</button>
     <div class="gate-err" id="gErr" role="alert"></div>
-  </form>
+  </div>
 </div>
 
 <div id="app" hidden>
@@ -782,17 +790,6 @@ footer{font-size:10.5px;color:var(--ink-3);text-align:center;padding:2px 0 0;lin
     <p class="hint" id="cstHint"></p>
   </div>
 </div>
-<div id="admGate" hidden>
-  <form class="gate-box" id="admForm">
-    <div class="logo">ADM</div>
-    <h2 id="admTitulo"></h2>
-    <p id="admTxt"></p>
-    <input type="password" id="admPass" autocomplete="off">
-    <button type="submit" class="admsave" id="admOkBtn"></button>
-    <button type="button" class="admcancel" id="admCancel"></button>
-    <div class="gate-err" id="admErr" role="alert"></div>
-  </form>
-</div>
 </div>
 
 <script>
@@ -859,8 +856,8 @@ const normUf = v => {
    espacos: "WENFUSE 15 0100" e "WENFUSE15 0100" sao o mesmo item. */
 const normSku = v => String(v == null ? '' : v).toUpperCase().replace(/\s+/g, '');
 /* custos por SKU: {fontes:['COGS1',...], itens:{SKU:[c1,c2,l1,l2]}} */
-let CUSTOS = {fontes:['COGS1','COGS2','LANDED1','LANDED2'], itens:{}, arquivo:''};
-let CUSTO_USO = {dir:0, alt:0, sem:0};
+let CUSTOS = {fontes:['COGS1','COGS2','LANDED1','LANDED2'], itens:{}, fixos:{}, arquivo:''};
+let CUSTO_USO = {dir:0, alt:0, sem:0, fix:0};
 let DATA = DATA0, M, MS, CUR, FX, COLS, R, ANOS, FIRST, LAST, FIRSTD, TEM_UF = false, SEM_UF = 0;
 let WHS = [];
 function boot(d){
@@ -936,6 +933,9 @@ const T = {
   admAno:'Ano', admEq:'Ponto de equilíbrio (mês)',
   admMeses:m=>'Meta de cada mês de '+m, admTris:m=>'Meta de cada trimestre de '+m,
   admAnual:'Meta anual', admSalvar:'Salvar metas', admCalc:'Somar meses',
+  carregando:'Verificando o acesso…',
+  semAcesso:'Sua conta não tem acesso a este relatório. Fale com a gestão.',
+  erroCarga:'Não consegui carregar os dados: ',
   admBtn:'ADM', admOn:'ADM ✓', admTitulo:'Área de administração',
   admTxt:'Digite a senha de ADM para definir metas e ponto de equilíbrio.',
   admEntrar:'Entrar', admCancelar:'Cancelar',
@@ -988,9 +988,10 @@ const T = {
   noNew:'Sem clientes novos no período filtrado.',
   geoLabWh:'Armazém de origem', geoLabUf:'UF do cliente',
   custo:'Custo', custoSem:'Nenhuma tabela de custo carregada.',
-  custoHint:(f,a,b,c)=>'Margem calculada por <b>'+f+'</b>: (venda − quantidade × custo unitário) ÷ venda, '
+  custoHint:(f,a,b,c,d)=>'Margem calculada por <b>'+f+'</b>: (venda − quantidade × custo unitário) ÷ venda, '
     +'ligando a venda ao custo pelo <code>SKU LIMPO</code>. '+a+'% do faturamento usa o custo da própria fonte, '
     +b+'% usa o menor custo disponível para o mesmo código (a fonte não tem preço para o item)'
+    +(+d>0 ? ', '+d+'% tem fonte fixada no item (tela Ver custos)' : '')
     +(+c>0 ? ' e '+c+'% fica com a margem informada na planilha de vendas (item sem custo em nenhuma tabela).' : '.'),
   custoOk:(f,n)=>'Tabela de custos carregada: '+n+' itens de '+f+'.',
   custoSalvo:n=>'Custos gravados no banco: '+n+' itens.',
@@ -1000,12 +1001,16 @@ const T = {
   cstSub:(n,f)=>n+' itens · '+f,
   cstItem:'ID limpo', cstMenor:m=>'menor: '+m,
   cstBusca:'Filtrar item (ex.: 7FB55, 9800, WENFUSE)…',
+  cstFonte:'Custo usado neste item', cstAuto:'auto', cstUsado:'Aplicado',
+  cstFixos:n=>n+(n>1?' itens':' item')+' com fonte fixada',
   cstUso:'Só os vendidos', cstCnt:(n,tt)=>n+' de '+tt+' itens',
   cstVazio:'Nenhum item com esse filtro.',
-  cstHint:f=>'Cada guia é uma fonte de custo. Célula vazia = item não disponível em <b>'+f+'</b>: '
-    +'o relatório usa então o menor custo do mesmo código entre as outras guias (o valor aparece em cinza na célula). '
-    +'Custo unitário por metro, em reais. As linhas usadas nas vendas do período aparecem com o número destacado. '
-    +'<b>Salvar</b> grava a tabela no banco e deixa a guia aberta como padrão para quem não é ADM.',
+  cstHint:f=>'Cada guia é uma fonte de custo, e a coluna <b>custo usado neste item</b> manda no cálculo: '
+    +'em <b>auto</b> o item segue a chave CUSTO do painel; marcando uma fonte, ele passa a usar sempre aquela, '
+    +'não importa a chave. Célula vazia = item não disponível em <b>'+f+'</b>, e aí entra o menor custo do mesmo '
+    +'código entre as outras guias (o valor aparece em cinza). Custo unitário por metro, em reais. '
+    +'As linhas usadas nas vendas do período aparecem com o número destacado. '
+    +'<b>Salvar</b> grava a tabela e as escolhas no banco, e deixa a guia aberta como padrão para quem não é ADM.',
   cstSemSku:'Informe o ID limpo antes de salvar.',
   chart4:'Dentro × fora do estado', whCrit:'Armazém',
   whIn:u=>'Dentro de '+u, whOut:u=>'Fora de '+u, whNoUf:'Sem UF',
@@ -1060,6 +1065,9 @@ const T = {
   admAno:'Year', admEq:'Break-even (month)',
   admMeses:m=>'Target for each month of '+m, admTris:m=>'Target for each quarter of '+m,
   admAnual:'Annual target', admSalvar:'Save targets', admCalc:'Sum months',
+  carregando:'Checking access…',
+  semAcesso:'Your account has no access to this report. Talk to management.',
+  erroCarga:'Could not load the data: ',
   admBtn:'ADMIN', admOn:'ADMIN ✓', admTitulo:'Administration area',
   admTxt:'Enter the admin password to set targets and break-even.',
   admEntrar:'Enter', admCancelar:'Cancel',
@@ -1112,9 +1120,10 @@ const T = {
   noNew:'No new customers in the filtered period.',
   geoLabWh:'Origin warehouse', geoLabUf:'Customer state',
   custo:'Cost', custoSem:'No cost table loaded.',
-  custoHint:(f,a,b,c)=>'Margin from <b>'+f+'</b>: (sale − quantity × unit cost) ÷ sale, '
+  custoHint:(f,a,b,c,d)=>'Margin from <b>'+f+'</b>: (sale − quantity × unit cost) ÷ sale, '
     +'matching sale to cost by <code>SKU LIMPO</code>. '+a+'% of revenue uses the cost from that source, '
     +b+'% uses the cheapest cost available for the same code (the source has no price for the item)'
+    +(+d>0 ? ', '+d+'% is pinned to a source on the item (View costs screen)' : '')
     +(+c>0 ? ' and '+c+'% keeps the margin reported in the sales workbook (item with no cost in any table).' : '.'),
   custoOk:(f,n)=>'Cost table loaded: '+n+' items from '+f+'.',
   custoSalvo:n=>'Costs saved to the database: '+n+' items.',
@@ -1124,12 +1133,16 @@ const T = {
   cstSub:(n,f)=>n+' items · '+f,
   cstItem:'Clean ID', cstMenor:m=>'lowest: '+m,
   cstBusca:'Filter item (e.g. 7FB55, 9800, WENFUSE)…',
+  cstFonte:'Cost used for this item', cstAuto:'auto', cstUsado:'Applied',
+  cstFixos:n=>n+' item'+(n>1?'s':'')+' pinned to a source',
   cstUso:'Sold only', cstCnt:(n,tt)=>n+' of '+tt+' items',
   cstVazio:'No item matches this filter.',
-  cstHint:f=>'Each tab is one cost source. An empty cell means the item is not available in <b>'+f+'</b>: '
-    +'the report then uses the lowest cost for the same code across the other tabs (shown greyed in the cell). '
-    +'Unit cost per metre, in BRL. Rows used by sales in the period have a highlighted number. '
-    +'<b>Save</b> writes the table to the database and leaves the open tab as the default for non-admin users.',
+  cstHint:f=>'Each tab is one cost source, and the <b>cost used for this item</b> column drives the calculation: '
+    +'on <b>auto</b> the item follows the panel COST switch; pick a source and it always uses that one, whatever '
+    +'the switch says. An empty cell means the item is not available in <b>'+f+'</b>, so the lowest cost for the '
+    +'same code across the other tabs is used (shown greyed). Unit cost per metre, in BRL. '
+    +'Rows used by sales in the period have a highlighted number. '
+    +'<b>Save</b> writes the table and the choices to the database, and leaves the open tab as the default for non-admin users.',
   cstSemSku:'Fill in the clean ID before saving.',
   chart4:'In-state × out-of-state', whCrit:'Warehouse',
   whIn:u=>'Within '+u, whOut:u=>'Outside '+u, whNoUf:'No state',
@@ -1287,14 +1300,9 @@ function applyLang(){
   document.documentElement.lang = S.lang==='en' ? 'en' : 'pt-BR';
   document.title = S.lang==='en' ? 'Wendell Brazil Sales' : 'Vendas Wendell Brasil';
   set('hTitle',L.htitle); set('hSub',L.hsub); set('themeBtn',L.theme);
-  set('gTitle',L.htitle); set('gSub', SB_ON ? L.gsubDb : L.gsub); set('gBtn',L.gbtn);
+  set('gTitle',L.htitle); set('gSub', L.carregando);
   set('btnImport',L.imp); set('btnModel',L.model); set('btnSave',L.save); set('btnPdf',L.pdf);
   set('btnOut',L.sair); set('btnAdm', ADM ? L.admOn : L.admBtn);
-  set('admOkBtn',L.admEntrar); set('admCancel',L.admCancelar);
-  set('admTitulo',L.admTitulo); set('admTxt',L.admTxt);
-  const ap = el('admPass'); if (ap){ ap.placeholder = L.gpass; ap.setAttribute('aria-label',L.gpass); }
-  const gp = el('gPass');
-  if (gp){ gp.placeholder = L.gpass; gp.setAttribute('aria-label',L.gpass); }
   set('lFilters',L.filters); set('lRep',L.rep); set('lState',L.state);
   set('lYear',L.year); set('lMonth',L.month);
   set('lGeo',L.geo); set('lGeoWh',L.geoWh); set('lGeoUf',L.geoUf);
@@ -1340,10 +1348,13 @@ function applyLang(){
    custo disponivel entre as outras tabelas do mesmo codigo. Sem custo em
    nenhuma tabela, fica a margem que veio na planilha de vendas. */
 function aplicaCusto(){
-  const i = CUSTOS.fontes.indexOf(S.custo);
-  CUSTO_USO = {dir:0, alt:0, sem:0};
+  const iSel = CUSTOS.fontes.indexOf(S.custo);
+  CUSTO_USO = {dir:0, alt:0, sem:0, fix:0};
   R.forEach(r=>{
     const c = r.sku ? CUSTOS.itens[r.sku] : null;
+    /* fonte fixada no item (tela Ver custos) tem preferencia sobre a chave */
+    const fx = r.sku ? CUSTOS.fontes.indexOf(CUSTOS.fixos[r.sku] || '') : -1;
+    const i = fx >= 0 ? fx : iSel;
     let u = 0, fb = false;
     if (c){
       u = +c[i] || 0;
@@ -1353,10 +1364,10 @@ function aplicaCusto(){
       }
     }
     if (u > 0 && r.qtd > 0 && r.brl > 0){
-      r.cu = u; r.cufb = fb; r.mg = (r.brl - r.qtd*u)/r.brl;
-      if (r.st==='I') CUSTO_USO[fb ? 'alt' : 'dir'] += r.brl;
+      r.cu = u; r.cufb = fb; r.cufix = fx >= 0; r.mg = (r.brl - r.qtd*u)/r.brl;
+      if (r.st==='I') CUSTO_USO[fx >= 0 ? 'fix' : (fb ? 'alt' : 'dir')] += r.brl;
     } else {
-      r.cu = null; r.cufb = false; r.mg = r.mg0;
+      r.cu = null; r.cufb = false; r.cufix = false; r.mg = r.mg0;
       if (r.st==='I') CUSTO_USO.sem += r.brl;
     }
   });
@@ -1884,7 +1895,8 @@ const cstTxt = v => !v ? '' : (S.lang==='en' ? String(v) : String(v).replace('.'
 function cstAbrir(){
   if (!ADM || !temCustos()) return;
   CST_EDIT = Object.keys(CUSTOS.itens).sort().map(k=>({
-    sku: k, v: CUSTOS.fontes.map((f,i)=> +CUSTOS.itens[k][i] || 0)
+    sku: k, v: CUSTOS.fontes.map((f,i)=> +CUSTOS.itens[k][i] || 0),
+    fixo: (CUSTOS.fixos && CUSTOS.fixos[k]) || ''
   }));
   CST_GUIA = Math.max(0, CUSTOS.fontes.indexOf(S.custo));
   CST_Q = ''; CST_USO = false;
@@ -1905,22 +1917,52 @@ function cstRender(){
   setH('cstGuias', CUSTOS.fontes.map((x,i)=>
     '<button type="button" class="cst-guia" role="tab" data-g="'+i+'" aria-selected="'
     + (i===CST_GUIA) + '">' + esc(x) + '</button>').join(''));
+  const topo = '<span class="auto">'+esc(L.cstAuto)+'</span>'
+    + CUSTOS.fontes.map(x=>'<span>'+esc(x)+'</span>').join('');
   setH('cstGrid',
     '<table class="cst"><thead><tr><th class="rn"></th><th>'+esc(L.cstItem)+'</th>'
-    + '<th class="num">'+esc(f)+' · R$</th></tr></thead><tbody>'
+    + '<th class="fs"><div class="fsel">'+topo+'</div>'
+    + '<div style="font-size:8.5px;color:var(--ink-3);letter-spacing:.06em;padding:2px 0 0">'
+    + esc(L.cstFonte)+'</div></th>'
+    + '<th class="num">'+esc(f)+' · R$</th>'
+    + '<th class="num">'+esc(L.cstUsado)+'</th></tr></thead><tbody>'
     + (vis.length ? vis.map(x=>{
         const o = x[0], i = x[1], alt = o.v.filter(y=>y>0);
         const ph = (!o.v[CST_GUIA] && alt.length) ? L.cstMenor(cstTxt(Math.min.apply(null,alt))) : '';
-        return '<tr'+(usados.has(o.sku)?' class="usada"':'')+'>'
+        const radio = (val,lab) =>
+          '<label title="'+esc(lab)+'"><input type="radio" name="fs'+i+'" data-i="'+i+'"'
+          + ' value="'+esc(val)+'"' + (o.fixo===val ? ' checked' : '') + '></label>';
+        return '<tr'+(usados.has(o.sku)?' class="usada':' class="')+(o.fixo?' fixa':'')+'">'
           + '<td class="rn">'+(i+1)+'</td>'
           + '<td><input data-i="'+i+'" data-k="sku" value="'+esc(o.sku)+'" spellcheck="false"></td>'
+          + '<td class="fs"><div class="fsel">' + radio('', L.cstAuto)
+          + CUSTOS.fontes.map(fn=>radio(fn,fn)).join('') + '</div></td>'
           + '<td><input class="num" data-i="'+i+'" data-k="v" value="'+esc(cstTxt(o.v[CST_GUIA]))+'"'
-          + (ph ? ' placeholder="'+esc(ph)+'"' : '') + '></td></tr>';
+          + (ph ? ' placeholder="'+esc(ph)+'"' : '') + '></td>'
+          + '<td class="uso" data-uso="'+i+'">'+cstUsoTxt(o)+'</td></tr>';
       }).join('')
-      : '<tr><td class="empty" colspan="3" style="padding:14px;color:var(--ink-3)">'
+      : '<tr><td class="empty" colspan="5" style="padding:14px;color:var(--ink-3)">'
         + esc(L.cstVazio) + '</td></tr>')
     + '</tbody></table>');
-  setH('cstHint', L.cstHint(f));
+  const nfx = CST_EDIT.filter(o=>o.fixo).length;
+  setH('cstHint', L.cstHint(f) + (nfx ? ' <b>· '+esc(L.cstFixos(nfx))+'</b>' : ''));
+}
+/* custo que vale para o item: a fonte fixada, senao a chave do painel;
+   em qualquer caso, valor zerado cai no menor custo do mesmo codigo */
+function cstEfetivo(o){
+  const fx = o.fixo ? CUSTOS.fontes.indexOf(o.fixo) : -1;
+  const i = fx >= 0 ? fx : CST_GUIA;
+  let u = +o.v[i] || 0, src = CUSTOS.fontes[i], fb = false;
+  if (!u){
+    const d = o.v.map(x=>+x||0).filter(x=>x>0);
+    if (d.length){ u = Math.min.apply(null, d); src = CUSTOS.fontes[o.v.indexOf(u)]; fb = true; }
+  }
+  return {u, src, fb, fixo: fx >= 0};
+}
+function cstUsoTxt(o){
+  const e = cstEfetivo(o);
+  if (!e.u) return '<i>–</i>';
+  return '<b>'+esc(cstTxt(e.u))+'</b><i class="'+(e.fixo?'fx':'')+'">'+esc(e.src)+'</i>';
 }
 el('cstQ').addEventListener('input', e=>{ CST_Q = e.target.value; cstRender(); });
 el('cstUso').onclick = () => {
@@ -1934,12 +1976,24 @@ el('cstGuias').addEventListener('click', e=>{
 });
 el('cstGrid').addEventListener('input', e=>{
   const n = e.target; if (!n.dataset || n.dataset.i === undefined) return;
-  const o = CST_EDIT[+n.dataset.i]; if (!o) return;
-  if (n.dataset.k === 'sku') o.sku = normSku(n.value);
+  const i = +n.dataset.i, o = CST_EDIT[i]; if (!o) return;
+  if (n.type === 'radio'){ o.fixo = n.value; }
+  else if (n.dataset.k === 'sku') o.sku = normSku(n.value);
   else o.v[CST_GUIA] = cstNum(n.value);
+  /* atualiza so a celula do custo aplicado: nao redesenha a lista nem
+     perde a rolagem ou o campo em edicao */
+  const td = el('cstGrid').querySelector('[data-uso="'+i+'"]');
+  if (td) td.innerHTML = cstUsoTxt(o);
+  const tr = td && td.closest('tr');
+  if (tr) tr.classList.toggle('fixa', !!o.fixo);
+  if (n.type === 'radio'){
+    const nfx = CST_EDIT.filter(x=>x.fixo).length;
+    setH('cstHint', t().cstHint(CUSTOS.fontes[CST_GUIA] || '')
+      + (nfx ? ' <b>· '+esc(t().cstFixos(nfx))+'</b>' : ''));
+  }
 });
 el('cstAdd').onclick = () => {
-  CST_EDIT.push({sku:'', v:CUSTOS.fontes.map(()=>0)});
+  CST_EDIT.push({sku:'', v:CUSTOS.fontes.map(()=>0), fixo:''});
   CST_Q = ''; CST_USO = false;
   el('cstQ').value = ''; el('cstUso').setAttribute('aria-pressed','false');
   cstRender();
@@ -1953,25 +2007,27 @@ document.addEventListener('keydown', e=>{
 });
 el('cstSave').onclick = async () => {
   const L = t(), btn = el('cstSave');
-  const itens = {};
+  const itens = {}, fixos = {};
   let vazio = false;
   CST_EDIT.forEach(o=>{
     const k = normSku(o.sku);
     if (!k){ if (o.v.some(x=>x>0)) vazio = true; return; }
     itens[k] = o.v.map(x=>+x||0);
+    if (o.fixo && CUSTOS.fontes.indexOf(o.fixo) >= 0) fixos[k] = o.fixo;
   });
   if (vazio){ toast(L.cstSemSku, true); return; }
   const n = Object.keys(itens).length;
   if (!n) return;
-  CUSTOS = {fontes:CUSTOS.fontes, itens, arquivo:CUSTOS.arquivo, padrao:CUSTOS.fontes[CST_GUIA]};
+  CUSTOS = {fontes:CUSTOS.fontes, itens, fixos, arquivo:CUSTOS.arquivo,
+            padrao:CUSTOS.fontes[CST_GUIA]};
   S.custo = CUSTOS.fontes[CST_GUIA];
   render();
   if (!SB_ON){ toast(L.custoLocal); el('cstModal').hidden = true; return; }
   btn.disabled = true;
   try{
-    const d = await sbRpc('wgi_painel_salvar_custos', {p_senha: SENHA_ADM,
+    const d = await sbRpc('wgi_painel_salvar_custos', {p_senha: null,
       p_arquivo: CUSTOS.arquivo || 'ADM', p_fontes: CUSTOS.fontes,
-      p_itens: itens, p_padrao: CUSTOS.padrao});
+      p_itens: itens, p_padrao: CUSTOS.padrao, p_fixos: fixos});
     toast(L.custoSalvo((d && d.itens) || n));
     el('cstModal').hidden = true;
   } catch(err){ toast(t().impErr + (err && err.message ? err.message : err), true); }
@@ -1996,10 +2052,10 @@ function syncCustoPills(){
   g.querySelectorAll('button').forEach(b=>b.setAttribute('aria-pressed', S.custo===b.dataset.v));
 }
 function custoHintTxt(){
-  const L = t(), tt = CUSTO_USO.dir + CUSTO_USO.alt + CUSTO_USO.sem;
+  const L = t(), tt = CUSTO_USO.dir + CUSTO_USO.alt + CUSTO_USO.sem + CUSTO_USO.fix;
   if (!tt) return L.custoSem;
   const p = v => nf0(v/tt*100);
-  return L.custoHint(S.custo, p(CUSTO_USO.dir), p(CUSTO_USO.alt), p(CUSTO_USO.sem));
+  return L.custoHint(S.custo, p(CUSTO_USO.dir), p(CUSTO_USO.alt), p(CUSTO_USO.sem), p(CUSTO_USO.fix));
 }
 
 /* dentro x fora do estado: compara o armazem de origem (WH) com a UF do cliente */
@@ -2303,7 +2359,11 @@ async function importarCustos(cells, fileName){
   }
   const n = Object.keys(itens).length;
   if (!n) return false;
-  CUSTOS = {fontes, itens, arquivo:fileName};
+  const fixos = {};
+  Object.keys(CUSTOS.fixos || {}).forEach(k=>{
+    if (itens[k] && fontes.indexOf(CUSTOS.fixos[k]) >= 0) fixos[k] = CUSTOS.fixos[k];
+  });
+  CUSTOS = {fontes, itens, fixos, arquivo:fileName};
   if (fontes.indexOf(S.custo) < 0) S.custo = fontes[0];
   render();
   toast(t().custoOk(fileName, n));
@@ -2311,8 +2371,8 @@ async function importarCustos(cells, fileName){
   if (!SB_ON || !ADM){ toast(t().custoLocal); return true; }
   try{
     const d = await sbRpc('wgi_painel_salvar_custos',
-      {p_senha: SENHA_ADM, p_arquivo: fileName, p_fontes: fontes,
-       p_itens: itens, p_padrao: S.custo});
+      {p_senha: null, p_arquivo: fileName, p_fontes: fontes,
+       p_itens: itens, p_padrao: S.custo, p_fixos: CUSTOS.fixos});
     toast(t().custoSalvo((d && d.itens) || n));
   } catch(err){ toast(t().impErr + (err && err.message ? err.message : err), true); }
   return true;
@@ -2363,7 +2423,7 @@ el('fFile').onchange = async e => {
     S.tab = 'all'; S.sort = 'tot'; S.dir = -1;
     MSREP.fill(); MSUF.fill(); MSANO.fill(); MSMES.fill();
     applyLang(); render();
-    if (!SB_ON || AUTH.role === 'gerencia') el('btnSave').hidden = false;
+    if (podeEditar()) el('btnSave').hidden = false;
     toast(t().impOk(nd.rows.length, f.name) + (MISSING.length ? t().impOpc(MISSING.join(', ')) : ''));
   } catch(err){
     toast(t().impErr + (err && err.message ? err.message : err), true);
@@ -2384,23 +2444,36 @@ const SUPABASE = {
 /* A senha digitada na tela é conferida no banco, dentro das funções
    wgi_painel_dados / wgi_painel_salvar. Nada secreto fica neste arquivo:
    a chave publicável sozinha não devolve nenhum dado. */
-let SENHA = '';
+/* quem autentica e a Central de Acesso; o painel nao guarda senha nenhuma */
+let PERM = 'editar', USUARIO = null, TOKEN = '';
+const GUARD = () => (typeof window !== 'undefined' && window.APP) ? window.APP : null;
+const podeEditar = () => !SB_ON || PERM === 'editar' || PERM === 'admin';
 const SB_ON = !!(SUPABASE.url && SUPABASE.key);
-const AUTH = {role:'gerencia'};
 let METAS = {}, ADM = false;
 
+/* As chamadas ao banco vao assinadas com a sessao emitida pela Central de
+   Acesso: e ela que diz, do lado do servidor, quem pode ver e quem pode gravar. */
 async function sbRpc(fn, body){
+  const g = GUARD();
+  if (g && g.sb && g.sb.rpc){
+    const res = await g.sb.rpc(fn, body || {});
+    if (res.error){
+      const m = res.error.message || String(res.error);
+      throw new Error(/senha_invalida|28000|permission/i.test(m) ? t().semAcesso : m);
+    }
+    return res.data;
+  }
   const r = await fetch(SUPABASE.url + '/rest/v1/rpc/' + fn, {
     method:'POST',
-    headers:{apikey: SUPABASE.key, Authorization:'Bearer ' + SUPABASE.key,
+    headers:{apikey: SUPABASE.key, Authorization:'Bearer ' + (TOKEN || SUPABASE.key),
              'Content-Type':'application/json'},
-    body: JSON.stringify(body)
+    body: JSON.stringify(body || {})
   });
   const txt = await r.text();
   let d = null; try { d = txt ? JSON.parse(txt) : null; } catch(e){}
   if (!r.ok){
     const msg = (d && (d.message || d.hint)) || ('HTTP ' + r.status);
-    throw new Error(/senha_invalida/.test(msg) ? t().gerr : msg);
+    throw new Error(/senha_invalida|28000/.test(msg) ? t().semAcesso : msg);
   }
   return d;
 }
@@ -2422,12 +2495,14 @@ function dataFromDb(rows, imp){
     fonte: (imp.arquivo || 'Supabase') + ' · banco'
   };
 }
-async function sbLoadData(senha){
-  const d = await sbRpc('wgi_painel_dados', {p_senha: senha});
+async function sbLoadData(){
+  const d = await sbRpc('wgi_painel_dados', {});
   METAS = (d && d.metas) || {};
   if (d && d.custos && d.custos.itens){
     const it = {}; Object.keys(d.custos.itens).forEach(k=>it[normSku(k)] = d.custos.itens[k]);
-    CUSTOS = {fontes: d.custos.fontes || CUSTOS.fontes, itens: it,
+    const fx = {};
+    Object.keys(d.custos.fixos || {}).forEach(k=>fx[normSku(k)] = d.custos.fixos[k]);
+    CUSTOS = {fontes: d.custos.fontes || CUSTOS.fontes, itens: it, fixos: fx,
               arquivo: d.custos.arquivo || '', padrao: d.custos.padrao || ''};
     S.custo = CUSTOS.fontes.indexOf(CUSTOS.padrao) >= 0 ? CUSTOS.padrao : CUSTOS.fontes[0];
   }
@@ -2449,26 +2524,24 @@ const temMeta = MT => !!MT && (MT.eq > 0 || MT.ano_ > 0
   || MO_ALL.some(m=>+MT.mes[m] > 0) || TRIS.some(q=>+MT.tri[q] > 0));
 async function sbSave(){
   const d = await sbRpc('wgi_painel_salvar', {
-    p_senha: SENHA, p_arquivo: DATA.fonte, p_fx: DATA.fx,
+    p_senha: null, p_arquivo: DATA.fonte, p_fx: DATA.fx,
     p_mes_atual: DATA.atual, p_ano: DATA.ano, p_linhas: DATA.rows});
   return (d && d.linhas) || DATA.rows.length;
 }
-/* aplica o nível de acesso na interface (a RLS já barra no servidor) */
+/* aplica o nível de acesso na interface — o banco confere de novo, sempre */
 function applyRole(){
-  if (!SB_ON) return;
-  const ger = AUTH.role === 'gerencia';
-  el('btnOut').hidden = false;
-  el('btnImport').hidden = !ger;
-
-  if (!ger && AUTH.rep){
-    S.reps = new Set([AUTH.rep]);
-    const b = document.querySelector('#msRep .ms-btn');
-    b.disabled = true; b.style.opacity = .6; b.style.cursor = 'not-allowed';
-  }
+  const g = GUARD();
+  el('btnImport').hidden = SB_ON && !podeEditar();
+  el('btnAdm').hidden = !ADM;
+  el('admCard').hidden = !ADM;
+  el('btnOut').hidden = !(g && g.sair);
+  const nome = USUARIO && (USUARIO.nome || USUARIO.email);
+  if (nome){ set('whoami', nome); el('whoami').hidden = false; }
+  if (ADM) admFill();
 }
 
 /* ================= área ADM: metas e ponto de equilíbrio ================= */
-let SENHA_ADM = '', CUR_ANT = 'BRL';
+let CUR_ANT = 'BRL';
 
 /* trocar a moeda converte o que está digitado, sem perder edição não salva */
 function admMoeda(anterior){
@@ -2557,7 +2630,7 @@ el('aSalvar').onclick = async () => {
   btn.disabled = true;
   try{
     await sbRpc('wgi_painel_salvar_metas',
-      {p_senha: SENHA_ADM, p_ano: ano, p_equilibrio: eq, p_anual: anual,
+      {p_senha: null, p_ano: ano, p_equilibrio: eq, p_anual: anual,
        p_mensais: mensais, p_trimestrais: tris});
     METAS[String(ano)] = {equilibrio: eq, anual: anual, mensais: mensais, trimestrais: tris};
     render();
@@ -2571,37 +2644,10 @@ el('aSalvar').onclick = async () => {
   } finally { btn.disabled = false; }
 };
 
-/* botão ADM no topo: pede a senha só na hora */
-function abreAdmGate(){
-  el('admGate').hidden = false;
-  set('admErr',''); el('admPass').value = ''; el('admPass').focus();
-}
+/* botão ADM no topo: quem entrou com a senha de gestão já chega liberado */
 el('btnAdm').onclick = () => {
-  if (ADM){ el('admCard').scrollIntoView({behavior:'smooth', block:'center'}); return; }
-  abreAdmGate();
+  if (ADM) el('admCard').scrollIntoView({behavior:'smooth', block:'center'});
 };
-el('admCancel').onclick = () => { el('admGate').hidden = true; };
-el('admGate').addEventListener('click', e=>{ if (e.target.id === 'admGate') el('admGate').hidden = true; });
-el('admForm').addEventListener('submit', async e=>{
-  e.preventDefault();
-  const L = t(), pw = el('admPass'), btn = el('admOkBtn');
-  btn.disabled = true; set('admErr','');
-  try{
-    const ok = await sbRpc('wgi_painel_eh_adm', {p_senha: pw.value.trim()});
-    if (!ok) throw new Error(L.gerr);
-    SENHA_ADM = pw.value.trim();
-    ADM = true;
-    el('admGate').hidden = true;
-    el('admCard').hidden = false;
-    set('btnAdm', L.admOn);
-    admFill();
-    syncCustoPills();
-    el('admCard').scrollIntoView({behavior:'smooth', block:'center'});
-    toast(L.admLiberado);
-  } catch(err){
-    set('admErr', (err && err.message) ? err.message : String(err)); pw.select();
-  } finally { btn.disabled = false; }
-});
 
 /* ================= modelo .xlsx gerado na propria pagina =================
    Escreve um .xlsx valido sem biblioteca: zip com entradas "stored" (sem
@@ -2793,7 +2839,7 @@ el('btnSave').onclick = async () => {
   btn.disabled = true;
   try{
     if (SB_ON){
-      if (AUTH.role !== 'gerencia') throw new Error(t().soGerencia);
+      if (!podeEditar()) throw new Error(t().soGerencia);
       toast(t().salvando);
       const n = await sbSave();
       toast(t().salvoDb(n));
@@ -2817,45 +2863,49 @@ el('btnSave').onclick = async () => {
   } finally { btn.disabled = false; }
 };
 
-/* ================= acesso ================= */
-function hash(s){ let x=5381; for (const c of s) x=((x*33)^c.charCodeAt(0))>>>0; return x; }
-const KEY = 2519394238;   /* hash da senha de acesso ao painel */
-
+/* ================= acesso =================
+   Quem cuida do login é a Central de Acesso (guard.js, carregado no <head>).
+   Este arquivo não tem senha nenhuma: ele espera o guard liberar, lê o nível
+   da pessoa e usa a sessão dela para falar com o banco. */
 function abrirPainel(){
-  el('gate').remove();
+  const g = el('gate'); if (g) g.remove();
   el('app').hidden = false;
   MSREP.fill(); MSUF.fill(); MSANO.fill(); MSMES.fill();
   applyLang(); render();
 }
-el('gateForm').addEventListener('submit', async e=>{
-  e.preventDefault();
-  const btn = el('gBtn'), pw = el('gPass');
-  set('gErr','');
-  if (!SB_ON){
-    if (hash(pw.value.trim()) === KEY) abrirPainel();
-    else { set('gErr', t().gerr); pw.select(); }
-    return;
+function gateErro(msg){
+  set('gSub',''); set('gErr', msg);
+}
+async function arranca(){
+  const g = GUARD();
+  if (g && g.pronto){ try{ await g.pronto; } catch(e){} }
+  if (g){
+    PERM = g.permissao || 'editar';
+    ADM = !!(g.eAdmin && g.eAdmin());
+    USUARIO = g.usuario || null;
+    try{
+      const ses = g.sb && g.sb.auth && await g.sb.auth.getSession();
+      TOKEN = (ses && ses.data && ses.data.session && ses.data.session.access_token) || '';
+    } catch(e){}
   }
-
-  btn.disabled = true; set('gBtn', t().entrando);
+  applyRole();
+  if (!SB_ON){ abrirPainel(); return; }
   try{
-    const senha = pw.value.trim();
-    const d = await sbLoadData(senha);   /* a senha é conferida no banco */
-    SENHA = senha;
+    const d = await sbLoadData();
     if (d){ boot(d); afterBoot(); }
     applyRole();
     abrirPainel();
     if (!d) toast(t().semDados, true);
-    else if (AUTH.role !== 'gerencia' && AUTH.rep) toast(t().repLock(AUTH.rep));
   } catch(err){
-    set('gErr', (err && err.message) ? err.message : String(err));
-    btn.disabled = false; set('gBtn', t().gbtn); pw.select();
+    gateErro((err && err.message) ? err.message : String(err));
   }
-});
-el('btnOut').onclick = () => { SENHA = ''; location.reload(); };
-el('fLang').addEventListener('click', e=>{ if (e.target.closest('button')) set('gErr',''); });
+}
+el('btnOut').onclick = () => {
+  const g = GUARD();
+  if (g && g.sair) g.sair(); else location.reload();
+};
 applyLang();
-el('gPass').focus();
+arranca();
 </script>
 
 </body>
