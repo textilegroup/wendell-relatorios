@@ -3,7 +3,8 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1">
-<script src="/users-wendell/guard.js" data-app="dashboard" data-barra="nao"></script>
+<script src="https://textilegroup.github.io/wendell-users/guard.js"
+        data-app="dashboard" data-barra="nao"></script>
 <title>Vendas Wendell Brasil</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -935,6 +936,7 @@ const T = {
   admAnual:'Meta anual', admSalvar:'Salvar metas', admCalc:'Somar meses',
   carregando:'Verificando o acesso…',
   semAcesso:'Sua conta não tem acesso a este relatório. Fale com a gestão.',
+  semGuard:'Não consegui carregar a Central de Acesso (guard.js). Publique este arquivo no mesmo domínio do hub — textilegroup.github.io — e recarregue.',
   erroCarga:'Não consegui carregar os dados: ',
   admBtn:'ADM', admOn:'ADM ✓', admTitulo:'Área de administração',
   admTxt:'Digite a senha de ADM para definir metas e ponto de equilíbrio.',
@@ -1067,6 +1069,7 @@ const T = {
   admAnual:'Annual target', admSalvar:'Save targets', admCalc:'Sum months',
   carregando:'Checking access…',
   semAcesso:'Your account has no access to this report. Talk to management.',
+  semGuard:'Could not load the Access Hub (guard.js). Publish this file on the same domain as the hub — textilegroup.github.io — and reload.',
   erroCarga:'Could not load the data: ',
   admBtn:'ADMIN', admOn:'ADMIN ✓', admTitulo:'Administration area',
   admTxt:'Enter the admin password to set targets and break-even.',
@@ -2890,6 +2893,8 @@ async function arranca(){
   }
   applyRole();
   if (!SB_ON){ abrirPainel(); return; }
+  /* sem o guard nao ha sessao: dizer isso, em vez de acusar falta de permissao */
+  if (!g){ gateErro(t().semGuard); return; }
   try{
     const d = await sbLoadData();
     if (d){ boot(d); afterBoot(); }
