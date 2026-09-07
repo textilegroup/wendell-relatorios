@@ -922,23 +922,39 @@ const cst4 = v => { const n = +v; return isFinite(n) && n > 0 ? Math.round(n*1e4
    (6A40PA0100 / 6A40PAEA0100). O item de REFERENCIA manda no custo, e os
    demais do grupo passam a usar o custo dele. GRP_DE e o mapa membro->ref,
    remontado sempre que os grupos mudam. */
-let GRP_DE = {};
+/* O ID do item e guardado e mostrado EXATAMENTE como veio na planilha —
+   espacos e caixa preservados ("6A40PAEA 0100"). Quem casa venda com custo e
+   uma chave derivada (normSku: maiuscula, sem espaco), nunca o texto exibido.
+   ITEM_DE: chave -> ID original do item de custo.
+   GRP_DE:  chave de qualquer membro -> ID original da referencia do grupo. */
+let GRP_DE = {}, ITEM_DE = {}, DUP_SKU = [];
+function itensSync(){
+  ITEM_DE = {}; DUP_SKU = [];
+  Object.keys(CUSTOS.itens || {}).forEach(k=>{
+    const n = normSku(k); if (!n) return;
+    if (ITEM_DE[n] === undefined) ITEM_DE[n] = k; else DUP_SKU.push(k);
+  });
+}
 function grpSync(){
   GRP_DE = {};
   const g = CUSTOS.grupos || {};
   Object.keys(g).forEach(ref=>{
     const r = normSku(ref); if (!r) return;
-    GRP_DE[r] = r;
+    GRP_DE[r] = ref;
     (Array.isArray(g[ref]) ? g[ref] : []).forEach(m=>{
-      const k = normSku(m); if (k && k !== r) GRP_DE[k] = r;
+      const k = normSku(m); if (k && k !== r) GRP_DE[k] = ref;
     });
   });
 }
-/* SKU cujo custo vale para este item (ele mesmo, se nao estiver agrupado) */
-const grpRef = sku => GRP_DE[sku] || sku;
+/* ID do item de custo que vale para este SKU: a referencia do grupo, se ele
+   estiver agrupado; senao o proprio item. '' quando nao ha custo cadastrado. */
+function custoKey(sku){
+  const n = normSku(sku); if (!n) return '';
+  return GRP_DE[n] || ITEM_DE[n] || '';
+}
 const grpMembros = ref => ((CUSTOS.grupos || {})[ref] || []).filter(m=>m && m !== ref);
 /* item absorvido por um grupo: nao aparece como linha propria na guia Custos */
-const grpAbsorvido = sku => !!GRP_DE[sku] && GRP_DE[sku] !== sku;
+const grpAbsorvido = sku => { const r = GRP_DE[normSku(sku)]; return !!r && r !== sku; };
 let CUSTO_USO = {dir:0, alt:0, sem:0, fix:0};
 let DATA = DATA0, M, MS, CUR, FX, COLS, R, ANOS, FIRST, LAST, FIRSTD, TEM_UF = false, SEM_UF = 0;
 let WHS = [];
@@ -1111,6 +1127,7 @@ const T = {
     +'exportar/importar carrega só os valores — a escolha de fonte é feita aqui. '
     +'<b>Salvar</b> grava a tabela e as escolhas no banco, com <b>'+f+'</b> como fonte padrão.',
   cstSemSku:'Informe o ID limpo antes de salvar.',
+  cstDup:d=>'ID repetido, só a primeira linha foi gravada: '+d.join(', '),
   cstGuiaCustos:'Custos', cstGuiaGrupos:'Agrupamento de itens',
   cstGrupoTip:m=>'Comanda o custo de: '+m.join(', '),
   cstSubGr:(g,n)=>g+(g===1?' grupo':' grupos')+' · '+n+' itens agrupados',
@@ -1277,6 +1294,7 @@ const T = {
     +'the source is picked here. '
     +'<b>Save</b> writes the table and the choices to the database, with <b>'+f+'</b> as the default source.',
   cstSemSku:'Fill in the clean ID before saving.',
+  cstDup:d=>'Duplicate ID, only the first row was saved: '+d.join(', '),
   cstGuiaCustos:'Costs', cstGuiaGrupos:'Item grouping',
   cstGrupoTip:m=>'Drives the cost of: '+m.join(', '),
   cstSubGr:(g,n)=>g+(g===1?' group':' groups')+' · '+n+' grouped items',
@@ -1505,7 +1523,7 @@ function aplicaCusto(){
   CUSTO_USO = {dir:0, alt:0, sem:0, fix:0};
   R.forEach(r=>{
     /* item agrupado usa o custo do item de referencia do grupo */
-    const k = r.sku ? grpRef(r.sku) : '';
+    const k = r.sku ? custoKey(r.sku) : '';
     const c = k ? CUSTOS.itens[k] : null;
     const fx = k ? CUSTOS.fontes.indexOf(CUSTOS.fixos[k] || '') : -1;
     const i = fx >= 0 ? fx : iSel;
@@ -1530,6 +1548,7 @@ function garantirFontes(){
   if (!pad) return 0;
   CUSTOS.fixos = CUSTOS.fixos || {};
   CUSTOS.grupos = CUSTOS.grupos || {};
+  itensSync();
   /* grupo cuja referencia sumiu da tabela deixa de existir; membro que sumiu
      sai do grupo. Sem isso um item apagado levaria o custo do grupo junto. */
   Object.keys(CUSTOS.grupos).forEach(ref=>{
@@ -2064,8 +2083,8 @@ let CST_TAB = 'custos', CST_GRUPOS = {}, GR_SEL = [];
 function cstGrpDe(){
   const m = {};
   Object.keys(CST_GRUPOS).forEach(ref=>{
-    m[ref] = ref;
-    (CST_GRUPOS[ref] || []).forEach(x=>{ if (x !== ref) m[x] = ref; });
+    m[normSku(ref)] = ref;
+    (CST_GRUPOS[ref] || []).forEach(x=>{ if (x !== ref) m[normSku(x)] = ref; });
   });
   return m;
 }
@@ -2111,18 +2130,20 @@ function cstRender(){
   if (CST_TAB === 'grupos') return grRender();
   const L = t(), f = CUSTOS.fontes[CST_PAD] || '';
   const gd = cstGrpDe();
-  const usados = new Set(R.filter(r=>r.st==='I' && r.sku).map(r=>grpRef(r.sku)));
+  const usados = new Set(R.filter(r=>r.st==='I' && r.sku).map(r=>custoKey(r.sku)).filter(Boolean));
   /* o filtro so esconde linhas: o indice de cada uma continua o mesmo,
      entao editar uma celula filtrada altera o item certo. Item absorvido por
      um grupo nao vira linha: quem aparece e o item de referencia. */
+  /* o filtro compara pela chave (sem espaco, maiuscula), mas o que aparece na
+     linha continua sendo o ID como o usuario digitou/importou */
   const q = normSku(CST_Q);
   const base = CST_EDIT.map((o,i)=>[o,i]).filter(x=>{
-    const r = gd[x[0].sku];
+    const r = gd[normSku(x[0].sku)];
     return !(r && r !== x[0].sku);
   });
   const vis = base.filter(x=>
-    (!q || x[0].sku.indexOf(q) >= 0
-        || (CST_GRUPOS[x[0].sku] || []).some(m=>m.indexOf(q) >= 0))
+    (!q || normSku(x[0].sku).indexOf(q) >= 0
+        || (CST_GRUPOS[x[0].sku] || []).some(m=>normSku(m).indexOf(q) >= 0))
     && (!CST_USO || usados.has(x[0].sku)));
   set('cstSub', L.cstSub(CST_EDIT.length, CUSTOS.arquivo || f));
   set('cstCnt', L.cstCnt(vis.length, base.length));
@@ -2182,10 +2203,11 @@ function grRender(){
   const L = t();
   const gd = cstGrpDe();
   const q = normSku(CST_Q);
-  const usados = new Set(R.filter(r=>r.st==='I' && r.sku).map(r=>r.sku));
+  /* filtro pela chave, exibicao pelo ID original */
+  const usados = new Set(R.filter(r=>r.st==='I' && r.sku).map(r=>normSku(r.sku)));
   const vis = CST_EDIT.filter(o=>o.sku
-    && (!q || o.sku.indexOf(q) >= 0)
-    && (!CST_USO || usados.has(o.sku)));
+    && (!q || normSku(o.sku).indexOf(q) >= 0)
+    && (!CST_USO || usados.has(normSku(o.sku))));
   const nGrupos = Object.keys(CST_GRUPOS).length;
   const nAgrup = Object.keys(gd).length;
   set('cstSub', L.cstSubGr(nGrupos, nAgrup));
@@ -2204,7 +2226,7 @@ function grRender(){
     + '<table class="cst"><thead><tr><th class="gck"></th><th>'+esc(L.cstItem)+'</th>'
     + '<th style="text-align:right">'+esc(L.grSituacao)+'</th></tr></thead><tbody>'
     + (vis.length ? vis.map(o=>{
-        const meu = gd[o.sku] || '';
+        const meu = gd[normSku(o.sku)] || '';
         const ehRef = CST_GRUPOS[o.sku] && CST_GRUPOS[o.sku].length;
         const iSel = GR_SEL.indexOf(o.sku);
         let cls = '';
@@ -2252,7 +2274,7 @@ function grAgrupar(){
 }
 function grDesagrupar(ref){ delete CST_GRUPOS[ref]; GR_SEL = []; grRender(); }
 function grTirar(sku){
-  const gd = cstGrpDe(), ref = gd[sku];
+  const gd = cstGrpDe(), ref = gd[normSku(sku)];
   if (!ref || ref === sku) return;
   const mem = (CST_GRUPOS[ref] || []).filter(x=>x !== sku);
   if (mem.length) CST_GRUPOS[ref] = mem; else delete CST_GRUPOS[ref];
@@ -2302,7 +2324,8 @@ el('cstGrid').addEventListener('input', e=>{
   const n = e.target; if (!n.dataset || n.dataset.i === undefined) return;
   const i = +n.dataset.i, o = CST_EDIT[i]; if (!o) return;
   if (n.type === 'radio'){ o.fixo = n.value; }
-  else if (n.dataset.k === 'sku') o.sku = normSku(n.value);
+  /* o ID fica como o usuario digitou; o casamento e por normSku, nao pelo texto */
+  else if (n.dataset.k === 'sku') o.sku = n.value;
   else o.v[+n.dataset.f] = cstNum(n.value);
   /* atualiza so a celula do custo aplicado: nao redesenha a lista nem
      perde a rolagem ou o campo em edicao */
@@ -2340,13 +2363,21 @@ el('cstSave').onclick = async () => {
   const L = t(), btn = el('cstSave');
   const itens = {}, fixos = {};
   let vazio = false;
+  /* a chave gravada e o ID como esta na tela, com espacos e caixa originais.
+     Duas linhas que so diferem em espaco/caixa sao o mesmo item: fica a
+     primeira, e o usuario e avisado. */
+  const vistos = {}; const dups = [];
   CST_EDIT.forEach(o=>{
-    const k = normSku(o.sku);
+    const k = String(o.sku == null ? '' : o.sku).trim();
     if (!k){ if (o.v.some(x=>x>0)) vazio = true; return; }
+    const n = normSku(k);
+    if (vistos[n]){ dups.push(k); return; }
+    vistos[n] = k;
     itens[k] = o.v.map(cst4);
     if (o.fixo && CUSTOS.fontes.indexOf(o.fixo) >= 0) fixos[k] = o.fixo;
   });
   if (vazio){ toast(L.cstSemSku, true); return; }
+  if (dups.length) toast(L.cstDup(dups), true);
   const n = Object.keys(itens).length;
   if (!n) return;
   /* grupos da guia Agrupamento, limpos de item que nao existe mais */
@@ -2807,10 +2838,14 @@ async function importarCustos(cells, fileName){
     if (/^(COGS|LANDED)\d+$/.test(n)){ fontes.push(n); idx.push(i); }
   });
   if (!fontes.length) return false;
-  const itens = {};
+  const itens = {}, vistos = new Set();
   for (let i = 1; i < cells.length; i++){
-    const r = cells[i] || [], k = normSku(r[iId]);
-    if (!k) continue;
+    /* o ID entra como veio na planilha, com espacos e caixa preservados. Se
+       duas linhas so diferem em espaco/caixa, vale a primeira. */
+    const r = cells[i] || [], k = String(r[iId] == null ? '' : r[iId]).trim();
+    const nk = normSku(k);
+    if (!nk || vistos.has(nk)) continue;
+    vistos.add(nk);
     itens[k] = idx.map(j=>cst4(r[j]));
   }
   const n = Object.keys(itens).length;
@@ -2962,17 +2997,18 @@ async function sbLoadData(){
   const d = await sbRpc('wgi_painel_dados', {});
   METAS = (d && d.metas) || {};
   if (d && d.custos && d.custos.itens){
-    /* tudo entra ja com 4 casas: banco antigo pode ter 6 */
+    /* as chaves vem do banco como foram gravadas — ID original, com espacos.
+       Nada de reescrever aqui: quem casa e o normSku, nao o texto. Os valores
+       entram com 4 casas (versao antiga do banco pode ter 6). */
     const it = {};
     Object.keys(d.custos.itens).forEach(k=>
-      it[normSku(k)] = (d.custos.itens[k] || []).map(cst4));
+      it[k] = (d.custos.itens[k] || []).map(cst4));
     const fx = {};
-    Object.keys(d.custos.fixos || {}).forEach(k=>fx[normSku(k)] = d.custos.fixos[k]);
+    Object.keys(d.custos.fixos || {}).forEach(k=>fx[k] = d.custos.fixos[k]);
     const gp = {};
     Object.keys(d.custos.grupos || {}).forEach(k=>{
-      const ref = normSku(k);
-      const mem = (d.custos.grupos[k] || []).map(normSku).filter(m=>m && m !== ref);
-      if (ref && mem.length) gp[ref] = mem;
+      const mem = (d.custos.grupos[k] || []).filter(m=>m && m !== k);
+      if (k && mem.length) gp[k] = mem;
     });
     CUSTOS = {fontes: d.custos.fontes || CUSTOS.fontes, itens: it, fixos: fx, grupos: gp,
               arquivo: d.custos.arquivo || '', padrao: d.custos.padrao || ''};
