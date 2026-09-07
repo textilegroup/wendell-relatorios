@@ -349,6 +349,13 @@ th .fsel span{font-size:8px;font-weight:700;letter-spacing:.02em;color:var(--ink
 th .fsel span.auto{color:var(--s2)}
 table.cst td.fs{padding:3px 0}
 .fsel input[type=radio]{width:13px;height:13px;margin:0;accent-color:var(--s2);cursor:pointer}
+/* botao que aplica a fonte da coluna a todos os itens listados */
+.fsel .fs-all{
+  font:inherit;font-size:8px;font-weight:700;letter-spacing:.04em;text-transform:uppercase;
+  border:1px solid var(--line);border-radius:5px;background:var(--card);color:var(--ink-3);
+  padding:2px 0;cursor:pointer;line-height:1.1;
+}
+.fsel .fs-all:hover{border-color:var(--s2);color:var(--s2)}
 .fsel label{cursor:pointer}
 table.cst td.uso{padding:0 9px;text-align:right;white-space:nowrap;
   font-variant-numeric:tabular-nums;color:var(--ink-2)}
@@ -776,6 +783,9 @@ footer{font-size:10.5px;color:var(--ink-3);text-align:center;padding:2px 0 0;lin
     <div class="cst-hd">
       <h2 id="cstTitulo"></h2><span class="sub" id="cstSub"></span>
       <span class="cst-acts">
+        <input type="file" id="cstFile" accept=".xlsx,.xlsm" hidden>
+        <button type="button" class="admcalc" id="cstExp"></button>
+        <button type="button" class="admcalc" id="cstImp"></button>
         <button type="button" class="admcalc" id="cstAdd"></button>
         <button type="button" class="admsave" id="cstSave"></button>
         <button type="button" class="admcalc" id="cstClose"></button>
@@ -996,27 +1006,33 @@ const T = {
   noNew:'Sem clientes novos no período filtrado.',
   geoLabWh:'Armazém de origem', geoLabUf:'UF do cliente',
   custo:'Custo', custoSem:'Nenhuma tabela de custo carregada.',
-  custoHint:(f,a,b,c,d)=>'Margem calculada por <b>'+f+'</b>: (venda − quantidade × custo unitário) ÷ venda, '
-    +'ligando a venda ao custo pelo <code>SKU LIMPO</code>. '+a+'% do faturamento usa o custo da própria fonte, '
-    +b+'% usa o menor custo disponível para o mesmo código (a fonte não tem preço para o item)'
-    +(+d>0 ? ', '+d+'% tem fonte fixada no item (tela Ver custos)' : '')
-    +(+c>0 ? ' e '+c+'% fica com a margem informada na planilha de vendas (item sem custo em nenhuma tabela).' : '.'),
+  custoHint:(f,a,b,c,d)=>'Margem: (venda − quantidade × custo unitário) ÷ venda, ligando a venda ao custo '
+    +'pelo <code>SKU LIMPO</code>. Quem manda é a fonte escolhida item a item na tela <b>Ver custos</b>. '
+    +(+d>0 ? d+'% do faturamento usa a fonte escolhida no item' : '')
+    +(+d>0 && +a>0 ? ' e ' : '')
+    +(+a>0 ? a+'% segue a chave <b>'+f+'</b>' : '')
+    +(+c>0 ? '; '+c+'% fica com a margem informada na planilha de vendas (item sem valor na fonte escolhida).' : '.'),
   custoOk:(f,n)=>'Tabela de custos carregada: '+n+' itens de '+f+'.',
   custoSalvo:n=>'Custos gravados no banco: '+n+' itens.',
   custoLocal:'Custos aplicados nesta sessão. Entre em ADM para gravar no banco.',
   verCustos:'Ver custos',
   cstTitulo:'Tabela de custos', cstAdd:'+ Linha', cstSalvar:'Salvar', cstFechar:'Fechar',
   cstSub:(n,f)=>n+' itens · '+f,
-  cstItem:'ID limpo', cstMenor:m=>'menor: '+m,
+  cstItem:'ID limpo',
+  cstTodas:'todas', cstTodasTip:f=>'Usar '+f+' em todos os itens listados',
+  cstExp:'Exportar', cstImp:'Importar',
+  cstExpOk:n=>'Planilha de custos gerada com '+n+' itens.',
+  cstImpErr:'A planilha precisa ter a coluna ID LIMPO e ao menos uma coluna COGS/LANDED.',
   cstBusca:'Filtrar item (ex.: 7FB55, 9800, WENFUSE)…',
-  cstFonte:'Custo usado neste item', cstAuto:'auto', cstUsado:'Aplicado',
+  cstFonte:'Custo usado neste item', cstUsado:'Aplicado',
   cstFixos:n=>n+(n>1?' itens':' item')+' com fonte fixada',
   cstUso:'Só os vendidos', cstCnt:(n,tt)=>n+' de '+tt+' itens',
   cstVazio:'Nenhum item com esse filtro.',
-  cstHint:f=>'Cada guia é uma fonte de custo, e a coluna <b>custo usado neste item</b> manda no cálculo: '
-    +'em <b>auto</b> o item segue a chave CUSTO do painel; marcando uma fonte, ele passa a usar sempre aquela, '
-    +'não importa a chave. Célula vazia = item não disponível em <b>'+f+'</b>, e aí entra o menor custo do mesmo '
-    +'código entre as outras guias (o valor aparece em cinza). Custo unitário por metro, em reais. '
+  cstHint:f=>'Cada guia mostra uma fonte de custo, e a coluna <b>custo usado neste item</b> manda no cálculo: '
+    +'o item usa sempre a fonte marcada nele. O botão <b>todas</b> acima de cada fonte aplica aquela fonte a '
+    +'todos os itens da lista — depois é só trocar item a item quem for exceção. Sem valor na fonte marcada, '
+    +'o item fica sem custo e a margem volta a ser a da planilha de vendas (não há mais troca automática pelo '
+    +'menor preço). O valor de <b>'+f+'</b> é editável aqui mesmo. Custo unitário por metro, em reais. '
     +'As linhas usadas nas vendas do período aparecem com o número destacado. '
     +'<b>Salvar</b> grava a tabela e as escolhas no banco, e deixa a guia aberta como padrão para quem não é ADM.',
   cstSemSku:'Informe o ID limpo antes de salvar.',
@@ -1135,27 +1151,33 @@ const T = {
   noNew:'No new customers in the filtered period.',
   geoLabWh:'Origin warehouse', geoLabUf:'Customer state',
   custo:'Cost', custoSem:'No cost table loaded.',
-  custoHint:(f,a,b,c,d)=>'Margin from <b>'+f+'</b>: (sale − quantity × unit cost) ÷ sale, '
-    +'matching sale to cost by <code>SKU LIMPO</code>. '+a+'% of revenue uses the cost from that source, '
-    +b+'% uses the cheapest cost available for the same code (the source has no price for the item)'
-    +(+d>0 ? ', '+d+'% is pinned to a source on the item (View costs screen)' : '')
-    +(+c>0 ? ' and '+c+'% keeps the margin reported in the sales workbook (item with no cost in any table).' : '.'),
   custoOk:(f,n)=>'Cost table loaded: '+n+' items from '+f+'.',
   custoSalvo:n=>'Costs saved to the database: '+n+' items.',
   custoLocal:'Costs applied to this session only. Enter ADMIN to save them to the database.',
   verCustos:'View costs',
   cstTitulo:'Cost table', cstAdd:'+ Row', cstSalvar:'Save', cstFechar:'Close',
   cstSub:(n,f)=>n+' items · '+f,
-  cstItem:'Clean ID', cstMenor:m=>'lowest: '+m,
+  custoHint:(f,a,b,c,d)=>'Margin: (sale − quantity × unit cost) ÷ sale, matching sale to cost by '
+    +'<code>SKU LIMPO</code>. The source picked per item on the <b>View costs</b> screen is what drives it. '
+    +(+d>0 ? d+'% of revenue uses the source picked on the item' : '')
+    +(+d>0 && +a>0 ? ' and ' : '')
+    +(+a>0 ? a+'% follows the <b>'+f+'</b> switch' : '')
+    +(+c>0 ? '; '+c+'% keeps the margin reported in the sales sheet (no value in the picked source).' : '.'),
+  cstItem:'Clean ID',
+  cstTodas:'all', cstTodasTip:f=>'Use '+f+' for every listed item',
+  cstExp:'Export', cstImp:'Import',
+  cstExpOk:n=>'Cost sheet generated with '+n+' items.',
+  cstImpErr:'The sheet needs an ID LIMPO column and at least one COGS/LANDED column.',
   cstBusca:'Filter item (e.g. 7FB55, 9800, WENFUSE)…',
-  cstFonte:'Cost used for this item', cstAuto:'auto', cstUsado:'Applied',
+  cstFonte:'Cost used for this item', cstUsado:'Applied',
   cstFixos:n=>n+' item'+(n>1?'s':'')+' pinned to a source',
   cstUso:'Sold only', cstCnt:(n,tt)=>n+' of '+tt+' items',
   cstVazio:'No item matches this filter.',
-  cstHint:f=>'Each tab is one cost source, and the <b>cost used for this item</b> column drives the calculation: '
-    +'on <b>auto</b> the item follows the panel COST switch; pick a source and it always uses that one, whatever '
-    +'the switch says. An empty cell means the item is not available in <b>'+f+'</b>, so the lowest cost for the '
-    +'same code across the other tabs is used (shown greyed). Unit cost per metre, in BRL. '
+  cstHint:f=>'Each tab shows one cost source, and the <b>cost used for this item</b> column drives the '
+    +'calculation: the item always uses the source ticked on it. The <b>all</b> button above each source applies '
+    +'it to every listed item — then just change the exceptions one by one. With no value in the ticked source '
+    +'the item has no cost and the margin falls back to the sales sheet (there is no automatic switch to the '
+    +'lowest price any more). The <b>'+f+'</b> value is editable right here. Unit cost per metre, in BRL. '
     +'Rows used by sales in the period have a highlighted number. '
     +'<b>Save</b> writes the table and the choices to the database, and leaves the open tab as the default for non-admin users.',
   cstSemSku:'Fill in the clean ID before saving.',
@@ -1324,6 +1346,7 @@ function applyLang(){
   set('lCusto',L.custo); set('lCur',L.cur); set('lSearch',L.search);
   set('btnCustos',L.verCustos); set('cstTitulo',L.cstTitulo);
   set('cstAdd',L.cstAdd); set('cstSave',L.cstSalvar); set('cstClose',L.cstFechar);
+  set('cstExp',L.cstExp); set('cstImp',L.cstImp);
   set('cstUso',L.cstUso);
   const cq = el('cstQ');
   if (cq){ cq.placeholder = L.cstBusca; cq.setAttribute('aria-label', L.cstBusca); }
@@ -1359,33 +1382,43 @@ function applyLang(){
 
 /* ================= render ================= */
 /* Margem por custo: (venda - qtd x custo unitario) / venda.
-   A fonte escolhida manda; se o item estiver zerado nela, entra o MENOR
-   custo disponivel entre as outras tabelas do mesmo codigo. Sem custo em
-   nenhuma tabela, fica a margem que veio na planilha de vendas. */
+   Quem manda e a fonte escolhida PARA O ITEM na tela de custos. Nao existe
+   mais "auto" nem substituicao pelo menor custo: se a fonte escolhida nao
+   tiver valor para aquele item, ele fica sem custo e a margem volta a ser a
+   que veio na planilha de vendas. A chave CUSTO do painel so vale para item
+   que ainda nao tenha escolha (situacao que garantirFontes() elimina). */
 function aplicaCusto(){
   const iSel = CUSTOS.fontes.indexOf(S.custo);
   CUSTO_USO = {dir:0, alt:0, sem:0, fix:0};
   R.forEach(r=>{
     const c = r.sku ? CUSTOS.itens[r.sku] : null;
-    /* fonte fixada no item (tela Ver custos) tem preferencia sobre a chave */
     const fx = r.sku ? CUSTOS.fontes.indexOf(CUSTOS.fixos[r.sku] || '') : -1;
     const i = fx >= 0 ? fx : iSel;
-    let u = 0, fb = false;
-    if (c){
-      u = +c[i] || 0;
-      if (!u){
-        const d = c.map(x=>+x||0).filter(x=>x>0);
-        if (d.length){ u = Math.min.apply(null, d); fb = true; }
-      }
-    }
+    const u = (c && i >= 0) ? (+c[i] || 0) : 0;
     if (u > 0 && r.qtd > 0 && r.brl > 0){
-      r.cu = u; r.cufb = fb; r.cufix = fx >= 0; r.mg = (r.brl - r.qtd*u)/r.brl;
-      if (r.st==='I') CUSTO_USO[fx >= 0 ? 'fix' : (fb ? 'alt' : 'dir')] += r.brl;
+      r.cu = u; r.cufb = false; r.cufix = fx >= 0; r.mg = (r.brl - r.qtd*u)/r.brl;
+      if (r.st==='I') CUSTO_USO[fx >= 0 ? 'fix' : 'dir'] += r.brl;
     } else {
       r.cu = null; r.cufb = false; r.cufix = false; r.mg = r.mg0;
       if (r.st==='I') CUSTO_USO.sem += r.brl;
     }
   });
+}
+
+/* Sem "auto", todo item precisa de uma fonte escolhida. Quem ainda nao tem
+   (base antiga, ou item novo vindo de planilha) recebe a fonte padrao salva:
+   nada muda de valor na virada, e da para trocar item a item depois. */
+function garantirFontes(){
+  const pad = (CUSTOS.fontes.indexOf(CUSTOS.padrao) >= 0 && CUSTOS.padrao)
+           || (CUSTOS.fontes.indexOf(S.custo) >= 0 && S.custo)
+           || CUSTOS.fontes[0];
+  if (!pad) return 0;
+  CUSTOS.fixos = CUSTOS.fixos || {};
+  let n = 0;
+  Object.keys(CUSTOS.itens).forEach(k=>{
+    if (CUSTOS.fontes.indexOf(CUSTOS.fixos[k] || '') < 0){ CUSTOS.fixos[k] = pad; n++; }
+  });
+  return n;
 }
 function temCustos(){ return !!Object.keys(CUSTOS.itens).length; }
 
@@ -1898,6 +1931,8 @@ function spark(id, vals, hi){
    Nao e uma planilha de verdade: so linhas e colunas para conferir e digitar.
    O estado editado fica em CST_EDIT ate o botao Salvar. */
 let CST_EDIT = null, CST_GUIA = 0, CST_Q = '', CST_USO = false;
+/* indices das linhas visiveis agora: e sobre elas que o botao "todas" age */
+let CST_VIS = [];
 const cstNum = v => {
   const x = String(v == null ? '' : v).trim().replace(/\s/g,'');
   if (!x) return 0;
@@ -1929,31 +1964,33 @@ function cstRender(){
     (!q || x[0].sku.indexOf(q) >= 0) && (!CST_USO || usados.has(x[0].sku)));
   set('cstSub', L.cstSub(CST_EDIT.length, CUSTOS.arquivo || f));
   set('cstCnt', L.cstCnt(vis.length, CST_EDIT.length));
+  CST_VIS = vis.map(x=>x[1]);
   setH('cstGuias', CUSTOS.fontes.map((x,i)=>
     '<button type="button" class="cst-guia" role="tab" data-g="'+i+'" aria-selected="'
     + (i===CST_GUIA) + '">' + esc(x) + '</button>').join(''));
-  const topo = '<span class="auto">'+esc(L.cstAuto)+'</span>'
-    + CUSTOS.fontes.map(x=>'<span>'+esc(x)+'</span>').join('');
+  /* um botao por fonte: aplica aquela fonte a todos os itens listados */
+  const todas = CUSTOS.fontes.map((x,i)=>
+    '<button type="button" class="fs-all" data-f="'+i+'" title="'+esc(L.cstTodasTip(x))+'">'
+    + esc(L.cstTodas)+'</button>').join('');
+  const topo = CUSTOS.fontes.map(x=>'<span>'+esc(x)+'</span>').join('');
   setH('cstGrid',
     '<table class="cst"><thead><tr><th class="rn"></th><th>'+esc(L.cstItem)+'</th>'
-    + '<th class="fs"><div class="fsel">'+topo+'</div>'
+    + '<th class="fs"><div class="fsel">'+todas+'</div><div class="fsel">'+topo+'</div>'
     + '<div style="font-size:8.5px;color:var(--ink-3);letter-spacing:.06em;padding:2px 0 0">'
     + esc(L.cstFonte)+'</div></th>'
     + '<th class="num">'+esc(f)+' · R$</th>'
     + '<th class="num">'+esc(L.cstUsado)+'</th></tr></thead><tbody>'
     + (vis.length ? vis.map(x=>{
-        const o = x[0], i = x[1], alt = o.v.filter(y=>y>0);
-        const ph = (!o.v[CST_GUIA] && alt.length) ? L.cstMenor(cstTxt(Math.min.apply(null,alt))) : '';
+        const o = x[0], i = x[1];
         const radio = (val,lab) =>
           '<label title="'+esc(lab)+'"><input type="radio" name="fs'+i+'" data-i="'+i+'"'
           + ' value="'+esc(val)+'"' + (o.fixo===val ? ' checked' : '') + '></label>';
         return '<tr'+(usados.has(o.sku)?' class="usada':' class="')+(o.fixo?' fixa':'')+'">'
           + '<td class="rn">'+(i+1)+'</td>'
           + '<td><input data-i="'+i+'" data-k="sku" value="'+esc(o.sku)+'" spellcheck="false"></td>'
-          + '<td class="fs"><div class="fsel">' + radio('', L.cstAuto)
+          + '<td class="fs"><div class="fsel">'
           + CUSTOS.fontes.map(fn=>radio(fn,fn)).join('') + '</div></td>'
-          + '<td><input class="num" data-i="'+i+'" data-k="v" value="'+esc(cstTxt(o.v[CST_GUIA]))+'"'
-          + (ph ? ' placeholder="'+esc(ph)+'"' : '') + '></td>'
+          + '<td><input class="num" data-i="'+i+'" data-k="v" value="'+esc(cstTxt(o.v[CST_GUIA]))+'"></td>'
           + '<td class="uso" data-uso="'+i+'">'+cstUsoTxt(o)+'</td></tr>';
       }).join('')
       : '<tr><td class="empty" colspan="5" style="padding:14px;color:var(--ink-3)">'
@@ -1962,17 +1999,12 @@ function cstRender(){
   const nfx = CST_EDIT.filter(o=>o.fixo).length;
   setH('cstHint', L.cstHint(f) + (nfx ? ' <b>· '+esc(L.cstFixos(nfx))+'</b>' : ''));
 }
-/* custo que vale para o item: a fonte fixada, senao a chave do painel;
-   em qualquer caso, valor zerado cai no menor custo do mesmo codigo */
+/* custo que vale para o item: exatamente a fonte escolhida nele. Sem valor
+   naquela fonte, o item fica sem custo — nao ha mais troca automatica. */
 function cstEfetivo(o){
   const fx = o.fixo ? CUSTOS.fontes.indexOf(o.fixo) : -1;
   const i = fx >= 0 ? fx : CST_GUIA;
-  let u = +o.v[i] || 0, src = CUSTOS.fontes[i], fb = false;
-  if (!u){
-    const d = o.v.map(x=>+x||0).filter(x=>x>0);
-    if (d.length){ u = Math.min.apply(null, d); src = CUSTOS.fontes[o.v.indexOf(u)]; fb = true; }
-  }
-  return {u, src, fb, fixo: fx >= 0};
+  return {u: +o.v[i] || 0, src: CUSTOS.fontes[i], fb:false, fixo: fx >= 0};
 }
 function cstUsoTxt(o){
   const e = cstEfetivo(o);
@@ -1988,6 +2020,15 @@ el('cstUso').onclick = () => {
 el('cstGuias').addEventListener('click', e=>{
   const b = e.target.closest('button'); if (!b) return;
   CST_GUIA = +b.dataset.g; cstRender();
+});
+/* "todas": passa a fonte da coluna para todos os itens que estao na lista
+   agora (respeitando o filtro e o "so os vendidos"). Depois disso da para
+   trocar item a item nos radios — a escolha continua sendo por item. */
+el('cstGrid').addEventListener('click', e=>{
+  const b = e.target.closest('button.fs-all'); if (!b) return;
+  const f = CUSTOS.fontes[+b.dataset.f]; if (!f) return;
+  CST_VIS.forEach(i=>{ if (CST_EDIT[i]) CST_EDIT[i].fixo = f; });
+  cstRender();
 });
 el('cstGrid').addEventListener('input', e=>{
   const n = e.target; if (!n.dataset || n.dataset.i === undefined) return;
@@ -2036,6 +2077,7 @@ el('cstSave').onclick = async () => {
   CUSTOS = {fontes:CUSTOS.fontes, itens, fixos, arquivo:CUSTOS.arquivo,
             padrao:CUSTOS.fontes[CST_GUIA]};
   S.custo = CUSTOS.fontes[CST_GUIA];
+  garantirFontes();
   render();
   if (!SB_ON){ toast(L.custoLocal); el('cstModal').hidden = true; return; }
   btn.disabled = true;
@@ -2049,6 +2091,109 @@ el('cstSave').onclick = async () => {
   finally { btn.disabled = false; }
 };
 el('btnCustos').onclick = cstAbrir;
+
+/* ============ exportar / importar a tabela de custos ============
+   Uma planilha, aba TABELA: uma linha por item, uma COLUNA POR FONTE de
+   custo (COGS1, COGS2, LANDED1, LANDED2) e a coluna FONTE com a escolhida.
+   E o mesmo formato que a importacao le, entao exportar, editar no Excel e
+   importar de volta fecha o ciclo sem perder a escolha de ninguem. */
+function custosXlsx(){
+  const estilos = '<?xml version="1.0" encoding="UTF-8" standalone="yes"?>'
+   + '<styleSheet xmlns="http://schemas.openxmlformats.org/spreadsheetml/2006/main">'
+   + '<fonts count="2"><font><sz val="10"/><name val="Arial"/></font>'
+   + '<font><b/><sz val="10"/><color rgb="FFFFFFFF"/><name val="Arial"/></font></fonts>'
+   + '<fills count="3"><fill><patternFill patternType="none"/></fill>'
+   + '<fill><patternFill patternType="gray125"/></fill>'
+   + '<fill><patternFill patternType="solid"><fgColor rgb="FF7C1B29"/>'
+   + '<bgColor indexed="64"/></patternFill></fill></fills>'
+   + '<borders count="1"><border><left/><right/><top/><bottom/><diagonal/></border></borders>'
+   + '<cellStyleXfs count="1"><xf numFmtId="0" fontId="0" fillId="0" borderId="0"/></cellStyleXfs>'
+   + '<cellXfs count="2"><xf numFmtId="0" fontId="0" fillId="0" borderId="0" xfId="0"/>'
+   + '<xf numFmtId="0" fontId="1" fillId="2" borderId="0" xfId="0" applyFont="1" applyFill="1"'
+   + ' applyAlignment="1"><alignment horizontal="center" vertical="center"/></xf></cellXfs>'
+   + '<cellStyles count="1"><cellStyle name="Normal" xfId="0" builtinId="0"/></cellStyles></styleSheet>';
+  const cab = ['ID LIMPO'].concat(CUSTOS.fontes, ['FONTE']).map(v=>({v, s:1}));
+  const linhas = [cab].concat((CST_EDIT || []).filter(o=>o.sku)
+    .map(o=>[o.sku].concat(o.v.map(x=>+x||0), [o.fixo || ''])));
+  const larg = [20].concat(CUSTOS.fontes.map(()=>14), [12]);
+  return zipStore([
+   {name:'[Content_Types].xml', xml:'<?xml version="1.0" encoding="UTF-8" standalone="yes"?>'
+     + '<Types xmlns="http://schemas.openxmlformats.org/package/2006/content-types">'
+     + '<Default Extension="rels" ContentType="application/vnd.openxmlformats-package.relationships+xml"/>'
+     + '<Default Extension="xml" ContentType="application/xml"/>'
+     + '<Override PartName="/xl/workbook.xml" ContentType="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet.main+xml"/>'
+     + '<Override PartName="/xl/worksheets/sheet1.xml" ContentType="application/vnd.openxmlformats-officedocument.spreadsheetml.worksheet+xml"/>'
+     + '<Override PartName="/xl/styles.xml" ContentType="application/vnd.openxmlformats-officedocument.spreadsheetml.styles+xml"/>'
+     + '</Types>'},
+   {name:'_rels/.rels', xml:'<?xml version="1.0" encoding="UTF-8" standalone="yes"?>'
+     + '<Relationships xmlns="http://schemas.openxmlformats.org/package/2006/relationships">'
+     + '<Relationship Id="rId1" Type="http://schemas.openxmlformats.org/officeDocument/2006/relationships/officeDocument" Target="xl/workbook.xml"/>'
+     + '</Relationships>'},
+   {name:'xl/workbook.xml', xml:'<?xml version="1.0" encoding="UTF-8" standalone="yes"?>'
+     + '<workbook xmlns="http://schemas.openxmlformats.org/spreadsheetml/2006/main" '
+     + 'xmlns:r="http://schemas.openxmlformats.org/officeDocument/2006/relationships">'
+     + '<sheets><sheet name="TABELA" sheetId="1" r:id="rId1"/></sheets></workbook>'},
+   {name:'xl/_rels/workbook.xml.rels', xml:'<?xml version="1.0" encoding="UTF-8" standalone="yes"?>'
+     + '<Relationships xmlns="http://schemas.openxmlformats.org/package/2006/relationships">'
+     + '<Relationship Id="rId1" Type="http://schemas.openxmlformats.org/officeDocument/2006/relationships/worksheet" Target="worksheets/sheet1.xml"/>'
+     + '<Relationship Id="rId2" Type="http://schemas.openxmlformats.org/officeDocument/2006/relationships/styles" Target="styles.xml"/>'
+     + '</Relationships>'},
+   {name:'xl/styles.xml', xml:estilos},
+   {name:'xl/worksheets/sheet1.xml', xml:sheetXml(linhas, larg, {freeze:true})}
+  ]);
+}
+el('cstExp').onclick = () => {
+  const url = URL.createObjectURL(new Blob([custosXlsx()],
+    {type:'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet'}));
+  const a = document.createElement('a');
+  a.href = url; a.download = 'CUSTOS-WGI.xlsx';
+  document.body.appendChild(a); a.click(); a.remove();
+  setTimeout(()=>URL.revokeObjectURL(url), 4000);
+  toast(t().cstExpOk((CST_EDIT || []).filter(o=>o.sku).length));
+};
+
+/* abre um .xlsx e devolve as celulas da aba pedida (ou da primeira) */
+async function abasDoXlsx(f, nomePreferido){
+  const files = await unzip(new Uint8Array(await f.arrayBuffer()));
+  const wb = td(files['xl/workbook.xml'] || new Uint8Array());
+  const rels = td(files['xl/_rels/workbook.xml.rels'] || new Uint8Array());
+  const shared = files['xl/sharedStrings.xml'] ? sharedStrings(td(files['xl/sharedStrings.xml'])) : [];
+  const attr = (tag, name) => {
+    const m = tag.match(new RegExp('\\b'+name+'="([^"]*)"'));
+    return m ? unesc(m[1]) : null;
+  };
+  const sheets = (wb.match(/<sheet\b[^>]*\/?>/g) || [])
+    .map(tag=>({name:attr(tag,'name'), rid:attr(tag,'r:id') || attr(tag,'id')}))
+    .filter(x=>x.name);
+  const relMap = {};
+  (rels.match(/<Relationship\b[^>]*\/?>/g) || []).forEach(tag=>{
+    const id = attr(tag,'Id'), tg = attr(tag,'Target');
+    if (id && tg) relMap[id] = tg;
+  });
+  const resolve = tg => {
+    if (!tg) return null;
+    const c = tg.replace(/^\//,'').replace(/^\.\//,'');
+    for (const cand of [c, 'xl/'+c, c.replace(/^xl\//,'')]) if (files[cand]) return cand;
+    return null;
+  };
+  const alvo = sheets.find(x=>norm(x.name) === norm(nomePreferido)) || sheets[0];
+  const path = (alvo && resolve(relMap[alvo.rid]))
+    || Object.keys(files).filter(k=>/^xl\/worksheets\/sheet\d*\.xml$/.test(k)).sort()[0];
+  if (!path) throw new Error(t().impNoBase);
+  return sheetRows(td(files[path]), shared);
+}
+el('cstImp').onclick = () => el('cstFile').click();
+el('cstFile').onchange = async e => {
+  const f = e.target.files[0]; if (!f) return;
+  const b = el('cstImp'); b.disabled = true;
+  try{
+    const ok = await importarCustos(await abasDoXlsx(f, 'TABELA'), f.name);
+    if (!ok){ toast(t().cstImpErr, true); return; }
+    cstAbrir();   /* recarrega a tela ja com o que veio da planilha */
+  } catch(err){
+    toast(t().impErr + (err && err.message ? err.message : err), true);
+  } finally { b.disabled = false; e.target.value = ''; }
+};
 
 /* chave seletora da fonte de custo (COGS1 / COGS2 / LANDED1 / LANDED2) */
 function syncCustoPills(){
@@ -2366,20 +2511,29 @@ async function importarCustos(cells, fileName){
     if (/^(COGS|LANDED)\d+$/.test(n)){ fontes.push(n); idx.push(i); }
   });
   if (!fontes.length) return false;
-  const itens = {};
+  /* coluna opcional com a fonte escolhida de cada item (o export gera ela) */
+  const iFonte = head.findIndex(h=>['fonte','fonteusada','custousado'].indexOf(norm(h)) >= 0);
+  const itens = {}, daPlanilha = {};
   for (let i = 1; i < cells.length; i++){
     const r = cells[i] || [], k = normSku(r[iId]);
     if (!k) continue;
     itens[k] = idx.map(j=>{ const v = +r[j]; return isFinite(v) && v > 0 ? Math.round(v*1e6)/1e6 : 0; });
+    if (iFonte >= 0){
+      const fv = String(r[iFonte] == null ? '' : r[iFonte]).trim().toUpperCase().replace(/\s+/g,'');
+      if (fontes.indexOf(fv) >= 0) daPlanilha[k] = fv;
+    }
   }
   const n = Object.keys(itens).length;
   if (!n) return false;
+  /* a fonte da planilha manda; sem ela, mantem a escolha que o item ja tinha */
   const fixos = {};
   Object.keys(CUSTOS.fixos || {}).forEach(k=>{
     if (itens[k] && fontes.indexOf(CUSTOS.fixos[k]) >= 0) fixos[k] = CUSTOS.fixos[k];
   });
-  CUSTOS = {fontes, itens, fixos, arquivo:fileName};
+  Object.keys(daPlanilha).forEach(k=>{ fixos[k] = daPlanilha[k]; });
+  CUSTOS = {fontes, itens, fixos, arquivo:fileName, padrao:CUSTOS.padrao};
   if (fontes.indexOf(S.custo) < 0) S.custo = fontes[0];
+  garantirFontes();
   render();
   toast(t().custoOk(fileName, n));
   /* gravar a tabela de custos e coisa de ADM */
@@ -2520,6 +2674,8 @@ async function sbLoadData(){
     CUSTOS = {fontes: d.custos.fontes || CUSTOS.fontes, itens: it, fixos: fx,
               arquivo: d.custos.arquivo || '', padrao: d.custos.padrao || ''};
     S.custo = CUSTOS.fontes.indexOf(CUSTOS.padrao) >= 0 ? CUSTOS.padrao : CUSTOS.fontes[0];
+    /* base antiga vinha com itens em "auto": todos passam a ter fonte propria */
+    garantirFontes();
   }
   if (!d || d.vazio || !d.rows || !d.rows.length) return null;
   return dataFromDb(d.rows, d.imp || {});
@@ -2698,8 +2854,8 @@ const NOTAS = [
  'Uma coluna opcional ausente não quebra nada: o card correspondente fica vazio e o relatório avisa.',
  'Vazio em Margin ou Total Freight significa "não informado" e fica fora do cálculo — não é zero.',
  'A aba pode ter qualquer nome; havendo uma chamada BASE, é ela que será lida.',
- 'Custos: o mesmo botão Importar aceita a planilha de custos — aba TABELA com ID LIMPO e as colunas COGS1, COGS2, LANDED1 e LANDED2. Ela não mexe nos dados de venda, só atualiza a chave seletora de custo.',
- 'Custo zerado na fonte escolhida faz o relatório usar o MENOR custo disponível para o mesmo código nas outras tabelas.'
+ 'Custos: a tela Ver custos tem Exportar e Importar próprios — aba TABELA com ID LIMPO, uma coluna por fonte (COGS1, COGS2, LANDED1, LANDED2) e a coluna FONTE com a escolhida de cada item. O botão Importar do topo também aceita essa planilha, e ela não mexe nos dados de venda.',
+ 'A fonte de custo é escolhida item a item na tela Ver custos (coluna FONTE da planilha de custos). Sem valor na fonte escolhida, o item fica sem custo — o relatório não troca sozinho por outra tabela.'
 ];
 
 let CRCT;
