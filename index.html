@@ -308,6 +308,14 @@ input.moeda:focus{outline:2px solid var(--wine-soft);outline-offset:1px}
   text-transform:uppercase;color:var(--s2)}
 .cst-hd .sub{font-size:11px;color:var(--ink-3)}
 .cst-acts{margin-left:auto;display:flex;gap:7px;align-items:center}
+/* duas guias: Custos e Agrupamento de itens */
+.cst-guias{display:flex;flex-wrap:wrap;gap:3px;padding:10px 14px 0;
+  border-bottom:1px solid var(--line)}
+.cst-guia{font:inherit;font-size:11.5px;font-weight:700;letter-spacing:.04em;
+  border:1px solid var(--line);border-bottom:0;background:var(--chip);color:var(--ink-3);
+  padding:6px 14px;border-radius:7px 7px 0 0;cursor:pointer;white-space:nowrap;margin-bottom:-1px}
+.cst-guia[aria-selected="true"]{background:var(--card);color:var(--s2);border-color:var(--line);
+  box-shadow:inset 0 2px 0 var(--s2)}
 .cst-fil{display:flex;align-items:center;gap:9px;padding:9px 14px;
   border-bottom:1px solid var(--line);background:var(--sunk)}
 .cst-fil input{flex:1;min-width:0;font:inherit;font-size:12.5px;color:var(--ink);
@@ -362,9 +370,48 @@ table.cst td.uso b{font-weight:700;color:var(--ink)}
 table.cst td.uso i{font-style:normal;font-size:9px;font-weight:700;letter-spacing:.03em;
   color:var(--ink-3);margin-left:5px}
 table.cst td.uso i.fx{color:var(--s2)}
+/* selo do grupo na guia Custos: quantos itens aquela linha comanda */
+.skuw{display:flex;align-items:center;padding-right:7px}
+.skuw input{flex:1;min-width:0}
+.gsel{display:inline-block;margin-left:7px;font-size:8.5px;font-weight:700;letter-spacing:.04em;
+  padding:1px 5px;border-radius:4px;background:var(--s2);color:#fff;vertical-align:1px}
+/* ---- guia Agrupamento de itens ---- */
+.gr-bar{display:flex;align-items:center;gap:8px;flex-wrap:wrap;padding:8px 14px;
+  border-bottom:1px solid var(--line);background:var(--sunk);position:sticky;top:0;z-index:3}
+.gr-bar .msg{font-size:11px;color:var(--ink-3)}
+.gr-bar .msg b{color:var(--ink)}
+.gr-bar button{font:inherit;font-size:11px;font-weight:700;padding:5px 11px;
+  border:1px solid var(--line);border-radius:8px;background:var(--card);
+  color:var(--ink-2);cursor:pointer;white-space:nowrap}
+.gr-bar button.go{border-color:var(--s2);color:var(--s2)}
+.gr-bar button.go:hover:not(:disabled){background:var(--s2);color:#fff}
+.gr-bar button:disabled{opacity:.45;cursor:default}
+table.cst td.gck{width:34px;text-align:center;padding:0}
+table.cst td.gck input{width:13px;height:13px;margin:0;accent-color:var(--s2);cursor:pointer;
+  padding:0}
+table.cst th.gck{width:34px}
+table.cst td.gsku{padding:6px 9px;font-variant-numeric:tabular-nums;text-align:left}
+table.cst td.gtag{padding:6px 9px;text-align:right;white-space:nowrap;font-size:10px;
+  color:var(--ink-3)}
+table.cst td.gtag .ref{font-weight:700;color:var(--s2);letter-spacing:.05em}
+table.cst td.gtag .mem{color:var(--ink-3)}
+table.cst td.gtag button{font:inherit;font-size:9px;font-weight:700;letter-spacing:.04em;
+  text-transform:uppercase;margin-left:8px;padding:2px 7px;border:1px solid var(--line);
+  border-radius:5px;background:var(--card);color:var(--ink-3);cursor:pointer}
+table.cst td.gtag button:hover{border-color:var(--s2);color:var(--s2)}
+/* o primeiro selecionado e a referencia: cor propria e aviso na linha */
+table.cst tr.gr-ref td{background:color-mix(in srgb, var(--s2) 16%, transparent)}
+table.cst tr.gr-ref td.gsku{font-weight:700;color:var(--s2)}
+table.cst tr.gr-sel td{background:var(--chip)}
+table.cst tr.gr-in td.gsku{color:var(--ink-2)}
 table.cst tr.fixa td.rn{color:var(--s2)}
 table.cst tr.usada td.rn{background:var(--chip);color:var(--s2);font-weight:700}
 .cst-box .hint{margin:0;padding:9px 14px 12px;border-top:1px solid var(--line)}
+/* indicador da fonte em uso (nao e botao: a troca e em Ver custos) */
+.fonte-uso{display:inline-block;font-size:11.5px;font-weight:700;letter-spacing:.05em;
+  padding:6px 12px;border:1px solid var(--s2);border-radius:8px;
+  background:var(--chip);color:var(--s2);white-space:nowrap}
+.fonte-uso.multi{border-style:dashed}
 .vercustos{font:inherit;font-size:11px;font-weight:700;letter-spacing:.04em;
   padding:6px 11px;border:1px solid var(--s2);border-radius:8px;background:transparent;
   color:var(--s2);cursor:pointer;white-space:nowrap}
@@ -790,6 +837,7 @@ footer{font-size:10.5px;color:var(--ink-3);text-align:center;padding:2px 0 0;lin
         <button type="button" class="admcalc" id="cstClose"></button>
       </span>
     </div>
+    <div class="cst-guias" id="cstGuias" role="tablist"></div>
     <div class="cst-fil">
       <input type="search" id="cstQ" autocomplete="off">
       <button type="button" id="cstUso" aria-pressed="false"></button>
@@ -864,8 +912,33 @@ const normUf = v => {
 /* O SKU liga a venda (coluna "SKU LIMPO", AF) ao custo. Comparamos sem
    espacos: "WENFUSE 15 0100" e "WENFUSE15 0100" sao o mesmo item. */
 const normSku = v => String(v == null ? '' : v).toUpperCase().replace(/\s+/g, '');
-/* custos por SKU: {fontes:['COGS1',...], itens:{SKU:[c1,c2,l1,l2]}} */
-let CUSTOS = {fontes:['COGS1','COGS2','LANDED1','LANDED2'], itens:{}, fixos:{}, arquivo:''};
+/* custos por SKU: {fontes:['COGS1',...], itens:{SKU:[c1,c2,l1,l2]},
+   fixos:{SKU:fonte}, grupos:{SKU_REFERENCIA:[outros SKUs do grupo]}} */
+let CUSTOS = {fontes:['COGS1','COGS2','LANDED1','LANDED2'], itens:{}, fixos:{},
+              grupos:{}, arquivo:''};
+/* todo custo trabalha com 4 casas decimais — tela, planilha e banco iguais */
+const cst4 = v => { const n = +v; return isFinite(n) && n > 0 ? Math.round(n*1e4)/1e4 : 0; };
+/* Agrupamento de itens: SKUs diferentes que sao o mesmo produto
+   (6A40PA0100 / 6A40PAEA0100). O item de REFERENCIA manda no custo, e os
+   demais do grupo passam a usar o custo dele. GRP_DE e o mapa membro->ref,
+   remontado sempre que os grupos mudam. */
+let GRP_DE = {};
+function grpSync(){
+  GRP_DE = {};
+  const g = CUSTOS.grupos || {};
+  Object.keys(g).forEach(ref=>{
+    const r = normSku(ref); if (!r) return;
+    GRP_DE[r] = r;
+    (Array.isArray(g[ref]) ? g[ref] : []).forEach(m=>{
+      const k = normSku(m); if (k && k !== r) GRP_DE[k] = r;
+    });
+  });
+}
+/* SKU cujo custo vale para este item (ele mesmo, se nao estiver agrupado) */
+const grpRef = sku => GRP_DE[sku] || sku;
+const grpMembros = ref => ((CUSTOS.grupos || {})[ref] || []).filter(m=>m && m !== ref);
+/* item absorvido por um grupo: nao aparece como linha propria na guia Custos */
+const grpAbsorvido = sku => !!GRP_DE[sku] && GRP_DE[sku] !== sku;
 let CUSTO_USO = {dir:0, alt:0, sem:0, fix:0};
 let DATA = DATA0, M, MS, CUR, FX, COLS, R, ANOS, FIRST, LAST, FIRSTD, TEM_UF = false, SEM_UF = 0;
 let WHS = [];
@@ -1003,7 +1076,10 @@ const T = {
   noRows:'Nada para exibir com os filtros selecionados.',
   noNew:'Sem clientes novos no período filtrado.',
   geoLabWh:'Armazém de origem', geoLabUf:'UF do cliente',
-  custo:'Custo', custoSem:'Nenhuma tabela de custo carregada.',
+  custo:'Fonte de custo', custoSem:'Nenhuma tabela de custo carregada.',
+  custoMulti:'FONTE CUSTOMIZADA',
+  custoMultiTip:'Os itens usam fontes diferentes. Abra Ver custos para conferir item a item.',
+  custoUnicaTip:f=>'Todos os itens estão usando '+f+'. A fonte se troca em Ver custos.',
   custoHint:(f,a,b,c,d)=>'Margem: (venda − quantidade × custo unitário) ÷ venda, ligando a venda ao custo '
     +'pelo <code>SKU LIMPO</code>. Quem manda é a fonte escolhida item a item na tela <b>Ver custos</b>. '
     +(+d>0 ? d+'% do faturamento usa a fonte escolhida no item' : '')
@@ -1035,6 +1111,23 @@ const T = {
     +'exportar/importar carrega só os valores — a escolha de fonte é feita aqui. '
     +'<b>Salvar</b> grava a tabela e as escolhas no banco, com <b>'+f+'</b> como fonte padrão.',
   cstSemSku:'Informe o ID limpo antes de salvar.',
+  cstGuiaCustos:'Custos', cstGuiaGrupos:'Agrupamento de itens',
+  cstGrupoTip:m=>'Comanda o custo de: '+m.join(', '),
+  cstSubGr:(g,n)=>g+(g===1?' grupo':' grupos')+' · '+n+' itens agrupados',
+  grSituacao:'Situação', grRef:'REFERÊNCIA', grSelecionado:'selecionado',
+  grComanda:n=>'comanda '+n+(n>1?' itens':' item'),
+  grAgrupar:n=>n>1 ? 'Agrupar '+n+' itens' : 'Agrupar',
+  grLimpar:'Limpar seleção', grDesagrupar:'desfazer', grTirar:'tirar',
+  grAjuda:'Marque os itens que são o mesmo produto — o primeiro marcado vira a referência.',
+  grRefMsg:r=>'Referência: <b>'+r+'</b> — o custo dela vai valer para os demais do grupo.',
+  grHint:'Aqui você junta SKUs que são o mesmo produto com sufixo diferente '
+    +'(<b>6A40PA0100</b> e <b>6A40PAEA0100</b>). Use o filtro acima: ele estreita a lista a cada '
+    +'caractere digitado, então digitar o começo do código já deixa na tela só o conjunto a agrupar. '
+    +'O <b>primeiro item marcado é a referência</b> (fica destacado): é o custo dele que passa a '
+    +'valer para todos os outros do grupo, tanto na guia <b>Custos</b> quanto no cálculo da margem. '
+    +'Os demais somem da guia Custos e aparecem lá como um selo <b>+n</b> na linha da referência. '
+    +'Item já agrupado não entra em outra seleção — use <b>desfazer</b> ou <b>tirar</b> antes. '
+    +'<b>Salvar</b> grava os grupos no banco, valendo para todos os usuários.',
   chart4:'Dentro × fora do estado', whCrit:'Armazém',
   whIn:u=>'Dentro de '+u, whOut:u=>'Fora de '+u, whNoUf:'Sem UF',
   whDest:'Destinos fora do estado',
@@ -1149,7 +1242,10 @@ const T = {
   noRows:'Nothing to show with the selected filters.',
   noNew:'No new customers in the filtered period.',
   geoLabWh:'Origin warehouse', geoLabUf:'Customer state',
-  custo:'Cost', custoSem:'No cost table loaded.',
+  custo:'Cost source', custoSem:'No cost table loaded.',
+  custoMulti:'CUSTOM SOURCE',
+  custoMultiTip:'Items are using different sources. Open View costs to check item by item.',
+  custoUnicaTip:f=>'Every item is using '+f+'. The source is changed in View costs.',
   custoOk:(f,n)=>'Cost table loaded: '+n+' items from '+f+'.',
   custoSalvo:n=>'Costs saved to the database: '+n+' items.',
   custoLocal:'Costs applied to this session only. Enter ADMIN to save them to the database.',
@@ -1181,6 +1277,23 @@ const T = {
     +'the source is picked here. '
     +'<b>Save</b> writes the table and the choices to the database, with <b>'+f+'</b> as the default source.',
   cstSemSku:'Fill in the clean ID before saving.',
+  cstGuiaCustos:'Costs', cstGuiaGrupos:'Item grouping',
+  cstGrupoTip:m=>'Drives the cost of: '+m.join(', '),
+  cstSubGr:(g,n)=>g+(g===1?' group':' groups')+' · '+n+' grouped items',
+  grSituacao:'Status', grRef:'REFERENCE', grSelecionado:'selected',
+  grComanda:n=>'drives '+n+(n>1?' items':' item'),
+  grAgrupar:n=>n>1 ? 'Group '+n+' items' : 'Group',
+  grLimpar:'Clear selection', grDesagrupar:'undo', grTirar:'remove',
+  grAjuda:'Tick the items that are the same product — the first one ticked becomes the reference.',
+  grRefMsg:r=>'Reference: <b>'+r+'</b> — its cost will apply to the rest of the group.',
+  grHint:'Here you join SKUs that are the same product with a different suffix '
+    +'(<b>6A40PA0100</b> and <b>6A40PAEA0100</b>). Use the filter above: it narrows the list on every '
+    +'character typed, so typing the start of the code leaves only the set you want to group. '
+    +'The <b>first item ticked is the reference</b> (highlighted): its cost applies to every other '
+    +'item in the group, both on the <b>Costs</b> tab and in the margin calculation. '
+    +'The others disappear from the Costs tab and show up there as a <b>+n</b> badge on the '
+    +'reference row. An item already grouped cannot join another selection — use <b>undo</b> or '
+    +'<b>remove</b> first. <b>Save</b> writes the groups to the database, for every user.',
   chart4:'In-state × out-of-state', whCrit:'Warehouse',
   whIn:u=>'Within '+u, whOut:u=>'Outside '+u, whNoUf:'No state',
   whDest:'Out-of-state destinations',
@@ -1391,8 +1504,10 @@ function aplicaCusto(){
   const iSel = CUSTOS.fontes.indexOf(S.custo);
   CUSTO_USO = {dir:0, alt:0, sem:0, fix:0};
   R.forEach(r=>{
-    const c = r.sku ? CUSTOS.itens[r.sku] : null;
-    const fx = r.sku ? CUSTOS.fontes.indexOf(CUSTOS.fixos[r.sku] || '') : -1;
+    /* item agrupado usa o custo do item de referencia do grupo */
+    const k = r.sku ? grpRef(r.sku) : '';
+    const c = k ? CUSTOS.itens[k] : null;
+    const fx = k ? CUSTOS.fontes.indexOf(CUSTOS.fixos[k] || '') : -1;
     const i = fx >= 0 ? fx : iSel;
     const u = (c && i >= 0) ? (+c[i] || 0) : 0;
     if (u > 0 && r.qtd > 0 && r.brl > 0){
@@ -1414,6 +1529,15 @@ function garantirFontes(){
            || CUSTOS.fontes[0];
   if (!pad) return 0;
   CUSTOS.fixos = CUSTOS.fixos || {};
+  CUSTOS.grupos = CUSTOS.grupos || {};
+  /* grupo cuja referencia sumiu da tabela deixa de existir; membro que sumiu
+     sai do grupo. Sem isso um item apagado levaria o custo do grupo junto. */
+  Object.keys(CUSTOS.grupos).forEach(ref=>{
+    if (!CUSTOS.itens[ref]){ delete CUSTOS.grupos[ref]; return; }
+    const mem = (CUSTOS.grupos[ref] || []).filter(m=>m !== ref && CUSTOS.itens[m]);
+    if (mem.length) CUSTOS.grupos[ref] = mem; else delete CUSTOS.grupos[ref];
+  });
+  grpSync();
   let n = 0;
   Object.keys(CUSTOS.itens).forEach(k=>{
     if (CUSTOS.fontes.indexOf(CUSTOS.fixos[k] || '') < 0){ CUSTOS.fixos[k] = pad; n++; }
@@ -1931,8 +2055,20 @@ function spark(id, vals, hi){
    Nao e uma planilha de verdade: so linhas e colunas para conferir e digitar.
    O estado editado fica em CST_EDIT ate o botao Salvar. */
 /* CST_PAD: indice da fonte padrao — vale para linha nova e para item que
-   porventura fique sem escolha. Nao ha mais guia por fonte. */
+   porventura fique sem escolha. As guias agora sao Custos / Agrupamento.
+   CST_GRUPOS e a copia editavel dos grupos; GR_SEL guarda a selecao da guia
+   de agrupamento NA ORDEM DE CLIQUE — o primeiro e a referencia. */
 let CST_EDIT = null, CST_PAD = 0, CST_Q = '', CST_USO = false;
+let CST_TAB = 'custos', CST_GRUPOS = {}, GR_SEL = [];
+/* mapa membro->referencia da copia em edicao (nao mexe no GRP_DE global) */
+function cstGrpDe(){
+  const m = {};
+  Object.keys(CST_GRUPOS).forEach(ref=>{
+    m[ref] = ref;
+    (CST_GRUPOS[ref] || []).forEach(x=>{ if (x !== ref) m[x] = ref; });
+  });
+  return m;
+}
 /* indices das linhas visiveis agora: e sobre elas que o botao "todas" age */
 let CST_VIS = [];
 const cstNum = v => {
@@ -1940,32 +2076,56 @@ const cstNum = v => {
   if (!x) return 0;
   const y = (x.indexOf(',') >= 0 && x.indexOf('.') >= 0) ? x.replace(/\./g,'').replace(',','.')
           : x.replace(',','.');
-  const n = parseFloat(y);
-  return isFinite(n) && n > 0 ? Math.round(n*1e6)/1e6 : 0;
+  return cst4(parseFloat(y));   /* 4 casas: o que aparece e o que calcula */
 };
 const cstTxt = v => !v ? '' : (S.lang==='en' ? String(v) : String(v).replace('.',','));
 function cstAbrir(){
   if (!ADM || !temCustos()) return;
   CST_EDIT = Object.keys(CUSTOS.itens).sort().map(k=>({
-    sku: k, v: CUSTOS.fontes.map((f,i)=> +CUSTOS.itens[k][i] || 0),
+    sku: k, v: CUSTOS.fontes.map((f,i)=> cst4(CUSTOS.itens[k][i])),
     fixo: (CUSTOS.fixos && CUSTOS.fixos[k]) || ''
   }));
+  /* copia dos grupos: so vira oficial no Salvar */
+  CST_GRUPOS = {};
+  Object.keys(CUSTOS.grupos || {}).forEach(ref=>{
+    const mem = (CUSTOS.grupos[ref] || []).filter(m=>m !== ref);
+    if (mem.length) CST_GRUPOS[ref] = mem.slice();
+  });
+  GR_SEL = [];
   CST_PAD = Math.max(0, CUSTOS.fontes.indexOf(CUSTOS.padrao || S.custo));
+  CST_TAB = 'custos';
   CST_Q = ''; CST_USO = false;
   el('cstQ').value = ''; el('cstUso').setAttribute('aria-pressed','false');
   el('cstModal').hidden = false;
   cstRender();
 }
+/* as duas guias do modal */
+function cstGuias(){
+  const L = t();
+  setH('cstGuias', [['custos', L.cstGuiaCustos], ['grupos', L.cstGuiaGrupos]].map(x=>
+    '<button type="button" class="cst-guia" role="tab" data-t="'+x[0]+'" aria-selected="'
+    + (CST_TAB===x[0]) + '">' + esc(x[1]) + '</button>').join(''));
+}
 function cstRender(){
+  cstGuias();
+  if (CST_TAB === 'grupos') return grRender();
   const L = t(), f = CUSTOS.fontes[CST_PAD] || '';
-  const usados = new Set(R.filter(r=>r.st==='I' && r.sku).map(r=>r.sku));
+  const gd = cstGrpDe();
+  const usados = new Set(R.filter(r=>r.st==='I' && r.sku).map(r=>grpRef(r.sku)));
   /* o filtro so esconde linhas: o indice de cada uma continua o mesmo,
-     entao editar uma celula filtrada altera o item certo */
+     entao editar uma celula filtrada altera o item certo. Item absorvido por
+     um grupo nao vira linha: quem aparece e o item de referencia. */
   const q = normSku(CST_Q);
-  const vis = CST_EDIT.map((o,i)=>[o,i]).filter(x=>
-    (!q || x[0].sku.indexOf(q) >= 0) && (!CST_USO || usados.has(x[0].sku)));
+  const base = CST_EDIT.map((o,i)=>[o,i]).filter(x=>{
+    const r = gd[x[0].sku];
+    return !(r && r !== x[0].sku);
+  });
+  const vis = base.filter(x=>
+    (!q || x[0].sku.indexOf(q) >= 0
+        || (CST_GRUPOS[x[0].sku] || []).some(m=>m.indexOf(q) >= 0))
+    && (!CST_USO || usados.has(x[0].sku)));
   set('cstSub', L.cstSub(CST_EDIT.length, CUSTOS.arquivo || f));
-  set('cstCnt', L.cstCnt(vis.length, CST_EDIT.length));
+  set('cstCnt', L.cstCnt(vis.length, base.length));
   CST_VIS = vis.map(x=>x[1]);
   /* cabecalho: uma coluna por fonte, com o botao que aplica aquela fonte a
      todos os itens listados logo acima do nome */
@@ -1986,9 +2146,15 @@ function cstRender(){
           + ' value="'+esc(fn)+'"' + (o.fixo===fn ? ' checked' : '') + '>'
           + '<input class="num" data-i="'+i+'" data-k="v" data-f="'+j+'"'
           + ' value="'+esc(cstTxt(o.v[j]))+'"></div></td>';
+        const mem = CST_GRUPOS[o.sku] || [];
+        const selo = mem.length
+          ? '<span class="gsel" title="'+esc(L.cstGrupoTip(mem))+'">+'+mem.length+'</span>' : '';
         return '<tr'+(usados.has(o.sku)?' class="usada':' class="')+(o.fixo?' fixa':'')+'">'
           + '<td class="rn">'+(i+1)+'</td>'
-          + '<td><input data-i="'+i+'" data-k="sku" value="'+esc(o.sku)+'" spellcheck="false"></td>'
+          + '<td><div class="skuw"><input data-i="'+i+'" data-k="sku" value="'+esc(o.sku)
+          + '" spellcheck="false"'
+          + (mem.length ? ' readonly title="'+esc(L.cstGrupoTip(mem))+'"' : '') + '>'
+          + selo + '</div></td>'
           + CUSTOS.fontes.map(cel).join('')
           + '<td class="uso" data-uso="'+i+'">'+cstUsoTxt(o)+'</td></tr>';
       }).join('')
@@ -2005,6 +2171,111 @@ function cstEfetivo(o){
   const i = fx >= 0 ? fx : CST_PAD;
   return {u: +o.v[i] || 0, src: CUSTOS.fontes[i], fb:false, fixo: fx >= 0};
 }
+
+/* ============ guia Agrupamento de itens ============
+   Agrupa SKUs que sao o mesmo produto com sufixo diferente
+   (6A40PA0100 / 6A40PAEA0100). O PRIMEIRO item marcado e a REFERENCIA: e o
+   custo dele que passa a valer para todos os outros do grupo, tanto na guia
+   Custos quanto no calculo da margem. O filtro de cima vai estreitando a
+   lista a cada caractere digitado, que e como se acha o conjunto a agrupar. */
+function grRender(){
+  const L = t();
+  const gd = cstGrpDe();
+  const q = normSku(CST_Q);
+  const usados = new Set(R.filter(r=>r.st==='I' && r.sku).map(r=>r.sku));
+  const vis = CST_EDIT.filter(o=>o.sku
+    && (!q || o.sku.indexOf(q) >= 0)
+    && (!CST_USO || usados.has(o.sku)));
+  const nGrupos = Object.keys(CST_GRUPOS).length;
+  const nAgrup = Object.keys(gd).length;
+  set('cstSub', L.cstSubGr(nGrupos, nAgrup));
+  set('cstCnt', L.cstCnt(vis.length, CST_EDIT.filter(o=>o.sku).length));
+
+  const ref = GR_SEL[0] || '';
+  const barra = '<div class="gr-bar">'
+    + '<button type="button" class="go" id="grDo"'+(GR_SEL.length < 2 ? ' disabled' : '')+'>'
+    + esc(L.grAgrupar(GR_SEL.length)) + '</button>'
+    + '<button type="button" id="grClr"'+(GR_SEL.length ? '' : ' disabled')+'>'
+    + esc(L.grLimpar) + '</button>'
+    + '<span class="msg">'
+    + (GR_SEL.length ? L.grRefMsg(esc(ref)) : esc(L.grAjuda)) + '</span></div>';
+
+  setH('cstGrid', barra
+    + '<table class="cst"><thead><tr><th class="gck"></th><th>'+esc(L.cstItem)+'</th>'
+    + '<th style="text-align:right">'+esc(L.grSituacao)+'</th></tr></thead><tbody>'
+    + (vis.length ? vis.map(o=>{
+        const meu = gd[o.sku] || '';
+        const ehRef = CST_GRUPOS[o.sku] && CST_GRUPOS[o.sku].length;
+        const iSel = GR_SEL.indexOf(o.sku);
+        let cls = '';
+        if (iSel === 0) cls = ' gr-ref';
+        else if (iSel > 0) cls = ' gr-sel';
+        else if (meu) cls = ' gr-in';
+        let tag = '';
+        if (ehRef) tag = '<span class="ref">'+esc(L.grRef)+'</span> · '
+          + esc(L.grComanda(CST_GRUPOS[o.sku].length))
+          + '<button type="button" data-des="'+esc(o.sku)+'">'+esc(L.grDesagrupar)+'</button>';
+        else if (meu) tag = '<span class="mem">→ '+esc(meu)+'</span>'
+          + '<button type="button" data-sai="'+esc(o.sku)+'">'+esc(L.grTirar)+'</button>';
+        else if (iSel === 0) tag = '<span class="ref">'+esc(L.grRef)+'</span>';
+        else if (iSel > 0) tag = '<span class="mem">'+esc(L.grSelecionado)+'</span>';
+        return '<tr class="'+cls.trim()+'">'
+          + '<td class="gck"><input type="checkbox" data-g="'+esc(o.sku)+'"'
+          + (iSel >= 0 ? ' checked' : '') + (meu ? ' disabled' : '') + '></td>'
+          + '<td class="gsku">'+esc(o.sku)+'</td>'
+          + '<td class="gtag">'+tag+'</td></tr>';
+      }).join('')
+      : '<tr><td class="empty" colspan="3" style="padding:14px;color:var(--ink-3)">'
+        + esc(L.cstVazio) + '</td></tr>')
+    + '</tbody></table>');
+  setH('cstHint', L.grHint);
+}
+/* marcar/desmarcar preservando a ORDEM: o primeiro marcado e a referencia */
+function grToggle(sku){
+  const i = GR_SEL.indexOf(sku);
+  if (i >= 0) GR_SEL.splice(i, 1); else GR_SEL.push(sku);
+  grRender();
+}
+function grAgrupar(){
+  if (GR_SEL.length < 2) return;
+  const ref = GR_SEL[0];
+  const mem = GR_SEL.slice(1).filter(x=>x !== ref);
+  if (!mem.length) return;
+  /* referencia nova absorve grupo que algum selecionado ja comandava */
+  const juntos = new Set(mem);
+  mem.forEach(m=>{ (CST_GRUPOS[m] || []).forEach(x=>{ if (x !== ref) juntos.add(x); }); });
+  mem.forEach(m=>delete CST_GRUPOS[m]);
+  (CST_GRUPOS[ref] || []).forEach(x=>{ if (x !== ref) juntos.add(x); });
+  CST_GRUPOS[ref] = [...juntos];
+  GR_SEL = [];
+  grRender();
+}
+function grDesagrupar(ref){ delete CST_GRUPOS[ref]; GR_SEL = []; grRender(); }
+function grTirar(sku){
+  const gd = cstGrpDe(), ref = gd[sku];
+  if (!ref || ref === sku) return;
+  const mem = (CST_GRUPOS[ref] || []).filter(x=>x !== sku);
+  if (mem.length) CST_GRUPOS[ref] = mem; else delete CST_GRUPOS[ref];
+  grRender();
+}
+el('cstGuias').addEventListener('click', e=>{
+  const b = e.target.closest('button'); if (!b) return;
+  if (CST_TAB === b.dataset.t) return;
+  CST_TAB = b.dataset.t; GR_SEL = [];
+  CST_Q = ''; el('cstQ').value = '';
+  cstRender();
+});
+el('cstGrid').addEventListener('change', e=>{
+  const n = e.target;
+  if (n.type === 'checkbox' && n.dataset.g) grToggle(n.dataset.g);
+});
+el('cstGrid').addEventListener('click', e=>{
+  const b = e.target.closest('button'); if (!b) return;
+  if (b.id === 'grDo') grAgrupar();
+  else if (b.id === 'grClr'){ GR_SEL = []; grRender(); }
+  else if (b.dataset.des) grDesagrupar(b.dataset.des);
+  else if (b.dataset.sai) grTirar(b.dataset.sai);
+});
 function cstUsoTxt(o){
   const e = cstEfetivo(o);
   if (!e.u) return '<i>–</i>';
@@ -2051,7 +2322,8 @@ el('cstGrid').addEventListener('input', e=>{
   }
 });
 el('cstAdd').onclick = () => {
-  /* linha nova ja nasce com a fonte padrao marcada */
+  /* linha nova ja nasce com a fonte padrao marcada, na guia Custos */
+  CST_TAB = 'custos'; GR_SEL = [];
   CST_EDIT.push({sku:'', v:CUSTOS.fontes.map(()=>0), fixo:CUSTOS.fontes[CST_PAD] || ''});
   CST_Q = ''; CST_USO = false;
   el('cstQ').value = ''; el('cstUso').setAttribute('aria-pressed','false');
@@ -2071,13 +2343,20 @@ el('cstSave').onclick = async () => {
   CST_EDIT.forEach(o=>{
     const k = normSku(o.sku);
     if (!k){ if (o.v.some(x=>x>0)) vazio = true; return; }
-    itens[k] = o.v.map(x=>+x||0);
+    itens[k] = o.v.map(cst4);
     if (o.fixo && CUSTOS.fontes.indexOf(o.fixo) >= 0) fixos[k] = o.fixo;
   });
   if (vazio){ toast(L.cstSemSku, true); return; }
   const n = Object.keys(itens).length;
   if (!n) return;
-  CUSTOS = {fontes:CUSTOS.fontes, itens, fixos, arquivo:CUSTOS.arquivo,
+  /* grupos da guia Agrupamento, limpos de item que nao existe mais */
+  const grupos = {};
+  Object.keys(CST_GRUPOS).forEach(ref=>{
+    if (!itens[ref]) return;
+    const mem = (CST_GRUPOS[ref] || []).filter(m=>m !== ref && itens[m]);
+    if (mem.length) grupos[ref] = mem;
+  });
+  CUSTOS = {fontes:CUSTOS.fontes, itens, fixos, grupos, arquivo:CUSTOS.arquivo,
             padrao:CUSTOS.fontes[CST_PAD]};
   S.custo = CUSTOS.fontes[CST_PAD];
   garantirFontes();
@@ -2087,7 +2366,8 @@ el('cstSave').onclick = async () => {
   try{
     const d = await sbRpc('wgi_painel_salvar_custos', {p_senha: null,
       p_arquivo: CUSTOS.arquivo || 'ADM', p_fontes: CUSTOS.fontes,
-      p_itens: itens, p_padrao: CUSTOS.padrao, p_fixos: fixos});
+      p_itens: itens, p_padrao: CUSTOS.padrao, p_fixos: fixos,
+      p_grupos: CUSTOS.grupos || {}});
     toast(L.custoSalvo((d && d.itens) || n));
     el('cstModal').hidden = true;
   } catch(err){ toast(t().impErr + (err && err.message ? err.message : err), true); }
@@ -2199,21 +2479,33 @@ el('cstFile').onchange = async e => {
   } finally { b.disabled = false; e.target.value = ''; }
 };
 
-/* chave seletora da fonte de custo (COGS1 / COGS2 / LANDED1 / LANDED2) */
+/* Fonte de custo em uso. Nao e mais seletor: quem escolhe e a tela Ver
+   custos, item a item. Aqui so mostramos o que esta valendo — o nome da
+   fonte quando todos os itens usam a mesma, ou FONTE CUSTOMIZADA quando ha
+   mais de uma em uso. Itens absorvidos por um grupo nao contam: quem manda
+   e o item de referencia. */
+function fonteEmUso(){
+  const fs = new Set();
+  Object.keys(CUSTOS.itens || {}).forEach(k=>{
+    if (grpAbsorvido(k)) return;
+    const f = (CUSTOS.fixos || {})[k];
+    if (CUSTOS.fontes.indexOf(f) >= 0) fs.add(f);
+  });
+  if (fs.size === 1) return {f:[...fs][0], multi:false};
+  if (fs.size > 1) return {f:null, multi:true};
+  return {f: CUSTOS.fontes.indexOf(S.custo) >= 0 ? S.custo : CUSTOS.fontes[0], multi:false};
+}
 function syncCustoPills(){
   const g = el('fCusto'), grp = el('grpCusto'); if (!g) return;
-  /* a escolha da fonte de custo e a tela de custos vivem no modulo ADM */
+  /* a fonte de custo e a tela de custos vivem no modulo ADM */
   const on = ADM && temCustos() && CUSTOS.fontes.length > 0;
   grp.hidden = !on;
   if (!on) return;
   if (CUSTOS.fontes.indexOf(S.custo) < 0) S.custo = CUSTOS.fontes[0];
-  const k = CUSTOS.fontes.join('|');
-  if (g.dataset.k !== k){
-    g.dataset.k = k;
-    setH('fCusto', CUSTOS.fontes.map(f=>
-      '<button type="button" data-v="'+esc(f)+'">'+esc(f)+'</button>').join(''));
-  }
-  g.querySelectorAll('button').forEach(b=>b.setAttribute('aria-pressed', S.custo===b.dataset.v));
+  const u = fonteEmUso();
+  setH('fCusto', '<span class="fonte-uso'+(u.multi ? ' multi' : '')+'" title="'
+    + esc(u.multi ? t().custoMultiTip : t().custoUnicaTip(u.f)) + '">'
+    + esc(u.multi ? t().custoMulti : u.f) + '</span>');
 }
 function custoHintTxt(){
   const L = t(), tt = CUSTO_USO.dir + CUSTO_USO.alt + CUSTO_USO.sem + CUSTO_USO.fix;
@@ -2324,10 +2616,7 @@ el('fWh').addEventListener('click', e=>{
   const b = e.target.closest('button'); if(!b || S.wh===b.dataset.v) return;
   S.wh = b.dataset.v; render();
 });
-el('fCusto').addEventListener('click', e=>{
-  const b = e.target.closest('button'); if(!b || S.custo===b.dataset.v) return;
-  S.custo = b.dataset.v; render();
-});
+/* #fCusto virou indicador: a fonte se troca dentro de Ver custos */
 el('themeBtn').onclick = () => {
   const c = document.documentElement.getAttribute('data-theme');
   const dark = c ? c==='dark' : matchMedia('(prefers-color-scheme:dark)').matches;
@@ -2522,7 +2811,7 @@ async function importarCustos(cells, fileName){
   for (let i = 1; i < cells.length; i++){
     const r = cells[i] || [], k = normSku(r[iId]);
     if (!k) continue;
-    itens[k] = idx.map(j=>{ const v = +r[j]; return isFinite(v) && v > 0 ? Math.round(v*1e6)/1e6 : 0; });
+    itens[k] = idx.map(j=>cst4(r[j]));
   }
   const n = Object.keys(itens).length;
   if (!n) return false;
@@ -2532,7 +2821,10 @@ async function importarCustos(cells, fileName){
   Object.keys(CUSTOS.fixos || {}).forEach(k=>{
     if (itens[k] && fontes.indexOf(CUSTOS.fixos[k]) >= 0) fixos[k] = CUSTOS.fixos[k];
   });
-  CUSTOS = {fontes, itens, fixos, arquivo:fileName, padrao:CUSTOS.padrao};
+  /* a planilha tambem nao mexe em agrupamento: os grupos seguem, e o
+     garantirFontes() logo abaixo tira quem sumiu da tabela */
+  CUSTOS = {fontes, itens, fixos, grupos: CUSTOS.grupos || {},
+            arquivo:fileName, padrao:CUSTOS.padrao};
   if (fontes.indexOf(S.custo) < 0) S.custo = fontes[0];
   garantirFontes();
   render();
@@ -2542,7 +2834,8 @@ async function importarCustos(cells, fileName){
   try{
     const d = await sbRpc('wgi_painel_salvar_custos',
       {p_senha: null, p_arquivo: fileName, p_fontes: fontes,
-       p_itens: itens, p_padrao: S.custo, p_fixos: CUSTOS.fixos});
+       p_itens: itens, p_padrao: CUSTOS.padrao || S.custo,
+       p_fixos: CUSTOS.fixos, p_grupos: CUSTOS.grupos || {}});
     toast(t().custoSalvo((d && d.itens) || n));
   } catch(err){ toast(t().impErr + (err && err.message ? err.message : err), true); }
   return true;
@@ -2669,10 +2962,19 @@ async function sbLoadData(){
   const d = await sbRpc('wgi_painel_dados', {});
   METAS = (d && d.metas) || {};
   if (d && d.custos && d.custos.itens){
-    const it = {}; Object.keys(d.custos.itens).forEach(k=>it[normSku(k)] = d.custos.itens[k]);
+    /* tudo entra ja com 4 casas: banco antigo pode ter 6 */
+    const it = {};
+    Object.keys(d.custos.itens).forEach(k=>
+      it[normSku(k)] = (d.custos.itens[k] || []).map(cst4));
     const fx = {};
     Object.keys(d.custos.fixos || {}).forEach(k=>fx[normSku(k)] = d.custos.fixos[k]);
-    CUSTOS = {fontes: d.custos.fontes || CUSTOS.fontes, itens: it, fixos: fx,
+    const gp = {};
+    Object.keys(d.custos.grupos || {}).forEach(k=>{
+      const ref = normSku(k);
+      const mem = (d.custos.grupos[k] || []).map(normSku).filter(m=>m && m !== ref);
+      if (ref && mem.length) gp[ref] = mem;
+    });
+    CUSTOS = {fontes: d.custos.fontes || CUSTOS.fontes, itens: it, fixos: fx, grupos: gp,
               arquivo: d.custos.arquivo || '', padrao: d.custos.padrao || ''};
     S.custo = CUSTOS.fontes.indexOf(CUSTOS.padrao) >= 0 ? CUSTOS.padrao : CUSTOS.fontes[0];
     /* base antiga vinha com itens em "auto": todos passam a ter fonte propria */
