@@ -308,13 +308,6 @@ input.moeda:focus{outline:2px solid var(--wine-soft);outline-offset:1px}
   text-transform:uppercase;color:var(--s2)}
 .cst-hd .sub{font-size:11px;color:var(--ink-3)}
 .cst-acts{margin-left:auto;display:flex;gap:7px;align-items:center}
-.cst-guias{display:flex;flex-wrap:wrap;gap:3px;padding:10px 14px 0;
-  border-bottom:1px solid var(--line)}
-.cst-guia{font:inherit;font-size:11.5px;font-weight:700;letter-spacing:.04em;
-  border:1px solid var(--line);border-bottom:0;background:var(--chip);color:var(--ink-3);
-  padding:6px 14px;border-radius:7px 7px 0 0;cursor:pointer;white-space:nowrap;margin-bottom:-1px}
-.cst-guia[aria-selected="true"]{background:var(--card);color:var(--s2);border-color:var(--line);
-  box-shadow:inset 0 2px 0 var(--s2)}
 .cst-fil{display:flex;align-items:center;gap:9px;padding:9px 14px;
   border-bottom:1px solid var(--line);background:var(--sunk)}
 .cst-fil input{flex:1;min-width:0;font:inherit;font-size:12.5px;color:var(--ink);
@@ -341,22 +334,28 @@ table.cst input{font:inherit;font-size:12px;color:var(--ink);background:transpar
 table.cst input:focus{outline:2px solid var(--s2);outline-offset:-2px;background:var(--card)}
 table.cst input.num{text-align:right;font-variant-numeric:tabular-nums}
 table.cst input::placeholder{color:var(--ink-3);opacity:.75;font-style:italic}
-/* escolha da fonte por item */
-.fsel{display:flex;gap:0;justify-content:flex-start}
-.fsel > *{width:46px;flex:0 0 46px;display:flex;align-items:center;justify-content:center}
-th .fsel span{font-size:8px;font-weight:700;letter-spacing:.02em;color:var(--ink-3);
-  text-transform:none;line-height:1.1;text-align:center}
-th .fsel span.auto{color:var(--s2)}
-table.cst td.fs{padding:3px 0}
-.fsel input[type=radio]{width:13px;height:13px;margin:0;accent-color:var(--s2);cursor:pointer}
+/* uma guia so: cada fonte e uma coluna com o radio da escolha + o valor.
+   Colunas estreitas para caber as quatro sem alargar a caixa. */
+table.cst th.cc,table.cst td.cc{width:97px;border-left:1px solid var(--line-2)}
+table.cst th.cc{padding:5px 0 6px;vertical-align:bottom}
+table.cst td.cc{padding:0}
+.cch{display:flex;flex-direction:column;gap:3px;align-items:stretch;padding:0 5px}
 /* botao que aplica a fonte da coluna a todos os itens listados */
-.fsel .fs-all{
+.cch .fs-all{
   font:inherit;font-size:8px;font-weight:700;letter-spacing:.04em;text-transform:uppercase;
   border:1px solid var(--line);border-radius:5px;background:var(--card);color:var(--ink-3);
   padding:2px 0;cursor:pointer;line-height:1.1;
 }
-.fsel .fs-all:hover{border-color:var(--s2);color:var(--s2)}
-.fsel label{cursor:pointer}
+.cch .fs-all:hover{border-color:var(--s2);color:var(--s2)}
+.cch span{font-size:9px;font-weight:700;letter-spacing:.03em;color:var(--ink-3);
+  text-transform:none;line-height:1.1;text-align:right;padding-right:3px}
+.ccw{display:flex;align-items:center;gap:2px;padding:0 5px 0 6px}
+.ccw input[type=radio]{width:12px;height:12px;flex:0 0 12px;margin:0;
+  accent-color:var(--s2);cursor:pointer}
+table.cst .ccw input.num{padding:6px 2px;font-size:11.5px;min-width:0}
+/* a coluna marcada no item e a que manda: fica destacada na propria linha */
+table.cst td.cc.sel{background:var(--chip);box-shadow:inset 2px 0 0 var(--s2)}
+table.cst td.cc.sel input.num{color:var(--s2);font-weight:700}
 table.cst td.uso{padding:0 9px;text-align:right;white-space:nowrap;
   font-variant-numeric:tabular-nums;color:var(--ink-2)}
 table.cst td.uso b{font-weight:700;color:var(--ink)}
@@ -791,7 +790,6 @@ footer{font-size:10.5px;color:var(--ink-3);text-align:center;padding:2px 0 0;lin
         <button type="button" class="admcalc" id="cstClose"></button>
       </span>
     </div>
-    <div class="cst-guias" id="cstGuias" role="tablist"></div>
     <div class="cst-fil">
       <input type="search" id="cstQ" autocomplete="off">
       <button type="button" id="cstUso" aria-pressed="false"></button>
@@ -1028,13 +1026,14 @@ const T = {
   cstFixos:n=>n+(n>1?' itens':' item')+' com fonte fixada',
   cstUso:'Só os vendidos', cstCnt:(n,tt)=>n+' de '+tt+' itens',
   cstVazio:'Nenhum item com esse filtro.',
-  cstHint:f=>'Cada guia mostra uma fonte de custo, e a coluna <b>custo usado neste item</b> manda no cálculo: '
-    +'o item usa sempre a fonte marcada nele. O botão <b>todas</b> acima de cada fonte aplica aquela fonte a '
-    +'todos os itens da lista — depois é só trocar item a item quem for exceção. Sem valor na fonte marcada, '
-    +'o item fica sem custo e a margem volta a ser a da planilha de vendas (não há mais troca automática pelo '
-    +'menor preço). O valor de <b>'+f+'</b> é editável aqui mesmo. Custo unitário por metro, em reais. '
-    +'As linhas usadas nas vendas do período aparecem com o número destacado. '
-    +'<b>Salvar</b> grava a tabela e as escolhas no banco, e deixa a guia aberta como padrão para quem não é ADM.',
+  cstHint:f=>'As quatro fontes ficam lado a lado, e o <b>botão de seleção marcado na linha</b> manda no cálculo: '
+    +'o item usa sempre a fonte marcada nele, destacada na própria coluna. O botão <b>todas</b> acima de cada '
+    +'fonte aplica aquela fonte a todos os itens da lista — depois é só trocar item a item quem for exceção. '
+    +'Sem valor na fonte marcada, o item fica sem custo e a margem volta a ser a da planilha de vendas (não há '
+    +'troca automática pelo menor preço). Todos os valores são editáveis aqui mesmo. Custo unitário por metro, '
+    +'em reais. As linhas usadas nas vendas do período aparecem com o número destacado. A planilha de '
+    +'exportar/importar carrega só os valores — a escolha de fonte é feita aqui. '
+    +'<b>Salvar</b> grava a tabela e as escolhas no banco, com <b>'+f+'</b> como fonte padrão.',
   cstSemSku:'Informe o ID limpo antes de salvar.',
   chart4:'Dentro × fora do estado', whCrit:'Armazém',
   whIn:u=>'Dentro de '+u, whOut:u=>'Fora de '+u, whNoUf:'Sem UF',
@@ -1173,13 +1172,14 @@ const T = {
   cstFixos:n=>n+' item'+(n>1?'s':'')+' pinned to a source',
   cstUso:'Sold only', cstCnt:(n,tt)=>n+' of '+tt+' items',
   cstVazio:'No item matches this filter.',
-  cstHint:f=>'Each tab shows one cost source, and the <b>cost used for this item</b> column drives the '
-    +'calculation: the item always uses the source ticked on it. The <b>all</b> button above each source applies '
-    +'it to every listed item — then just change the exceptions one by one. With no value in the ticked source '
-    +'the item has no cost and the margin falls back to the sales sheet (there is no automatic switch to the '
-    +'lowest price any more). The <b>'+f+'</b> value is editable right here. Unit cost per metre, in BRL. '
-    +'Rows used by sales in the period have a highlighted number. '
-    +'<b>Save</b> writes the table and the choices to the database, and leaves the open tab as the default for non-admin users.',
+  cstHint:f=>'All four sources sit side by side, and the <b>radio ticked on the row</b> drives the calculation: '
+    +'the item always uses the source ticked on it, highlighted in its own column. The <b>all</b> button above '
+    +'each source applies it to every listed item — then just change the exceptions one by one. With no value in '
+    +'the ticked source the item has no cost and the margin falls back to the sales sheet (there is no automatic '
+    +'switch to the lowest price). Every value is editable right here. Unit cost per metre, in BRL. '
+    +'Rows used by sales in the period have a highlighted number. The export/import sheet carries values only — '
+    +'the source is picked here. '
+    +'<b>Save</b> writes the table and the choices to the database, with <b>'+f+'</b> as the default source.',
   cstSemSku:'Fill in the clean ID before saving.',
   chart4:'In-state × out-of-state', whCrit:'Warehouse',
   whIn:u=>'Within '+u, whOut:u=>'Outside '+u, whNoUf:'No state',
@@ -1930,7 +1930,9 @@ function spark(id, vals, hi){
 /* ---------- tela de custos: uma guia por fonte, celulas simples ----------
    Nao e uma planilha de verdade: so linhas e colunas para conferir e digitar.
    O estado editado fica em CST_EDIT ate o botao Salvar. */
-let CST_EDIT = null, CST_GUIA = 0, CST_Q = '', CST_USO = false;
+/* CST_PAD: indice da fonte padrao — vale para linha nova e para item que
+   porventura fique sem escolha. Nao ha mais guia por fonte. */
+let CST_EDIT = null, CST_PAD = 0, CST_Q = '', CST_USO = false;
 /* indices das linhas visiveis agora: e sobre elas que o botao "todas" age */
 let CST_VIS = [];
 const cstNum = v => {
@@ -1948,14 +1950,14 @@ function cstAbrir(){
     sku: k, v: CUSTOS.fontes.map((f,i)=> +CUSTOS.itens[k][i] || 0),
     fixo: (CUSTOS.fixos && CUSTOS.fixos[k]) || ''
   }));
-  CST_GUIA = Math.max(0, CUSTOS.fontes.indexOf(S.custo));
+  CST_PAD = Math.max(0, CUSTOS.fontes.indexOf(CUSTOS.padrao || S.custo));
   CST_Q = ''; CST_USO = false;
   el('cstQ').value = ''; el('cstUso').setAttribute('aria-pressed','false');
   el('cstModal').hidden = false;
   cstRender();
 }
 function cstRender(){
-  const L = t(), f = CUSTOS.fontes[CST_GUIA] || '';
+  const L = t(), f = CUSTOS.fontes[CST_PAD] || '';
   const usados = new Set(R.filter(r=>r.st==='I' && r.sku).map(r=>r.sku));
   /* o filtro so esconde linhas: o indice de cada uma continua o mesmo,
      entao editar uma celula filtrada altera o item certo */
@@ -1965,36 +1967,33 @@ function cstRender(){
   set('cstSub', L.cstSub(CST_EDIT.length, CUSTOS.arquivo || f));
   set('cstCnt', L.cstCnt(vis.length, CST_EDIT.length));
   CST_VIS = vis.map(x=>x[1]);
-  setH('cstGuias', CUSTOS.fontes.map((x,i)=>
-    '<button type="button" class="cst-guia" role="tab" data-g="'+i+'" aria-selected="'
-    + (i===CST_GUIA) + '">' + esc(x) + '</button>').join(''));
-  /* um botao por fonte: aplica aquela fonte a todos os itens listados */
-  const todas = CUSTOS.fontes.map((x,i)=>
-    '<button type="button" class="fs-all" data-f="'+i+'" title="'+esc(L.cstTodasTip(x))+'">'
-    + esc(L.cstTodas)+'</button>').join('');
-  const topo = CUSTOS.fontes.map(x=>'<span>'+esc(x)+'</span>').join('');
+  /* cabecalho: uma coluna por fonte, com o botao que aplica aquela fonte a
+     todos os itens listados logo acima do nome */
+  const cabFontes = CUSTOS.fontes.map((x,i)=>
+    '<th class="cc"><div class="cch">'
+    + '<button type="button" class="fs-all" data-f="'+i+'" title="'+esc(L.cstTodasTip(x))+'">'
+    + esc(L.cstTodas)+'</button><span>'+esc(x)+'</span></div></th>').join('');
   setH('cstGrid',
     '<table class="cst"><thead><tr><th class="rn"></th><th>'+esc(L.cstItem)+'</th>'
-    + '<th class="fs"><div class="fsel">'+todas+'</div><div class="fsel">'+topo+'</div>'
-    + '<div style="font-size:8.5px;color:var(--ink-3);letter-spacing:.06em;padding:2px 0 0">'
-    + esc(L.cstFonte)+'</div></th>'
-    + '<th class="num">'+esc(f)+' · R$</th>'
+    + cabFontes
     + '<th class="num">'+esc(L.cstUsado)+'</th></tr></thead><tbody>'
     + (vis.length ? vis.map(x=>{
         const o = x[0], i = x[1];
-        const radio = (val,lab) =>
-          '<label title="'+esc(lab)+'"><input type="radio" name="fs'+i+'" data-i="'+i+'"'
-          + ' value="'+esc(val)+'"' + (o.fixo===val ? ' checked' : '') + '></label>';
+        /* radio + valor na mesma celula: a fonte marcada e a que manda */
+        const cel = (fn,j) =>
+          '<td class="cc'+(o.fixo===fn ? ' sel' : '')+'" data-cc="'+i+'-'+j+'"><div class="ccw">'
+          + '<input type="radio" name="fs'+i+'" data-i="'+i+'" title="'+esc(L.cstTodasTip(fn))+'"'
+          + ' value="'+esc(fn)+'"' + (o.fixo===fn ? ' checked' : '') + '>'
+          + '<input class="num" data-i="'+i+'" data-k="v" data-f="'+j+'"'
+          + ' value="'+esc(cstTxt(o.v[j]))+'"></div></td>';
         return '<tr'+(usados.has(o.sku)?' class="usada':' class="')+(o.fixo?' fixa':'')+'">'
           + '<td class="rn">'+(i+1)+'</td>'
           + '<td><input data-i="'+i+'" data-k="sku" value="'+esc(o.sku)+'" spellcheck="false"></td>'
-          + '<td class="fs"><div class="fsel">'
-          + CUSTOS.fontes.map(fn=>radio(fn,fn)).join('') + '</div></td>'
-          + '<td><input class="num" data-i="'+i+'" data-k="v" value="'+esc(cstTxt(o.v[CST_GUIA]))+'"></td>'
+          + CUSTOS.fontes.map(cel).join('')
           + '<td class="uso" data-uso="'+i+'">'+cstUsoTxt(o)+'</td></tr>';
       }).join('')
-      : '<tr><td class="empty" colspan="5" style="padding:14px;color:var(--ink-3)">'
-        + esc(L.cstVazio) + '</td></tr>')
+      : '<tr><td class="empty" colspan="'+(CUSTOS.fontes.length+3)+'"'
+        + ' style="padding:14px;color:var(--ink-3)">' + esc(L.cstVazio) + '</td></tr>')
     + '</tbody></table>');
   const nfx = CST_EDIT.filter(o=>o.fixo).length;
   setH('cstHint', L.cstHint(f) + (nfx ? ' <b>· '+esc(L.cstFixos(nfx))+'</b>' : ''));
@@ -2003,7 +2002,7 @@ function cstRender(){
    naquela fonte, o item fica sem custo — nao ha mais troca automatica. */
 function cstEfetivo(o){
   const fx = o.fixo ? CUSTOS.fontes.indexOf(o.fixo) : -1;
-  const i = fx >= 0 ? fx : CST_GUIA;
+  const i = fx >= 0 ? fx : CST_PAD;
   return {u: +o.v[i] || 0, src: CUSTOS.fontes[i], fb:false, fixo: fx >= 0};
 }
 function cstUsoTxt(o){
@@ -2017,17 +2016,15 @@ el('cstUso').onclick = () => {
   el('cstUso').setAttribute('aria-pressed', CST_USO);
   cstRender();
 };
-el('cstGuias').addEventListener('click', e=>{
-  const b = e.target.closest('button'); if (!b) return;
-  CST_GUIA = +b.dataset.g; cstRender();
-});
 /* "todas": passa a fonte da coluna para todos os itens que estao na lista
-   agora (respeitando o filtro e o "so os vendidos"). Depois disso da para
-   trocar item a item nos radios — a escolha continua sendo por item. */
+   agora (respeitando o filtro e o "so os vendidos") e passa a ser o padrao
+   para linha nova. Depois disso da para trocar item a item nos radios — a
+   escolha continua sendo por item. */
 el('cstGrid').addEventListener('click', e=>{
   const b = e.target.closest('button.fs-all'); if (!b) return;
-  const f = CUSTOS.fontes[+b.dataset.f]; if (!f) return;
+  const j = +b.dataset.f, f = CUSTOS.fontes[j]; if (!f) return;
   CST_VIS.forEach(i=>{ if (CST_EDIT[i]) CST_EDIT[i].fixo = f; });
+  CST_PAD = j;
   cstRender();
 });
 el('cstGrid').addEventListener('input', e=>{
@@ -2035,7 +2032,7 @@ el('cstGrid').addEventListener('input', e=>{
   const i = +n.dataset.i, o = CST_EDIT[i]; if (!o) return;
   if (n.type === 'radio'){ o.fixo = n.value; }
   else if (n.dataset.k === 'sku') o.sku = normSku(n.value);
-  else o.v[CST_GUIA] = cstNum(n.value);
+  else o.v[+n.dataset.f] = cstNum(n.value);
   /* atualiza so a celula do custo aplicado: nao redesenha a lista nem
      perde a rolagem ou o campo em edicao */
   const td = el('cstGrid').querySelector('[data-uso="'+i+'"]');
@@ -2043,13 +2040,19 @@ el('cstGrid').addEventListener('input', e=>{
   const tr = td && td.closest('tr');
   if (tr) tr.classList.toggle('fixa', !!o.fixo);
   if (n.type === 'radio'){
+    /* move o destaque da coluna sem redesenhar a linha inteira */
+    CUSTOS.fontes.forEach((fn,j)=>{
+      const c = el('cstGrid').querySelector('[data-cc="'+i+'-'+j+'"]');
+      if (c) c.classList.toggle('sel', o.fixo === fn);
+    });
     const nfx = CST_EDIT.filter(x=>x.fixo).length;
-    setH('cstHint', t().cstHint(CUSTOS.fontes[CST_GUIA] || '')
+    setH('cstHint', t().cstHint(CUSTOS.fontes[CST_PAD] || '')
       + (nfx ? ' <b>· '+esc(t().cstFixos(nfx))+'</b>' : ''));
   }
 });
 el('cstAdd').onclick = () => {
-  CST_EDIT.push({sku:'', v:CUSTOS.fontes.map(()=>0), fixo:''});
+  /* linha nova ja nasce com a fonte padrao marcada */
+  CST_EDIT.push({sku:'', v:CUSTOS.fontes.map(()=>0), fixo:CUSTOS.fontes[CST_PAD] || ''});
   CST_Q = ''; CST_USO = false;
   el('cstQ').value = ''; el('cstUso').setAttribute('aria-pressed','false');
   cstRender();
@@ -2075,8 +2078,8 @@ el('cstSave').onclick = async () => {
   const n = Object.keys(itens).length;
   if (!n) return;
   CUSTOS = {fontes:CUSTOS.fontes, itens, fixos, arquivo:CUSTOS.arquivo,
-            padrao:CUSTOS.fontes[CST_GUIA]};
-  S.custo = CUSTOS.fontes[CST_GUIA];
+            padrao:CUSTOS.fontes[CST_PAD]};
+  S.custo = CUSTOS.fontes[CST_PAD];
   garantirFontes();
   render();
   if (!SB_ON){ toast(L.custoLocal); el('cstModal').hidden = true; return; }
@@ -2093,10 +2096,11 @@ el('cstSave').onclick = async () => {
 el('btnCustos').onclick = cstAbrir;
 
 /* ============ exportar / importar a tabela de custos ============
-   Uma planilha, aba TABELA: uma linha por item, uma COLUNA POR FONTE de
-   custo (COGS1, COGS2, LANDED1, LANDED2) e a coluna FONTE com a escolhida.
+   Uma planilha, aba TABELA: uma linha por item e uma COLUNA POR FONTE de
+   custo (COGS1, COGS2, LANDED1, LANDED2). A planilha carrega so os VALORES —
+   a escolha de fonte de cada item vive na tela e no banco, nao na planilha.
    E o mesmo formato que a importacao le, entao exportar, editar no Excel e
-   importar de volta fecha o ciclo sem perder a escolha de ninguem. */
+   importar de volta fecha o ciclo sem mexer nas escolhas. */
 function custosXlsx(){
   const estilos = '<?xml version="1.0" encoding="UTF-8" standalone="yes"?>'
    + '<styleSheet xmlns="http://schemas.openxmlformats.org/spreadsheetml/2006/main">'
@@ -2112,10 +2116,10 @@ function custosXlsx(){
    + '<xf numFmtId="0" fontId="1" fillId="2" borderId="0" xfId="0" applyFont="1" applyFill="1"'
    + ' applyAlignment="1"><alignment horizontal="center" vertical="center"/></xf></cellXfs>'
    + '<cellStyles count="1"><cellStyle name="Normal" xfId="0" builtinId="0"/></cellStyles></styleSheet>';
-  const cab = ['ID LIMPO'].concat(CUSTOS.fontes, ['FONTE']).map(v=>({v, s:1}));
+  const cab = ['ID LIMPO'].concat(CUSTOS.fontes).map(v=>({v, s:1}));
   const linhas = [cab].concat((CST_EDIT || []).filter(o=>o.sku)
-    .map(o=>[o.sku].concat(o.v.map(x=>+x||0), [o.fixo || ''])));
-  const larg = [20].concat(CUSTOS.fontes.map(()=>14), [12]);
+    .map(o=>[o.sku].concat(o.v.map(x=>+x||0))));
+  const larg = [20].concat(CUSTOS.fontes.map(()=>14));
   return zipStore([
    {name:'[Content_Types].xml', xml:'<?xml version="1.0" encoding="UTF-8" standalone="yes"?>'
      + '<Types xmlns="http://schemas.openxmlformats.org/package/2006/content-types">'
@@ -2500,7 +2504,10 @@ function buildData(cells, fileName){
 }
 /* A planilha de custos tem uma aba TABELA com ID LIMPO + as colunas de
    cada fonte (COGS1, COGS2, LANDED1, LANDED2). Reconhecida pelo cabecalho,
-   entra pelo mesmo botao de importar e vai para o banco. */
+   entra pelo mesmo botao de importar e vai para o banco. A planilha traz
+   so valores: quem ja existia mantem a fonte marcada nele e item novo entra
+   na fonte padrao (garantirFontes). Coluna FONTE, se vier de um arquivo
+   antigo, e simplesmente ignorada. */
 async function importarCustos(cells, fileName){
   const head = (cells[0] || []).map(x=>String(x==null?'':x).trim());
   if (head.findIndex(h=>norm(h)==='idlimpo') < 0) return false;
@@ -2511,26 +2518,20 @@ async function importarCustos(cells, fileName){
     if (/^(COGS|LANDED)\d+$/.test(n)){ fontes.push(n); idx.push(i); }
   });
   if (!fontes.length) return false;
-  /* coluna opcional com a fonte escolhida de cada item (o export gera ela) */
-  const iFonte = head.findIndex(h=>['fonte','fonteusada','custousado'].indexOf(norm(h)) >= 0);
-  const itens = {}, daPlanilha = {};
+  const itens = {};
   for (let i = 1; i < cells.length; i++){
     const r = cells[i] || [], k = normSku(r[iId]);
     if (!k) continue;
     itens[k] = idx.map(j=>{ const v = +r[j]; return isFinite(v) && v > 0 ? Math.round(v*1e6)/1e6 : 0; });
-    if (iFonte >= 0){
-      const fv = String(r[iFonte] == null ? '' : r[iFonte]).trim().toUpperCase().replace(/\s+/g,'');
-      if (fontes.indexOf(fv) >= 0) daPlanilha[k] = fv;
-    }
   }
   const n = Object.keys(itens).length;
   if (!n) return false;
-  /* a fonte da planilha manda; sem ela, mantem a escolha que o item ja tinha */
+  /* a planilha nao mexe em escolha: item que ja existia mantem a fonte dele,
+     item novo fica sem e o garantirFontes() logo abaixo poe a padrao */
   const fixos = {};
   Object.keys(CUSTOS.fixos || {}).forEach(k=>{
     if (itens[k] && fontes.indexOf(CUSTOS.fixos[k]) >= 0) fixos[k] = CUSTOS.fixos[k];
   });
-  Object.keys(daPlanilha).forEach(k=>{ fixos[k] = daPlanilha[k]; });
   CUSTOS = {fontes, itens, fixos, arquivo:fileName, padrao:CUSTOS.padrao};
   if (fontes.indexOf(S.custo) < 0) S.custo = fontes[0];
   garantirFontes();
