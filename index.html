@@ -364,6 +364,13 @@ table.cst .ccw input.num{padding:6px 2px;font-size:11.5px;min-width:0}
 /* a coluna marcada no item e a que manda: fica destacada na propria linha */
 table.cst td.cc.sel{background:var(--chip);box-shadow:inset 2px 0 0 var(--s2)}
 table.cst td.cc.sel input.num{color:var(--s2);font-weight:700}
+/* valor que a referencia nao tem e vem do outro item do grupo */
+table.cst td.cc.herd input.num::placeholder{color:var(--ink-3);opacity:.9;font-style:normal}
+table.cst td.cc.herd::after{content:"";position:absolute}
+table.cst td.cc.herd{position:relative}
+table.cst td.cc.herd input.num{background:repeating-linear-gradient(-45deg,
+  transparent,transparent 5px,var(--line-2) 5px,var(--line-2) 6px)}
+table.cst td.uso b.herd{border-bottom:1px dotted var(--ink-3)}
 table.cst td.uso{padding:0 9px;text-align:right;white-space:nowrap;
   font-variant-numeric:tabular-nums;color:var(--ink-2)}
 table.cst td.uso b{font-weight:700;color:var(--ink)}
@@ -958,7 +965,7 @@ function itensSync(){
   });
 }
 function grpSync(){
-  GRP_DE = {};
+  GRP_DE = {}; CUSTO_EF = {};
   const g = CUSTOS.grupos || {};
   Object.keys(g).forEach(ref=>{
     const r = normSku(ref); if (!r) return;
@@ -973,6 +980,31 @@ function grpSync(){
 function custoKey(sku){
   const n = normSku(sku); if (!n) return '';
   return GRP_DE[n] || ITEM_DE[n] || '';
+}
+/* Custos efetivos de um item de custo. Estando agrupado, o grupo vale como UM
+   item: onde a REFERENCIA tem valor, manda o dela; onde ela esta zerada, entra
+   o valor do primeiro membro do grupo que tiver aquela fonte. E o caso do
+   par PA/PAEA, em que cada codigo traz metade da tabela preenchida.
+   `de` diz de qual item saiu cada valor, para a tela poder mostrar. */
+function custosDoGrupo(ref, itens, grupos){
+  const n = (itens && itens[ref]) || [];
+  const v = CUSTOS.fontes.map((f,j)=>+n[j] || 0);
+  const de = CUSTOS.fontes.map(()=>ref);
+  const mem = (grupos && grupos[ref]) || [];
+  if (mem.length) v.forEach((x,j)=>{
+    if (x > 0) return;
+    for (let i = 0; i < mem.length; i++){
+      const c = itens[mem[i]], y = c ? +c[j] || 0 : 0;
+      if (y > 0){ v[j] = y; de[j] = mem[i]; return; }
+    }
+  });
+  return {v, de};
+}
+/* memoria dos custos efetivos do CUSTOS — refeita sempre que os grupos mudam */
+let CUSTO_EF = {};
+function custoEf(ref){
+  if (!CUSTO_EF[ref]) CUSTO_EF[ref] = custosDoGrupo(ref, CUSTOS.itens, CUSTOS.grupos);
+  return CUSTO_EF[ref];
 }
 const grpMembros = ref => ((CUSTOS.grupos || {})[ref] || []).filter(m=>m && m !== ref);
 /* item absorvido por um grupo: nao aparece como linha propria na guia Custos */
@@ -1157,6 +1189,7 @@ const T = {
     +'Abra Ver custos e clique em Salvar para valer para todos.',
   cstGuiaCustos:'Custos', cstGuiaGrupos:'Agrupamento de itens',
   cstGrupoTip:m=>'Comanda o custo de: '+m.join(', '),
+  cstDoGrupo:m=>'Valor vindo de '+m+' (a referência está zerada nesta fonte)',
   cstSubGr:(g,n)=>g+(g===1?' grupo':' grupos')+' · '+n+' itens agrupados',
   grSituacao:'Situação', grRef:'REFERÊNCIA', grSelecionado:'selecionado',
   grComanda:n=>'comanda '+n+(n>1?' itens':' item'),
@@ -1332,6 +1365,7 @@ const T = {
     +'Open View costs and click Save to apply them for everyone.',
   cstGuiaCustos:'Costs', cstGuiaGrupos:'Item grouping',
   cstGrupoTip:m=>'Drives the cost of: '+m.join(', '),
+  cstDoGrupo:m=>'Value taken from '+m+' (the reference is empty for this source)',
   cstSubGr:(g,n)=>g+(g===1?' group':' groups')+' · '+n+' grouped items',
   grSituacao:'Status', grRef:'REFERENCE', grSelecionado:'selected',
   grComanda:n=>'drives '+n+(n>1?' items':' item'),
@@ -1562,9 +1596,10 @@ function aplicaCusto(){
   const iSel = CUSTOS.fontes.indexOf(S.custo);
   CUSTO_USO = {dir:0, alt:0, sem:0, fix:0};
   R.forEach(r=>{
-    /* item agrupado usa o custo do item de referencia do grupo */
+    /* item agrupado usa o custo do grupo: a referencia manda, e o que ela
+       tiver zerado vem do outro item do grupo */
     const k = r.sku ? custoKey(r.sku) : '';
-    const c = k ? CUSTOS.itens[k] : null;
+    const c = k ? custoEf(k).v : null;
     const fx = k ? CUSTOS.fontes.indexOf(CUSTOS.fixos[k] || '') : -1;
     const i = fx >= 0 ? fx : iSel;
     const u = (c && i >= 0) ? (+c[i] || 0) : 0;
@@ -2204,13 +2239,22 @@ function cstRender(){
     + '<th class="num">'+esc(L.cstUsado)+'</th></tr></thead><tbody>'
     + (vis.length ? vis.map(x=>{
         const o = x[0], i = x[1];
-        /* radio + valor na mesma celula: a fonte marcada e a que manda */
-        const cel = (fn,j) =>
-          '<td class="cc'+(o.fixo===fn ? ' sel' : '')+'" data-cc="'+i+'-'+j+'"><div class="ccw">'
+        const ef = cstVef(o);
+        /* radio + valor na mesma celula: a fonte marcada e a que manda.
+           Celula que a referencia tem zerada mostra, em cinza, o valor que
+           vem do outro item do grupo — e esse que entra no calculo. */
+        const cel = (fn,j) => {
+          const herd = ef.de[j] && ef.de[j] !== o.sku && +ef.v[j] > 0;
+          return '<td class="cc'+(o.fixo===fn ? ' sel' : '')+(herd ? ' herd' : '')
+          + '" data-cc="'+i+'-'+j+'"><div class="ccw">'
           + '<input type="radio" name="fs'+i+'" data-i="'+i+'" title="'+esc(L.cstTodasTip(fn))+'"'
           + ' value="'+esc(fn)+'"' + (o.fixo===fn ? ' checked' : '') + '>'
           + '<input class="num" data-i="'+i+'" data-k="v" data-f="'+j+'"'
-          + ' value="'+esc(cstTxt(o.v[j]))+'"></div></td>';
+          + ' value="'+esc(cstTxt(o.v[j]))+'"'
+          + (herd ? ' placeholder="'+esc(cstTxt(ef.v[j]))+'" title="'
+                    + esc(L.cstDoGrupo(ef.de[j]))+'"' : '')
+          + '></div></td>';
+        };
         const mem = CST_GRUPOS[o.sku] || [];
         const selo = mem.length
           ? '<span class="gsel" title="'+esc(L.cstGrupoTip(mem))+'">+'+mem.length+'</span>' : '';
@@ -2221,7 +2265,7 @@ function cstRender(){
           + (mem.length ? ' readonly title="'+esc(L.cstGrupoTip(mem))+'"' : '') + '>'
           + selo + '</div></td>'
           + CUSTOS.fontes.map(cel).join('')
-          + '<td class="uso" data-uso="'+i+'">'+cstUsoTxt(o)+'</td></tr>';
+          + '<td class="uso" data-uso="'+i+'">'+cstUsoTxt(o, ef)+'</td></tr>';
       }).join('')
       : '<tr><td class="empty" colspan="'+(CUSTOS.fontes.length+3)+'"'
         + ' style="padding:14px;color:var(--ink-3)">' + esc(L.cstVazio) + '</td></tr>')
@@ -2231,10 +2275,19 @@ function cstRender(){
 }
 /* custo que vale para o item: exatamente a fonte escolhida nele. Sem valor
    naquela fonte, o item fica sem custo — nao ha mais troca automatica. */
-function cstEfetivo(o){
+/* vetor efetivo da linha da tela: o proprio item, completado pelo grupo */
+function cstVef(o){
+  if (!o || !o.v) return {v: CUSTOS.fontes.map(()=>0), de: []};
+  if (!CST_GRUPOS[o.sku]) return {v:o.v, de: CUSTOS.fontes.map(()=>o.sku)};
+  const it = {}; CST_EDIT.forEach(x=>{ if (x.sku) it[x.sku] = x.v; });
+  return custosDoGrupo(o.sku, it, CST_GRUPOS);
+}
+function cstEfetivo(o, vef){
+  const e = vef || cstVef(o);
   const fx = o.fixo ? CUSTOS.fontes.indexOf(o.fixo) : -1;
   const i = fx >= 0 ? fx : CST_PAD;
-  return {u: +o.v[i] || 0, src: CUSTOS.fontes[i], fb:false, fixo: fx >= 0};
+  return {u: +e.v[i] || 0, src: CUSTOS.fontes[i], fixo: fx >= 0,
+          de: (e.de && e.de[i] !== o.sku) ? e.de[i] : ''};
 }
 
 /* ============ guia Agrupamento de itens ============
@@ -2387,10 +2440,13 @@ el('cstGrid').addEventListener('click', e=>{
   else if (b.dataset.des) grDesagrupar(b.dataset.des);
   else if (b.dataset.sai) grTirar(b.dataset.sai);
 });
-function cstUsoTxt(o){
-  const e = cstEfetivo(o);
+function cstUsoTxt(o, vef){
+  const e = cstEfetivo(o, vef);
   if (!e.u) return '<i>–</i>';
-  return '<b>'+esc(cstTxt(e.u))+'</b><i class="'+(e.fixo?'fx':'')+'">'+esc(e.src)+'</i>';
+  /* valor que veio do outro item do grupo leva um asterisco e o title diz de onde */
+  return '<b'+(e.de ? ' class="herd" title="'+esc(t().cstDoGrupo(e.de))+'"' : '')+'>'
+    + esc(cstTxt(e.u)) + (e.de ? '*' : '') + '</b>'
+    + '<i class="'+(e.fixo?'fx':'')+'">'+esc(e.src)+'</i>';
 }
 el('cstQ').addEventListener('input', e=>{ CST_Q = e.target.value; cstRender(); });
 el('cstUso').onclick = () => {
