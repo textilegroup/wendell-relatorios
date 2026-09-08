@@ -658,13 +658,17 @@ footer{font-size:10.5px;color:var(--ink-3);text-align:center;padding:2px 0 0;lin
   <div class="hdr-right">
     <input type="file" id="fFile" accept=".xlsx,.xlsm" hidden>
     <button class="hdr-chip" id="btnImport" type="button"></button>
-    <button class="hdr-chip" id="btnModel" type="button"></button>
+    <button class="hdr-chip" id="btnExport" type="button"></button>
     <button class="hdr-chip" id="btnSave" type="button" hidden></button>
     <button class="hdr-chip" id="btnPdf" type="button"></button>
     <button class="hdr-chip" id="btnAdm" type="button"></button>
+    <div class="lang" id="fCur">
+      <button type="button" data-v="BRL">R$</button>
+      <button type="button" data-v="USD">US$</button>
+    </div>
     <div class="lang" id="fLang">
-      <button type="button" data-v="pt">PT</button>
       <button type="button" data-v="en">EN</button>
+      <button type="button" data-v="pt">PT</button>
     </div>
     <span class="hdr-chip" id="period"></span>
     <span class="hdr-chip" id="whoami" hidden></span>
@@ -729,12 +733,6 @@ footer{font-size:10.5px;color:var(--ink-3);text-align:center;padding:2px 0 0;lin
           <div style="display:flex;gap:7px;align-items:center">
             <div class="pills" id="fCusto"></div>
             <button type="button" class="vercustos no-print" id="btnCustos"></button>
-          </div>
-        </div>
-        <div class="fgrp"><span class="lb" id="lCur"></span>
-          <div class="pills" id="fCur">
-            <button type="button" data-v="BRL">R$</button>
-            <button type="button" data-v="USD">US$</button>
           </div>
         </div>
         <div class="fgrp grow"><label for="fQ" id="lSearch"></label><input type="search" id="fQ"></div>
@@ -1069,7 +1067,7 @@ const T = {
  pt:{
   htitle:'Relatório de Vendas', hsub:'Wendell Global Interlining · Brasil',
   gsub:'Wendell Global Interlining · acesso restrito', gpass:'Senha', gbtn:'Entrar',
-  gerr:'Senha incorreta.', theme:'Tema', imp:'Importar planilha', model:'Baixar modelo',
+  gerr:'Senha incorreta.', theme:'Tema', imp:'Importar planilha', exp:'Exportar planilha',
   save:'Salvar dados da planilha importada', pdf:'Gerar PDF',
   gmail:'E-mail', entrando:'Entrando…', sair:'Sair',
   gsubDb:'Wendell Global Interlining · acesso restrito',
@@ -1241,7 +1239,8 @@ const T = {
   impFalta:c=>'Faltam colunas obrigatórias na planilha: '+c+'. Baixe o modelo para conferir os cabeçalhos.',
   impSemLinhas:'A aba foi lida, mas nenhuma linha tinha Month válido (JAN…DEZ) e Customer preenchido.',
   impOpc:c=>' Colunas opcionais ausentes: '+c+' — os cards correspondentes ficam vazios.',
-  modelOk:'Modelo baixado. A aba LEIA-ME explica cada coluna.',
+  expOk:n=>'Planilha exportada com '+n+' linhas, no mesmo formato que a importação lê.',
+  expVazio:'Não há dados carregados para exportar.',
   impNoZip:'Este navegador não consegue descompactar o .xlsx. Use Chrome, Edge, Safari 16.4+ ou Firefox 113+.',
   saveOk:'HTML gerado com os dados atuais. Suba esse arquivo no lugar do index.html.',
   saveErr:'Só consigo gerar o HTML quando a página está publicada (GitHub Pages ou outro servidor) — abrindo o arquivo direto do disco o navegador bloqueia a leitura do próprio código.',
@@ -1251,7 +1250,7 @@ const T = {
  en:{
   htitle:'Sales Report', hsub:'Wendell Global Interlining · Brazil',
   gsub:'Wendell Global Interlining · restricted access', gpass:'Password', gbtn:'Enter',
-  gerr:'Wrong password.', theme:'Theme', imp:'Import workbook', model:'Download template',
+  gerr:'Wrong password.', theme:'Theme', imp:'Import workbook', exp:'Export workbook',
   save:'Save imported workbook data', pdf:'Export PDF',
   gmail:'E-mail', entrando:'Signing in…', sair:'Sign out',
   gsubDb:'Wendell Global Interlining · restricted access',
@@ -1423,7 +1422,8 @@ const T = {
   impFalta:c=>'Required columns missing from the workbook: '+c+'. Download the template to check the headers.',
   impSemLinhas:'The sheet was read, but no row had a valid Month (JAN…DEZ) and a Customer.',
   impOpc:c=>' Optional columns missing: '+c+' — the matching cards stay empty.',
-  modelOk:'Template downloaded. The LEIA-ME sheet explains every column.',
+  expOk:n=>'Workbook exported with '+n+' rows, in the same format the import reads.',
+  expVazio:'There is no data loaded to export.',
   impNoZip:'This browser cannot unzip the .xlsx. Use Chrome, Edge, Safari 16.4+ or Firefox 113+.',
   saveOk:'HTML generated with the current data. Upload it in place of index.html.',
   saveErr:'I can only rebuild the HTML when the page is served (GitHub Pages or any server) — opened straight from disk the browser blocks reading its own source.',
@@ -1434,7 +1434,7 @@ const T = {
 
 const S = {reps:new Set(), ufs:new Set(), anos:new Set(), meses:new Set(),
            geo: TEM_UF ? 'uf' : 'wh', wh: WHS[0] || null, custo: CUSTOS.fontes[0],
-           cur:'BRL', q:'', sort:'tot', dir:-1, lang:'pt', tab:'all'};
+           cur:'BRL', q:'', sort:'tot', dir:-1, lang:'en', tab:'all'};
 /* recalcula o periodo visivel: meses selecionados (ou todos), o "mes atual"
    passa a ser o ultimo mes da selecao */
 function syncPeriod(){
@@ -1561,12 +1561,12 @@ function applyLang(){
   document.title = S.lang==='en' ? 'Wendell Brazil Sales' : 'Vendas Wendell Brasil';
   set('hTitle',L.htitle); set('hSub',L.hsub); set('themeBtn',L.theme);
   set('gTitle',L.htitle); set('gSub', L.carregando);
-  set('btnImport',L.imp); set('btnModel',L.model); set('btnSave',L.save); set('btnPdf',L.pdf);
+  set('btnImport',L.imp); set('btnExport',L.exp); set('btnSave',L.save); set('btnPdf',L.pdf);
   set('btnOut',L.sair); set('btnAdm', ADM ? L.admOn : L.admBtn);
   set('lFilters',L.filters); set('lRep',L.rep); set('lState',L.state);
   set('lYear',L.year); set('lMonth',L.month);
   set('lGeo',L.geo); set('lGeoWh',L.geoWh); set('lGeoUf',L.geoUf);
-  set('lCusto',L.custo); set('lCur',L.cur); set('lSearch',L.search);
+  set('lCusto',L.custo); set('lSearch',L.search);
   set('btnCustos',L.verCustos); set('cstTitulo',L.cstTitulo);
   set('cstAdd',L.cstAdd); set('cstSave',L.cstSalvar); set('cstClose',L.cstFechar);
   set('cstExp',L.cstExp); set('cstImp',L.cstImp);
@@ -2857,9 +2857,8 @@ function afterBoot(){
   S.ufs.clear(); syncGeo();
 }
 const syncCur = pillGroup('fCur','cur', ()=>{ const a = CUR_ANT; CUR_ANT = S.cur; admMoeda(a); });
-pillGroup('fLang','lang', ()=>{
-  const a = CUR_ANT; S.cur = S.lang==='en' ? 'USD' : 'BRL'; CUR_ANT = S.cur; syncCur(); admMoeda(a);
-});
+/* idioma e moeda sao independentes: trocar EN/PT nao mexe mais na moeda */
+pillGroup('fLang','lang', ()=>{});
 
 el('tabs').addEventListener('click', e=>{
   const b = e.target.closest('.tab'); if(!b || S.tab===b.dataset.tab) return;
@@ -3402,44 +3401,8 @@ el('btnAdm').onclick = () => {
   if (ADM) el('admCard').scrollIntoView({behavior:'smooth', block:'center'});
 };
 
-/* ================= modelo .xlsx gerado na propria pagina =================
-   Escreve um .xlsx valido sem biblioteca: zip com entradas "stored" (sem
-   compressao) + as partes XML minimas. A lista COLUNAS abaixo e a MESMA que
-   o importador procura, entao o modelo nunca fica defasado do leitor. */
-const COLUNAS = [
- ['Month','sim','Mês do registro. Define as colunas de meses, o filtro Mês e o gráfico mensal.','Texto de 3 letras em português: JAN FEV MAR ABR MAI JUN JUL AGO SET OUT NOV DEZ','AGO'],
- ['Date','não','Data do pedido. De onde sai o ano (filtro Ano) e a data da 1ª compra na aba Clientes novos.','Data ou texto AAAA-MM-DD','2026-08-24'],
- ['Rep','não','Representante. Filtro Representante e aba Top representantes.','Texto livre','ARTHUR'],
- ['Order Number','não','Número do pedido. Agrupa as linhas de item do mesmo pedido — é o que impede o frete de ser contado várias vezes.','Texto ou número','000057'],
- ['WH','não','Armazém de origem. Alimenta o Faturamento por estado enquanto o mapa UF_CLIENTE estiver vazio.','Sigla curta','SP'],
- ['Status','sim','Separa faturamento de carteira.','Invoiced = faturado. Qualquer outro valor (TBI, etc.) entra como carteira.','Invoiced'],
- ['Customer','sim','Cliente. Primeira coluna da lista e base de clientes novos/inativos.','Texto livre — a grafia precisa ser sempre igual para o mesmo cliente','TUTTO PRINT INDUSTRIA E COMERCIO LTDA'],
- ['Customer UF','não','Estado do cliente. É a fonte do Faturamento por estado e do filtro Estado.','Sigla de 2 letras. #N/A ou vazio entra como “não informado” e aparece como “—”.','SP'],
- ['Quantity (m)','não','Metros do item. Guardado para uso futuro, ainda não exibido.','Número','200'],
- ['Comission','não','Alíquota de comissão do item. Alimenta a Comissão média ponderada.','Número decimal: 0,02 = 2%. Não use 2.','0,02'],
- ['Total per item (BRL Value)','sim','Valor da linha de item em reais. É a base de TODO o faturamento do relatório.','Número em reais, sem símbolo','1124'],
- ['Margin','não','Margem do pedido. Alimenta a Margem média ponderada e o gráfico de margem.','Número decimal: 0,3235 = 32,35%. Vazio = mês sem margem informada.','0,3235'],
- ['Total Freight','não','Frete do pedido em reais. Alimenta o Frete médio ponderado.','Número em reais. Pode repetir em cada item do pedido — o relatório consolida e conta uma vez só.','322,15'],
- ['SKU LIMPO','não','Código do item já limpo (coluna AF). É a chave que liga a venda à tabela de custos e faz a margem por COGS/LANDED.','Texto igual ao ID LIMPO da planilha de custos. Espaços a mais não atrapalham.','7FB55PA 0100']
-];
-const EXEMPLO = [
- ['AGO','2026-08-24','ARTHUR','000057','SP','Invoiced','TUTTO PRINT INDUSTRIA E COMERCIO LTDA','SP',200,0.02,1124,0.3235,322.15,'7FB55PA 9800'],
- ['AGO','2026-08-24','ARTHUR','000057','SP','Invoiced','TUTTO PRINT INDUSTRIA E COMERCIO LTDA','SP',1200,0.02,6744,0.3235,322.15,'7FB55PA 0100'],
- ['AGO','2026-08-19','SIMONE','602451','SC','Invoiced','AVERARA CONFECCOES LTDA','RJ',2000,0.02,6000,0.1692,null,'8J45PA 0100'],
- ['AGO','2026-08-24','ALICE','602452','SC','TBI','LMX CONFECCOES LTDA','CE',200,0.02,1490,null,null,'8J65PA 0100']
-];
-const NOTAS = [
- 'As 4 linhas de exemplo acima são só ilustração — apague-as e cole seus dados a partir da linha 2.',
- 'A ordem das colunas não importa e colunas extras são ignoradas: o relatório procura cada uma pelo nome do cabeçalho.',
- 'Cada linha é UM ITEM do pedido. Itens do mesmo pedido repetem Order Number, Customer e Total Freight.',
- 'Sem as 4 colunas obrigatórias a importação é recusada e o relatório diz qual está faltando.',
- 'Uma coluna opcional ausente não quebra nada: o card correspondente fica vazio e o relatório avisa.',
- 'Vazio em Margin ou Total Freight significa "não informado" e fica fora do cálculo — não é zero.',
- 'A aba pode ter qualquer nome; havendo uma chamada BASE, é ela que será lida.',
- 'Custos: a tela Ver custos tem Exportar e Importar próprios — aba TABELA com ID LIMPO, uma coluna por fonte (COGS1, COGS2, LANDED1, LANDED2) e a coluna FONTE com a escolhida de cada item. O botão Importar do topo também aceita essa planilha, e ela não mexe nos dados de venda.',
- 'A fonte de custo é escolhida item a item na tela Ver custos (coluna FONTE da planilha de custos). Sem valor na fonte escolhida, o item fica sem custo — o relatório não troca sozinho por outra tabela.'
-];
-
+/* ===== escrita de .xlsx sem biblioteca: zip "stored" + XML minimo =====
+   Usado pela exportacao de vendas e pela exportacao da tabela de custos. */
 let CRCT;
 function crc32(u8){
   if (!CRCT){
@@ -3507,46 +3470,42 @@ function sheetXml(rows, widths, extra){
     + '<sheetFormatPr defaultRowHeight="14"/>' + cols
     + '<sheetData>'+body+'</sheetData></worksheet>';
 }
-function modeloXlsx(){
-  const H = COLUNAS.map(c=>({v:c[0], s:1}));
-  const base = [H].concat(EXEMPLO.map(r=>r.map((v,i)=>
-    i===1 ? {v:v, d:true} : v)));
-  base.push([]);
-  NOTAS.slice(0,3).forEach(n=>base.push([{v:n, s:3}]));
-  const leia = [
-    [{v:'Modelo de planilha — Relatório de Vendas WGI', s:4}],
-    [{v:'Este é o formato que o index.html espera no botão “Importar planilha”. Confira esta lista sempre que a planilha de origem mudar de colunas.', s:3}],
-    [],
-    ['Coluna (cabeçalho exato)','Obrigatória','Para que o relatório usa','Formato esperado','Exemplo'].map(v=>({v, s:1}))
-  ].concat(COLUNAS.map(c=>c.map((v,i)=>({v, s:(i===1?6:5)}))));
-  leia.push([]); leia.push([{v:'Regras gerais', s:4}]);
-  NOTAS.forEach(n=>leia.push([{v:'• '+n, s:0}]));
 
-  const styles = '<?xml version="1.0" encoding="UTF-8" standalone="yes"?>'
+/* ============= exportar a planilha de vendas que esta carregada =============
+   Gera um .xlsx com a aba BASE no MESMO formato que a importacao le, a partir
+   de DATA.rows (os valores como vieram na planilha de origem, nao os calculados
+   pelo relatorio). Exporta, edita no Excel e importa de volta sem perder nada.
+   Escreve o .xlsx sem biblioteca: zip "stored" + as partes XML minimas. */
+const VEND_CAB = ['Month','Date','Rep','Order Number','WH','Status','Customer',
+  'Customer UF','Quantity (m)','Comission','Total per item (BRL Value)','Margin',
+  'Total Freight','SKU LIMPO'];
+/* DATA.rows: [mes,rep,wh,status,cliente,brl,qtd,pedido,data,com,margem,frete,uf,sku] */
+function vendaLinha(r){
+  return [r[0], r[8] || '', r[1] || '', r[7] || '', r[2] || '',
+          r[3] === 'I' ? 'Invoiced' : 'TBI', r[4] || '', r[12] || '',
+          +r[6] || 0, +r[9] || 0, +r[5] || 0,
+          (r[10] === null || r[10] === undefined) ? '' : +r[10],
+          (r[11] === null || r[11] === undefined) ? '' : +r[11],
+          r[13] || ''];
+}
+function vendasXlsx(){
+  const estilos = '<?xml version="1.0" encoding="UTF-8" standalone="yes"?>'
    + '<styleSheet xmlns="http://schemas.openxmlformats.org/spreadsheetml/2006/main">'
-   + '<numFmts count="1"><numFmt numFmtId="164" formatCode="dd/mm/yyyy"/></numFmts>'
-   + '<fonts count="5">'
-   + '<font><sz val="10"/><name val="Arial"/></font>'
-   + '<font><b/><sz val="10"/><color rgb="FFFFFFFF"/><name val="Arial"/></font>'
-   + '<font><sz val="10"/><name val="Arial"/></font>'
-   + '<font><i/><sz val="9"/><color rgb="FF8B858E"/><name val="Arial"/></font>'
-   + '<font><b/><sz val="12"/><color rgb="FF7C1B29"/><name val="Arial"/></font>'
-   + '</fonts>'
+   + '<fonts count="2"><font><sz val="10"/><name val="Arial"/></font>'
+   + '<font><b/><sz val="10"/><color rgb="FFFFFFFF"/><name val="Arial"/></font></fonts>'
    + '<fills count="3"><fill><patternFill patternType="none"/></fill>'
    + '<fill><patternFill patternType="gray125"/></fill>'
-   + '<fill><patternFill patternType="solid"><fgColor rgb="FF7C1B29"/><bgColor indexed="64"/></patternFill></fill></fills>'
+   + '<fill><patternFill patternType="solid"><fgColor rgb="FF7C1B29"/>'
+   + '<bgColor indexed="64"/></patternFill></fill></fills>'
    + '<borders count="1"><border><left/><right/><top/><bottom/><diagonal/></border></borders>'
    + '<cellStyleXfs count="1"><xf numFmtId="0" fontId="0" fillId="0" borderId="0"/></cellStyleXfs>'
-   + '<cellXfs count="7">'
-   + '<xf numFmtId="0" fontId="0" fillId="0" borderId="0" xfId="0"/>'
-   + '<xf numFmtId="0" fontId="1" fillId="2" borderId="0" xfId="0" applyFont="1" applyFill="1" applyAlignment="1"><alignment horizontal="center" vertical="center" wrapText="1"/></xf>'
-   + '<xf numFmtId="164" fontId="0" fillId="0" borderId="0" xfId="0" applyNumberFormat="1"/>'
-   + '<xf numFmtId="0" fontId="3" fillId="0" borderId="0" xfId="0" applyFont="1"/>'
-   + '<xf numFmtId="0" fontId="4" fillId="0" borderId="0" xfId="0" applyFont="1"/>'
-   + '<xf numFmtId="0" fontId="0" fillId="0" borderId="0" xfId="0" applyAlignment="1"><alignment vertical="top" wrapText="1"/></xf>'
-   + '<xf numFmtId="0" fontId="0" fillId="0" borderId="0" xfId="0" applyAlignment="1"><alignment horizontal="center" vertical="top"/></xf>'
+   + '<cellXfs count="2"><xf numFmtId="0" fontId="0" fillId="0" borderId="0" xfId="0"/>'
+   + '<xf numFmtId="0" fontId="1" fillId="2" borderId="0" xfId="0" applyFont="1" applyFill="1"'
+   + ' applyAlignment="1"><alignment horizontal="center" vertical="center" wrapText="1"/></xf>'
    + '</cellXfs><cellStyles count="1"><cellStyle name="Normal" xfId="0" builtinId="0"/></cellStyles></styleSheet>';
-
+  const linhas = [VEND_CAB.map(v=>({v, s:1}))]
+    .concat((DATA.rows || []).map(vendaLinha));
+  const larg = [10,12,14,15,8,11,40,13,13,12,26,11,14,18];
   return zipStore([
    {name:'[Content_Types].xml', xml:'<?xml version="1.0" encoding="UTF-8" standalone="yes"?>'
      + '<Types xmlns="http://schemas.openxmlformats.org/package/2006/content-types">'
@@ -3554,7 +3513,6 @@ function modeloXlsx(){
      + '<Default Extension="xml" ContentType="application/xml"/>'
      + '<Override PartName="/xl/workbook.xml" ContentType="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet.main+xml"/>'
      + '<Override PartName="/xl/worksheets/sheet1.xml" ContentType="application/vnd.openxmlformats-officedocument.spreadsheetml.worksheet+xml"/>'
-     + '<Override PartName="/xl/worksheets/sheet2.xml" ContentType="application/vnd.openxmlformats-officedocument.spreadsheetml.worksheet+xml"/>'
      + '<Override PartName="/xl/styles.xml" ContentType="application/vnd.openxmlformats-officedocument.spreadsheetml.styles+xml"/>'
      + '</Types>'},
    {name:'_rels/.rels', xml:'<?xml version="1.0" encoding="UTF-8" standalone="yes"?>'
@@ -3564,26 +3522,26 @@ function modeloXlsx(){
    {name:'xl/workbook.xml', xml:'<?xml version="1.0" encoding="UTF-8" standalone="yes"?>'
      + '<workbook xmlns="http://schemas.openxmlformats.org/spreadsheetml/2006/main" '
      + 'xmlns:r="http://schemas.openxmlformats.org/officeDocument/2006/relationships">'
-     + '<sheets><sheet name="BASE" sheetId="1" r:id="rId1"/><sheet name="LEIA-ME" sheetId="2" r:id="rId2"/></sheets></workbook>'},
+     + '<sheets><sheet name="BASE" sheetId="1" r:id="rId1"/></sheets></workbook>'},
    {name:'xl/_rels/workbook.xml.rels', xml:'<?xml version="1.0" encoding="UTF-8" standalone="yes"?>'
      + '<Relationships xmlns="http://schemas.openxmlformats.org/package/2006/relationships">'
      + '<Relationship Id="rId1" Type="http://schemas.openxmlformats.org/officeDocument/2006/relationships/worksheet" Target="worksheets/sheet1.xml"/>'
-     + '<Relationship Id="rId2" Type="http://schemas.openxmlformats.org/officeDocument/2006/relationships/worksheet" Target="worksheets/sheet2.xml"/>'
-     + '<Relationship Id="rId3" Type="http://schemas.openxmlformats.org/officeDocument/2006/relationships/styles" Target="styles.xml"/>'
+     + '<Relationship Id="rId2" Type="http://schemas.openxmlformats.org/officeDocument/2006/relationships/styles" Target="styles.xml"/>'
      + '</Relationships>'},
-   {name:'xl/styles.xml', xml:styles},
-   {name:'xl/worksheets/sheet1.xml', xml:sheetXml(base,[10,12,14,15,8,11,40,13,13,12,26,11,14],{freeze:true})},
-   {name:'xl/worksheets/sheet2.xml', xml:sheetXml(leia,[30,12,52,52,26],{nogrid:true})}
+   {name:'xl/styles.xml', xml:estilos},
+   {name:'xl/worksheets/sheet1.xml', xml:sheetXml(linhas, larg, {freeze:true})}
   ]);
 }
-el('btnModel').onclick = () => {
-  const url = URL.createObjectURL(new Blob([modeloXlsx()],
+el('btnExport').onclick = () => {
+  const n = (DATA.rows || []).length;
+  if (!n){ toast(t().expVazio, true); return; }
+  const url = URL.createObjectURL(new Blob([vendasXlsx()],
     {type:'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet'}));
   const a = document.createElement('a');
-  a.href = url; a.download = 'MODELO-planilha-relatorio-WGI.xlsx';
+  a.href = url; a.download = 'VENDAS-WGI.xlsx';
   document.body.appendChild(a); a.click(); a.remove();
   setTimeout(()=>URL.revokeObjectURL(url), 4000);
-  toast(t().modelOk);
+  toast(t().expOk(n));
 };
 
 /* ================= salvar os dados importados ================= */
