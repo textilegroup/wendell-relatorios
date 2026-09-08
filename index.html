@@ -407,6 +407,18 @@ table.cst tr.gr-in td.gsku{color:var(--ink-2)}
 /* SKU que aparece nas vendas mas nao tem custo cadastrado */
 table.cst tr.gr-venda td.gsku{color:var(--ink-3);font-style:italic}
 table.cst td.gtag .sv{color:var(--ink-3);font-size:9.5px;letter-spacing:.03em}
+/* custos das quatro tabelas na guia Agrupamento: so leitura, para comparar
+   antes de decidir quem e a referencia. A fonte aplicada fica destacada. */
+table.cst th.gc,table.cst td.gc{width:84px;text-align:right;
+  border-left:1px solid var(--line-2)}
+table.cst th.gc{font-size:9px;padding:7px 8px}
+table.cst td.gc{padding:6px 8px;font-variant-numeric:tabular-nums;color:var(--ink-2)}
+table.cst td.gc.sel{background:var(--chip);box-shadow:inset 2px 0 0 var(--s2);
+  color:var(--s2);font-weight:700}
+table.cst td.gc.vazio{color:var(--ink-3)}
+/* o cabecalho da lista para logo abaixo da barra de acoes, nao atras dela.
+   A altura da barra varia com a mensagem, entao vem medida do JS. */
+table.cst.gtab th{top:var(--grbar,44px)}
 table.cst tr.fixa td.rn{color:var(--s2)}
 table.cst tr.usada td.rn{background:var(--chip);color:var(--s2);font-weight:700}
 .cst-box .hint{margin:0;padding:9px 14px 12px;border-top:1px solid var(--line)}
@@ -1152,6 +1164,7 @@ const T = {
   grLimpar:'Limpar seleção', grDesagrupar:'desfazer', grTirar:'tirar',
   grAjuda:'Marque os itens que são o mesmo produto — o primeiro marcado vira a referência.',
   grSoVenda:'só nas vendas · sem custo',
+  grAplicado:f=>'Custo aplicado hoje neste item (fonte '+f+')',
   grSoVendaCnt:n=>n+(n>1?' SKUs vendidos sem custo':' SKU vendido sem custo'),
   grRefSemCusto:r=>'"'+r+'" não tem custo cadastrado, então não pode ser a referência. '
     +'Limpe a seleção e marque primeiro o item que tem os custos.',
@@ -1326,6 +1339,7 @@ const T = {
   grLimpar:'Clear selection', grDesagrupar:'undo', grTirar:'remove',
   grAjuda:'Tick the items that are the same product — the first one ticked becomes the reference.',
   grSoVenda:'sales only · no cost',
+  grAplicado:f=>'Cost applied to this item today (source '+f+')',
   grSoVendaCnt:n=>n+(n>1?' sold SKUs with no cost':' sold SKU with no cost'),
   grRefSemCusto:r=>'"'+r+'" has no cost on file, so it cannot be the reference. '
     +'Clear the selection and tick the item that carries the costs first.',
@@ -2245,7 +2259,7 @@ function grRender(){
   R.forEach(r=>{
     const n = normSku(r.sku); if (!n || comCusto.has(n) || jaVi.has(n)) return;
     jaVi.add(n);
-    soVenda.push({sku: r.sku0 || r.sku, venda:true});
+    soVenda.push({sku: r.sku0 || r.sku, venda:true, v:null, fixo:''});
   });
   soVenda.sort((a,b)=>a.sku.localeCompare(b.sku));
   const todos = CST_EDIT.filter(o=>o.sku).concat(soVenda);
@@ -2274,7 +2288,8 @@ function grRender(){
     + '</div>';
 
   setH('cstGrid', barra
-    + '<table class="cst"><thead><tr><th class="gck"></th><th>'+esc(L.cstItem)+'</th>'
+    + '<table class="cst gtab"><thead><tr><th class="gck"></th><th>'+esc(L.cstItem)+'</th>'
+    + CUSTOS.fontes.map(f=>'<th class="gc">'+esc(f)+'</th>').join('')
     + '<th style="text-align:right">'+esc(L.grSituacao)+'</th></tr></thead><tbody>'
     + (vis.length ? vis.map(o=>{
         const meu = gd[normSku(o.sku)] || '';
@@ -2293,15 +2308,29 @@ function grRender(){
         else if (iSel === 0) tag = '<span class="ref">'+esc(L.grRef)+'</span>';
         else if (iSel > 0) tag = '<span class="mem">'+esc(L.grSelecionado)+'</span>';
         else if (o.venda) tag = '<span class="sv">'+esc(L.grSoVenda)+'</span>';
+        /* os quatro custos do item, com a fonte aplicada em destaque — e por
+           esses numeros que se decide quem merece ser a referencia */
+        const custos = CUSTOS.fontes.map((fn,j)=>{
+          const val = o.v ? cstTxt(o.v[j]) : '';
+          const apl = !!o.v && o.fixo === fn;
+          return '<td class="gc'+(apl ? ' sel' : '')+(val ? '' : ' vazio')+'"'
+            + (apl ? ' title="'+esc(L.grAplicado(fn))+'"' : '') + '>'
+            + (val || '–') + '</td>';
+        }).join('');
         return '<tr class="'+(cls + (o.venda ? ' gr-venda' : '')).trim()+'">'
           + '<td class="gck"><input type="checkbox" data-g="'+esc(o.sku)+'"'
           + (iSel >= 0 ? ' checked' : '') + (meu ? ' disabled' : '') + '></td>'
           + '<td class="gsku">'+esc(o.sku)+'</td>'
+          + custos
           + '<td class="gtag">'+tag+'</td></tr>';
       }).join('')
-      : '<tr><td class="empty" colspan="3" style="padding:14px;color:var(--ink-3)">'
-        + esc(L.cstVazio) + '</td></tr>')
+      : '<tr><td class="empty" colspan="'+(CUSTOS.fontes.length+3)+'"'
+        + ' style="padding:14px;color:var(--ink-3)">' + esc(L.cstVazio) + '</td></tr>')
     + '</tbody></table>');
+  /* a barra de acoes muda de altura conforme a mensagem: mede e avisa o
+     cabecalho grudento onde ele deve parar */
+  const bar = el('cstGrid').querySelector('.gr-bar');
+  el('cstGrid').style.setProperty('--grbar', (bar ? bar.offsetHeight : 44) + 'px');
   setH('cstHint', L.grHint);
 }
 /* marcar/desmarcar preservando a ORDEM: o primeiro marcado e a referencia */
