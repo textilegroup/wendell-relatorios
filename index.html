@@ -377,6 +377,11 @@ table.cst td.uso b{font-weight:700;color:var(--ink)}
 table.cst td.uso i{font-style:normal;font-size:9px;font-weight:700;letter-spacing:.03em;
   color:var(--ink-3);margin-left:5px}
 table.cst td.uso i.fx{color:var(--s2)}
+/* fonte marcada vazia tendo custo em outra: avisa, nao troca sozinho */
+table.cst td.uso i.alerta{color:var(--wine-soft);font-weight:700;cursor:help}
+.cst-box .hint b.av{color:var(--wine-soft)}
+.cst-fil #cstAlerta{border-color:var(--wine-soft);color:var(--wine-soft)}
+.cst-fil #cstAlerta[aria-pressed="true"]{background:var(--wine-soft);color:#fff}
 /* selo do grupo na guia Custos: quantos itens aquela linha comanda */
 .skuw{display:flex;align-items:center;padding-right:7px}
 .skuw input{flex:1;min-width:0}
@@ -870,6 +875,7 @@ footer{font-size:10.5px;color:var(--ink-3);text-align:center;padding:2px 0 0;lin
     <div class="cst-fil">
       <input type="search" id="cstQ" autocomplete="off">
       <button type="button" id="cstUso" aria-pressed="false"></button>
+      <button type="button" id="cstAlerta" aria-pressed="false" hidden></button>
       <span class="cnt" id="cstCnt"></span>
     </div>
     <div class="cst-grid" id="cstGrid"></div>
@@ -1190,6 +1196,12 @@ const T = {
   cstGuiaCustos:'Custos', cstGuiaGrupos:'Agrupamento de itens',
   cstGrupoTip:m=>'Comanda o custo de: '+m.join(', '),
   cstDoGrupo:m=>'Valor vindo de '+m+' (a referência está zerada nesta fonte)',
+  cstAlerta:n=>'⚠ '+n+' sem custo',
+  cstAlertaTip:'Mostrar só os itens cuja fonte marcada está vazia, mas que têm custo em outra fonte.',
+  cstAlertaHint:n=>n+(n>1?' itens ficam':' item fica')+' fora do cálculo: a fonte marcada está vazia, '
+    +'mas há custo em outra. Troque a marcação nesses itens.',
+  cstFaltaTip:(f,o)=>'Sem valor em '+f+' (a fonte marcada). Este item tem custo em: '+o.join(', ')
+    +'. Enquanto a marcação não mudar, ele entra no relatório sem custo.',
   cstSubGr:(g,n)=>g+(g===1?' grupo':' grupos')+' · '+n+' itens agrupados',
   grSituacao:'Situação', grRef:'REFERÊNCIA', grSelecionado:'selecionado',
   grComanda:n=>'comanda '+n+(n>1?' itens':' item'),
@@ -1366,6 +1378,12 @@ const T = {
   cstGuiaCustos:'Costs', cstGuiaGrupos:'Item grouping',
   cstGrupoTip:m=>'Drives the cost of: '+m.join(', '),
   cstDoGrupo:m=>'Value taken from '+m+' (the reference is empty for this source)',
+  cstAlerta:n=>'⚠ '+n+' with no cost',
+  cstAlertaTip:'Show only items whose ticked source is empty but that have a cost in another source.',
+  cstAlertaHint:n=>n+(n>1?' items are':' item is')+' left out of the calculation: the ticked source is '
+    +'empty but there is a cost in another one. Change the tick on those items.',
+  cstFaltaTip:(f,o)=>'No value in '+f+' (the ticked source). This item has a cost in: '+o.join(', ')
+    +'. Until the tick changes, it goes into the report with no cost.',
   cstSubGr:(g,n)=>g+(g===1?' group':' groups')+' · '+n+' grouped items',
   grSituacao:'Status', grRef:'REFERENCE', grSelecionado:'selected',
   grComanda:n=>'drives '+n+(n>1?' items':' item'),
@@ -2155,7 +2173,7 @@ function spark(id, vals, hi){
    CST_GRUPOS e a copia editavel dos grupos; GR_SEL guarda a selecao da guia
    de agrupamento NA ORDEM DE CLIQUE — o primeiro e a referencia. */
 let CST_EDIT = null, CST_PAD = 0, CST_Q = '', CST_USO = false;
-let CST_TAB = 'custos', CST_GRUPOS = {}, GR_SEL = [];
+let CST_TAB = 'custos', CST_GRUPOS = {}, GR_SEL = [], CST_ALERTA = false;
 /* ha custo aplicado no dashboard que ainda nao foi gravado no banco */
 let CST_SUJO = false;
 /* mapa membro->referencia da copia em edicao (nao mexe no GRP_DE global) */
@@ -2192,7 +2210,7 @@ function cstAbrir(){
   GR_SEL = [];
   CST_PAD = Math.max(0, CUSTOS.fontes.indexOf(CUSTOS.padrao || S.custo));
   CST_TAB = 'custos';
-  CST_Q = ''; CST_USO = false;
+  CST_Q = ''; CST_USO = false; CST_ALERTA = false;
   el('cstQ').value = ''; el('cstUso').setAttribute('aria-pressed','false');
   el('cstModal').hidden = false;
   cstRender();
@@ -2220,10 +2238,26 @@ function cstRender(){
     const r = gd[normSku(x[0].sku)];
     return !(r && r !== x[0].sku);
   });
+  /* itens cuja fonte marcada esta vazia mas que TEM custo em outra fonte:
+     ficam de fora do calculo sem precisar — o botao de alerta isola eles */
+  const falta = new Set();
+  base.forEach(x=>{
+    const fa = cstFalta(x[0]);
+    if (fa && fa.outras.length) falta.add(x[1]);
+  });
+  const bA = el('cstAlerta');
+  if (bA){
+    bA.hidden = !falta.size;
+    if (!falta.size) CST_ALERTA = false;
+    bA.textContent = L.cstAlerta(falta.size);
+    bA.setAttribute('aria-pressed', CST_ALERTA);
+    bA.title = L.cstAlertaTip;
+  }
   const vis = base.filter(x=>
     (!q || normSku(x[0].sku).indexOf(q) >= 0
         || (CST_GRUPOS[x[0].sku] || []).some(m=>normSku(m).indexOf(q) >= 0))
-    && (!CST_USO || usados.has(x[0].sku)));
+    && (!CST_USO || usados.has(x[0].sku))
+    && (!CST_ALERTA || falta.has(x[1])));
   set('cstSub', L.cstSub(CST_EDIT.length, CUSTOS.arquivo || f));
   set('cstCnt', L.cstCnt(vis.length, base.length));
   CST_VIS = vis.map(x=>x[1]);
@@ -2271,7 +2305,8 @@ function cstRender(){
         + ' style="padding:14px;color:var(--ink-3)">' + esc(L.cstVazio) + '</td></tr>')
     + '</tbody></table>');
   const nfx = CST_EDIT.filter(o=>o.fixo).length;
-  setH('cstHint', L.cstHint(f) + (nfx ? ' <b>· '+esc(L.cstFixos(nfx))+'</b>' : ''));
+  setH('cstHint', L.cstHint(f) + (nfx ? ' <b>· '+esc(L.cstFixos(nfx))+'</b>' : '')
+    + (falta.size ? ' <b class="av">· '+esc(L.cstAlertaHint(falta.size))+'</b>' : ''));
 }
 /* custo que vale para o item: exatamente a fonte escolhida nele. Sem valor
    naquela fonte, o item fica sem custo — nao ha mais troca automatica. */
@@ -2300,6 +2335,7 @@ function grRender(){
   const L = t();
   const gd = cstGrpDe();
   const q = normSku(CST_Q);
+  const bA = el('cstAlerta'); if (bA) bA.hidden = true;   /* aviso e da guia Custos */
   /* filtro pela chave, exibicao pelo ID original */
   const usados = new Set(R.filter(r=>r.st==='I' && r.sku).map(r=>normSku(r.sku)));
   /* A lista traz os itens da tabela de custos MAIS os SKUs que aparecem nas
@@ -2425,7 +2461,7 @@ function grTirar(sku){
 el('cstGuias').addEventListener('click', e=>{
   const b = e.target.closest('button'); if (!b) return;
   if (CST_TAB === b.dataset.t) return;
-  CST_TAB = b.dataset.t; GR_SEL = [];
+  CST_TAB = b.dataset.t; GR_SEL = []; CST_ALERTA = false;
   CST_Q = ''; el('cstQ').value = '';
   cstRender();
 });
@@ -2440,9 +2476,26 @@ el('cstGrid').addEventListener('click', e=>{
   else if (b.dataset.des) grDesagrupar(b.dataset.des);
   else if (b.dataset.sai) grTirar(b.dataset.sai);
 });
+/* Aviso, sem mexer no calculo: a fonte marcada no item esta vazia. Devolve as
+   fontes que TEM valor — se houver alguma, o item esta ficando de fora do
+   calculo apesar de ter custo cadastrado, e e so trocar a marcacao. Lista
+   vazia = o item nao tem custo em fonte nenhuma. */
+function cstFalta(o, vef){
+  const i = CUSTOS.fontes.indexOf(o.fixo);
+  if (i < 0) return null;
+  const e = vef || cstVef(o);
+  if (+e.v[i] > 0) return null;
+  return {outras: CUSTOS.fontes.filter((f,j)=>+e.v[j] > 0)};
+}
 function cstUsoTxt(o, vef){
   const e = cstEfetivo(o, vef);
-  if (!e.u) return '<i>–</i>';
+  if (!e.u){
+    const fa = cstFalta(o, vef);
+    if (fa && fa.outras.length)
+      return '<i class="alerta" title="'+esc(t().cstFaltaTip(o.fixo, fa.outras))+'">'
+        + '– !</i>';
+    return '<i>–</i>';
+  }
   /* valor que veio do outro item do grupo leva um asterisco e o title diz de onde */
   return '<b'+(e.de ? ' class="herd" title="'+esc(t().cstDoGrupo(e.de))+'"' : '')+'>'
     + esc(cstTxt(e.u)) + (e.de ? '*' : '') + '</b>'
@@ -2454,6 +2507,8 @@ el('cstUso').onclick = () => {
   el('cstUso').setAttribute('aria-pressed', CST_USO);
   cstRender();
 };
+/* isola os itens cuja fonte marcada esta vazia tendo custo em outra fonte */
+el('cstAlerta').onclick = () => { CST_ALERTA = !CST_ALERTA; cstRender(); };
 /* "todas": passa a fonte da coluna para todos os itens que estao na lista
    agora (respeitando o filtro e o "so os vendidos") e passa a ser o padrao
    para linha nova. Depois disso da para trocar item a item nos radios — a
