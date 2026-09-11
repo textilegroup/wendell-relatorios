@@ -303,22 +303,34 @@ input.moeda:focus{outline:2px solid var(--wine-soft);outline-offset:1px}
   box-shadow:0 8px 40px rgba(0,0,0,.28);width:min(880px,100%);max-height:92vh;
   display:flex;flex-direction:column;overflow:hidden}
 .cst-hd{display:flex;align-items:center;gap:10px;padding:11px 14px 10px;
-  border-bottom:2px solid var(--s2);flex-wrap:wrap}
+  border-bottom:2px solid var(--cen);flex-wrap:wrap}
 .cst-hd h2{margin:0;font-size:12px;font-weight:700;letter-spacing:.09em;
-  text-transform:uppercase;color:var(--s2)}
+  text-transform:uppercase;color:var(--cen)}
 .cst-hd .sub{font-size:11px;color:var(--ink-3)}
 .cst-acts{margin-left:auto;display:flex;gap:7px;align-items:center}
-/* barra dos quatro cenarios de custo */
-.cst-cen{display:flex;flex-wrap:wrap;gap:4px;padding:9px 14px 0;background:var(--sunk)}
-.cst-cen button{font:inherit;font-size:10.5px;font-weight:700;letter-spacing:.03em;
-  border:1px solid var(--line);background:var(--card);color:var(--ink-3);
-  padding:6px 11px;border-radius:8px;cursor:pointer;white-space:nowrap;line-height:1.15}
-.cst-cen button small{display:block;font-size:8.5px;font-weight:700;letter-spacing:.08em;
-  text-transform:uppercase;opacity:.75}
-.cst-cen button[aria-selected="true"]{border-color:var(--s2);color:var(--s2);
-  box-shadow:inset 0 0 0 1px var(--s2)}
-.cst-cen button.viva[aria-selected="true"]{border-color:var(--s4);color:var(--s4);
-  box-shadow:inset 0 0 0 1px var(--s4)}
+/* ===== barra dos cenarios: dois grupos visualmente separados =====
+   Cada grupo (Relatorios / Lista de precos) e um bloco proprio, com o nome
+   uma vez so e as duas bases dentro. Verde = o que esta valendo; vermelho =
+   rascunho ainda nao aplicado. Essa cor tambem pinta a tabela inteira. */
+.cst-cen{display:flex;flex-wrap:wrap;align-items:stretch;gap:0;padding:9px 14px 0;
+  background:var(--sunk)}
+.cen-gr{display:flex;align-items:center;gap:6px;padding:5px 12px 6px;
+  border:1px solid var(--line);border-bottom:0;border-radius:10px 10px 0 0;
+  background:var(--card)}
+.cen-gr + .cen-gr{margin-left:16px}
+.cen-lb{font-size:8.5px;font-weight:700;letter-spacing:.1em;text-transform:uppercase;
+  color:var(--ink-3);white-space:nowrap;max-width:64px;line-height:1.1}
+.cst-cen button{font:inherit;font-size:11px;font-weight:700;letter-spacing:.03em;
+  border:1px solid var(--line);background:var(--sunk);color:var(--ink-3);
+  padding:5px 12px;border-radius:7px;cursor:pointer;white-space:nowrap;line-height:1.2}
+.cst-cen button:hover{color:var(--ink-2)}
+.cst-cen button[aria-selected="true"]{background:var(--card);
+  border-color:var(--cen-c);color:var(--cen-c);box-shadow:inset 0 0 0 1px var(--cen-c)}
+.cst-cen button[data-c$="_atual"]{--cen-c:var(--s4)}
+.cst-cen button[data-c$="_nova"]{--cen-c:var(--s1)}
+/* a cor do cenario aberto vale para a tela toda */
+#cstModal{--cen:var(--s4)}
+#cstModal.cen-nova{--cen:var(--s1)}
 .cst-acoes{display:flex;flex-wrap:wrap;gap:7px;align-items:center;padding:9px 14px;
   background:var(--sunk);border-bottom:1px solid var(--line)}
 .cst-acoes .msg{font-size:10.5px;color:var(--ink-3)}
@@ -336,19 +348,19 @@ input.moeda:focus{outline:2px solid var(--wine-soft);outline-offset:1px}
 .cst-guia{font:inherit;font-size:11.5px;font-weight:700;letter-spacing:.04em;
   border:1px solid var(--line);border-bottom:0;background:var(--chip);color:var(--ink-3);
   padding:6px 14px;border-radius:7px 7px 0 0;cursor:pointer;white-space:nowrap;margin-bottom:-1px}
-.cst-guia[aria-selected="true"]{background:var(--card);color:var(--s2);border-color:var(--line);
-  box-shadow:inset 0 2px 0 var(--s2)}
+.cst-guia[aria-selected="true"]{background:var(--card);color:var(--cen);border-color:var(--line);
+  box-shadow:inset 0 2px 0 var(--cen)}
 .cst-fil{display:flex;align-items:center;gap:9px;padding:9px 14px;
   border-bottom:1px solid var(--line);background:var(--sunk)}
 .cst-fil input{flex:1;min-width:0;font:inherit;font-size:12.5px;color:var(--ink);
   background:var(--card);border:1px solid var(--line);border-radius:8px;padding:6px 9px}
-.cst-fil input:focus{outline:2px solid var(--s2);outline-offset:-1px}
+.cst-fil input:focus{outline:2px solid var(--cen);outline-offset:-1px}
 .cst-fil .cnt{font-size:10.5px;color:var(--ink-3);white-space:nowrap;
   font-variant-numeric:tabular-nums}
 .cst-fil button{font:inherit;font-size:11px;font-weight:600;padding:5px 10px;
   border:1px solid var(--line);border-radius:8px;background:var(--card);
   color:var(--ink-2);cursor:pointer;white-space:nowrap}
-.cst-fil button[aria-pressed="true"]{background:var(--s2);color:#fff;border-color:var(--s2)}
+.cst-fil button[aria-pressed="true"]{background:var(--cen);color:#fff;border-color:var(--cen)}
 .cst-grid{overflow:auto;flex:1;min-height:0}
 table.cst{border-collapse:separate;border-spacing:0;width:100%;font-size:12px}
 table.cst th{position:sticky;top:0;z-index:2;background:var(--sunk);color:var(--ink-3);
@@ -361,7 +373,7 @@ table.cst td.rn{width:38px;text-align:right;padding:0 8px;font-size:10px;color:v
 table.cst th.rn{width:38px}
 table.cst input{font:inherit;font-size:12px;color:var(--ink);background:transparent;
   border:0;padding:6px 9px;width:100%;box-sizing:border-box}
-table.cst input:focus{outline:2px solid var(--s2);outline-offset:-2px;background:var(--card)}
+table.cst input:focus{outline:2px solid var(--cen);outline-offset:-2px;background:var(--card)}
 table.cst input.num{text-align:right;font-variant-numeric:tabular-nums}
 table.cst input::placeholder{color:var(--ink-3);opacity:.75;font-style:italic}
 /* uma guia so: cada fonte e uma coluna com o radio da escolha + o valor.
@@ -376,16 +388,16 @@ table.cst td.cc{padding:0}
   border:1px solid var(--line);border-radius:5px;background:var(--card);color:var(--ink-3);
   padding:2px 0;cursor:pointer;line-height:1.1;
 }
-.cch .fs-all:hover{border-color:var(--s2);color:var(--s2)}
+.cch .fs-all:hover{border-color:var(--cen);color:var(--cen)}
 .cch span{font-size:9px;font-weight:700;letter-spacing:.03em;color:var(--ink-3);
   text-transform:none;line-height:1.1;text-align:right;padding-right:3px}
 .ccw{display:flex;align-items:center;gap:2px;padding:0 5px 0 6px}
 .ccw input[type=radio]{width:12px;height:12px;flex:0 0 12px;margin:0;
-  accent-color:var(--s2);cursor:pointer}
+  accent-color:var(--cen);cursor:pointer}
 table.cst .ccw input.num{padding:6px 2px;font-size:11.5px;min-width:0}
 /* a coluna marcada no item e a que manda: fica destacada na propria linha */
-table.cst td.cc.sel{background:var(--chip);box-shadow:inset 2px 0 0 var(--s2)}
-table.cst td.cc.sel input.num{color:var(--s2);font-weight:700}
+table.cst td.cc.sel{background:var(--chip);box-shadow:inset 2px 0 0 var(--cen)}
+table.cst td.cc.sel input.num{color:var(--cen);font-weight:700}
 /* valor que a referencia nao tem e vem do outro item do grupo */
 table.cst td.cc.herd input.num::placeholder{color:var(--ink-3);opacity:.9;font-style:normal}
 table.cst td.cc.herd::after{content:"";position:absolute}
@@ -398,7 +410,7 @@ table.cst td.uso{padding:0 9px;text-align:right;white-space:nowrap;
 table.cst td.uso b{font-weight:700;color:var(--ink)}
 table.cst td.uso i{font-style:normal;font-size:9px;font-weight:700;letter-spacing:.03em;
   color:var(--ink-3);margin-left:5px}
-table.cst td.uso i.fx{color:var(--s2)}
+table.cst td.uso i.fx{color:var(--cen)}
 /* fonte marcada vazia tendo custo em outra: avisa, nao troca sozinho */
 table.cst td.uso i.alerta{color:var(--wine-soft);font-weight:700;cursor:help}
 .cst-box .hint b.av{color:var(--wine-soft)}
@@ -408,7 +420,7 @@ table.cst td.uso i.alerta{color:var(--wine-soft);font-weight:700;cursor:help}
 .skuw{display:flex;align-items:center;padding-right:7px}
 .skuw input{flex:1;min-width:0}
 .gsel{display:inline-block;margin-left:7px;font-size:8.5px;font-weight:700;letter-spacing:.04em;
-  padding:1px 5px;border-radius:4px;background:var(--s2);color:#fff;vertical-align:1px}
+  padding:1px 5px;border-radius:4px;background:var(--cen);color:#fff;vertical-align:1px}
 /* ---- guia Agrupamento de itens ---- */
 .gr-bar{display:flex;align-items:center;gap:8px;flex-wrap:wrap;padding:8px 14px;
   border-bottom:1px solid var(--line);background:var(--sunk);position:sticky;top:0;z-index:3}
@@ -417,25 +429,25 @@ table.cst td.uso i.alerta{color:var(--wine-soft);font-weight:700;cursor:help}
 .gr-bar button{font:inherit;font-size:11px;font-weight:700;padding:5px 11px;
   border:1px solid var(--line);border-radius:8px;background:var(--card);
   color:var(--ink-2);cursor:pointer;white-space:nowrap}
-.gr-bar button.go{border-color:var(--s2);color:var(--s2)}
-.gr-bar button.go:hover:not(:disabled){background:var(--s2);color:#fff}
+.gr-bar button.go{border-color:var(--cen);color:var(--cen)}
+.gr-bar button.go:hover:not(:disabled){background:var(--cen);color:#fff}
 .gr-bar button:disabled{opacity:.45;cursor:default}
 table.cst td.gck{width:34px;text-align:center;padding:0}
-table.cst td.gck input{width:13px;height:13px;margin:0;accent-color:var(--s2);cursor:pointer;
+table.cst td.gck input{width:13px;height:13px;margin:0;accent-color:var(--cen);cursor:pointer;
   padding:0}
 table.cst th.gck{width:34px}
 table.cst td.gsku{padding:6px 9px;font-variant-numeric:tabular-nums;text-align:left}
 table.cst td.gtag{padding:6px 9px;text-align:right;white-space:nowrap;font-size:10px;
   color:var(--ink-3)}
-table.cst td.gtag .ref{font-weight:700;color:var(--s2);letter-spacing:.05em}
+table.cst td.gtag .ref{font-weight:700;color:var(--cen);letter-spacing:.05em}
 table.cst td.gtag .mem{color:var(--ink-3)}
 table.cst td.gtag button{font:inherit;font-size:9px;font-weight:700;letter-spacing:.04em;
   text-transform:uppercase;margin-left:8px;padding:2px 7px;border:1px solid var(--line);
   border-radius:5px;background:var(--card);color:var(--ink-3);cursor:pointer}
-table.cst td.gtag button:hover{border-color:var(--s2);color:var(--s2)}
+table.cst td.gtag button:hover{border-color:var(--cen);color:var(--cen)}
 /* o primeiro selecionado e a referencia: cor propria e aviso na linha */
-table.cst tr.gr-ref td{background:color-mix(in srgb, var(--s2) 16%, transparent)}
-table.cst tr.gr-ref td.gsku{font-weight:700;color:var(--s2)}
+table.cst tr.gr-ref td{background:color-mix(in srgb, var(--cen) 16%, transparent)}
+table.cst tr.gr-ref td.gsku{font-weight:700;color:var(--cen)}
 table.cst tr.gr-sel td{background:var(--chip)}
 table.cst tr.gr-in td.gsku{color:var(--ink-2)}
 /* SKU que aparece nas vendas mas nao tem custo cadastrado */
@@ -447,14 +459,14 @@ table.cst th.gc,table.cst td.gc{width:84px;text-align:right;
   border-left:1px solid var(--line-2)}
 table.cst th.gc{font-size:9px;padding:7px 8px}
 table.cst td.gc{padding:6px 8px;font-variant-numeric:tabular-nums;color:var(--ink-2)}
-table.cst td.gc.sel{background:var(--chip);box-shadow:inset 2px 0 0 var(--s2);
-  color:var(--s2);font-weight:700}
+table.cst td.gc.sel{background:var(--chip);box-shadow:inset 2px 0 0 var(--cen);
+  color:var(--cen);font-weight:700}
 table.cst td.gc.vazio{color:var(--ink-3)}
 /* o cabecalho da lista para logo abaixo da barra de acoes, nao atras dela.
    A altura da barra varia com a mensagem, entao vem medida do JS. */
 table.cst.gtab th{top:var(--grbar,44px)}
-table.cst tr.fixa td.rn{color:var(--s2)}
-table.cst tr.usada td.rn{background:var(--chip);color:var(--s2);font-weight:700}
+table.cst tr.fixa td.rn{color:var(--cen)}
+table.cst tr.usada td.rn{background:var(--chip);color:var(--cen);font-weight:700}
 .cst-box .hint{margin:0;padding:9px 14px 12px;border-top:1px solid var(--line)}
 /* indicador da fonte em uso (nao e botao: a troca e em Ver custos) */
 .fonte-uso{display:inline-block;font-size:11.5px;font-weight:700;letter-spacing:.05em;
@@ -2317,11 +2329,17 @@ function cstAbrir(){
 /* barra dos cenarios */
 function cstCenBar(){
   const L = t();
-  setH('cstCen', CENARIOS.map(c=>
-    '<button type="button" role="tab" data-c="'+c+'"'
-    + (cenNova(c) ? '' : ' class="viva"')
-    + ' aria-selected="'+(CST_CEN===c)+'">'
-    + '<small>'+esc(L.cenGrupo(c))+'</small>'+esc(L.cenNome(c))+'</button>').join(''));
+  /* dois blocos separados: o nome do grupo aparece uma vez so, e as duas bases
+     ficam dentro dele — assim nao parecem quatro abas do mesmo conjunto */
+  const grupo = g => '<div class="cen-gr">'
+    + '<span class="cen-lb">'+esc(L.cenGrupo(g+'_atual'))+'</span>'
+    + [g+'_atual', g+'_nova'].map(c=>
+        '<button type="button" role="tab" data-c="'+c+'"'
+        + ' aria-selected="'+(CST_CEN===c)+'">'+esc(L.cenNome(c))+'</button>').join('')
+    + '</div>';
+  setH('cstCen', grupo('relatorio') + grupo('precos'));
+  /* verde = base em uso; vermelho = rascunho ainda nao aplicado */
+  el('cstModal').classList.toggle('cen-nova', cenNova(CST_CEN));
   const b = cenAtualObj();
   const nItens = Object.keys(b.itens || {}).length;
   setH('cstAcoes', cenSoLeitura()
