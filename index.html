@@ -308,6 +308,28 @@ input.moeda:focus{outline:2px solid var(--wine-soft);outline-offset:1px}
   text-transform:uppercase;color:var(--s2)}
 .cst-hd .sub{font-size:11px;color:var(--ink-3)}
 .cst-acts{margin-left:auto;display:flex;gap:7px;align-items:center}
+/* barra dos quatro cenarios de custo */
+.cst-cen{display:flex;flex-wrap:wrap;gap:4px;padding:9px 14px 0;background:var(--sunk)}
+.cst-cen button{font:inherit;font-size:10.5px;font-weight:700;letter-spacing:.03em;
+  border:1px solid var(--line);background:var(--card);color:var(--ink-3);
+  padding:6px 11px;border-radius:8px;cursor:pointer;white-space:nowrap;line-height:1.15}
+.cst-cen button small{display:block;font-size:8.5px;font-weight:700;letter-spacing:.08em;
+  text-transform:uppercase;opacity:.75}
+.cst-cen button[aria-selected="true"]{border-color:var(--s2);color:var(--s2);
+  box-shadow:inset 0 0 0 1px var(--s2)}
+.cst-cen button.viva[aria-selected="true"]{border-color:var(--s4);color:var(--s4);
+  box-shadow:inset 0 0 0 1px var(--s4)}
+.cst-acoes{display:flex;flex-wrap:wrap;gap:7px;align-items:center;padding:9px 14px;
+  background:var(--sunk);border-bottom:1px solid var(--line)}
+.cst-acoes .msg{font-size:10.5px;color:var(--ink-3)}
+.cst-acoes button{font:inherit;font-size:11px;font-weight:700;padding:5px 11px;
+  border:1px solid var(--line);border-radius:8px;background:var(--card);
+  color:var(--ink-2);cursor:pointer;white-space:nowrap}
+.cst-acoes button.apl{border-color:var(--s4);color:var(--s4)}
+.cst-acoes button.apl:hover{background:var(--s4);color:#fff}
+.cst-acoes button:disabled{opacity:.45;cursor:default}
+.cst-acoes .lida{font-size:10px;font-weight:700;letter-spacing:.06em;text-transform:uppercase;
+  color:var(--ink-3);border:1px dashed var(--line);border-radius:6px;padding:3px 8px}
 /* duas guias: Custos e Agrupamento de itens */
 .cst-guias{display:flex;flex-wrap:wrap;gap:3px;padding:10px 14px 0;
   border-bottom:1px solid var(--line)}
@@ -869,6 +891,8 @@ footer{font-size:10.5px;color:var(--ink-3);text-align:center;padding:2px 0 0;lin
         <button type="button" class="admcalc" id="cstClose"></button>
       </span>
     </div>
+    <div class="cst-cen" id="cstCen" role="tablist"></div>
+    <div class="cst-acoes" id="cstAcoes"></div>
     <div class="cst-guias" id="cstGuias" role="tablist"></div>
     <div class="cst-fil">
       <input type="search" id="cstQ" autocomplete="off">
@@ -1192,6 +1216,24 @@ const T = {
   cstSujoTip:'O dashboard está calculado com custos que ainda não foram gravados no banco. '
     +'Abra Ver custos e clique em Salvar para valer para todos.',
   cstGuiaCustos:'Custos', cstGuiaGrupos:'Agrupamento de itens',
+  cenGrupo:c=>c.slice(0,9)==='relatorio' ? 'Relatórios' : 'Lista de preços',
+  cenNome:c=>c.slice(-5)==='_nova' ? 'Nova' : 'Atual',
+  cenSoLeitura:'em uso · somente leitura',
+  cenSoLeituraMsg:n=>'Esta é a base que está valendo. Para mudar, edite a aba '+n+' e clique em Aplicar.',
+  cenNovaMsg:'Rascunho: edite à vontade, Salvar guarda sem publicar.',
+  cenAplicar:n=>'Aplicar sobre a '+n,
+  cenAplicarConf:(de,para)=>'Aplicar a base "'+de+'" sobre a "'+para+'"?\n\n'
+    +'A base que está valendo hoje será substituída para todos os usuários. '
+    +'A versão anterior fica guardada no histórico.',
+  cenAplicarOk:(n,q)=>'Base '+n+' atualizada'+(q?' com '+q+' itens':'')+', valendo para todos.',
+  cenSalvoEm:(n,q)=>'Rascunho '+n+' salvo'+(q?' com '+q+' itens':'')+'. Nada mudou para os outros usuários.',
+  cenOrigem:'Retornar dados do arquivo original',
+  cenOrigemConf:'Devolver os valores das quatro fontes como vieram na planilha importada?\n\n'
+    +'A marcação de fonte e os agrupamentos que você fez são preservados.',
+  cenOrigemOk:n=>'Valores de '+n+' itens devolvidos ao que veio na planilha.',
+  cenSemOrigem:'Não há planilha de origem guardada nesta base.',
+  custoOkNova:(f,n)=>'"'+f+'" carregada com '+n+' itens nas bases Nova. Confira e clique em Aplicar.',
+  custoSalvoNova:n=>'Bases Nova gravadas com '+n+' itens. Nada mudou no que está valendo.',
   cstGrupoTip:m=>'Comanda o custo de: '+m.join(', '),
   cstDoGrupo:m=>'Valor vindo de '+m+' (a referência está zerada nesta fonte)',
   cstAlerta:n=>'⚠ '+n+' sem custo',
@@ -1375,6 +1417,24 @@ const T = {
   cstSujoTip:'The dashboard is using costs that have not been written to the database yet. '
     +'Open View costs and click Save to apply them for everyone.',
   cstGuiaCustos:'Costs', cstGuiaGrupos:'Item grouping',
+  cenGrupo:c=>c.slice(0,9)==='relatorio' ? 'Report' : 'Price list',
+  cenNome:c=>c.slice(-5)==='_nova' ? 'Draft' : 'Live',
+  cenSoLeitura:'in use · read only',
+  cenSoLeituraMsg:n=>'This is the basis in use. To change it, edit the '+n+' tab and click Apply.',
+  cenNovaMsg:'Draft: edit freely, Save keeps it without publishing.',
+  cenAplicar:n=>'Apply over '+n,
+  cenAplicarConf:(de,para)=>'Apply the "'+de+'" basis over "'+para+'"?\n\n'
+    +'The basis in use today will be replaced for every user. '
+    +'The previous version stays in the history.',
+  cenAplicarOk:(n,q)=>n+' basis updated'+(q?' with '+q+' items':'')+', in force for everyone.',
+  cenSalvoEm:(n,q)=>n+' draft saved'+(q?' with '+q+' items':'')+'. Nothing changed for other users.',
+  cenOrigem:'Restore values from the original file',
+  cenOrigemConf:'Restore the four source values exactly as they came in the imported sheet?\n\n'
+    +'Your source ticks and groupings are preserved.',
+  cenOrigemOk:n=>'Values for '+n+' items restored to the imported sheet.',
+  cenSemOrigem:'There is no original sheet stored for this basis.',
+  custoOkNova:(f,n)=>'"'+f+'" loaded with '+n+' items into the Draft bases. Check them and click Apply.',
+  custoSalvoNova:n=>'Draft bases saved with '+n+' items. Nothing changed in what is in use.',
   cstGrupoTip:m=>'Drives the cost of: '+m.join(', '),
   cstDoGrupo:m=>'Value taken from '+m+' (the reference is empty for this source)',
   cstAlerta:n=>'⚠ '+n+' with no cost',
@@ -2195,36 +2255,97 @@ const cstNum = v => {
   return cst4(parseFloat(y));   /* 4 casas: o que aparece e o que calcula */
 };
 const cstTxt = v => !v ? '' : (S.lang==='en' ? String(v) : String(v).replace('.',','));
-function cstAbrir(){
-  if (!ADM || !temCustos()) return;
-  CST_EDIT = Object.keys(CUSTOS.itens).sort().map(k=>({
-    sku: k, v: CUSTOS.fontes.map((f,i)=> cst4(CUSTOS.itens[k][i])),
-    fixo: (CUSTOS.fixos && CUSTOS.fixos[k]) || ''
+/* ============ os quatro cenarios de custo ============
+   relatorio_atual / relatorio_nova -> margem do relatorio
+   precos_atual    / precos_nova    -> custo da tabela de precos
+   "Atual" e o que esta valendo: so leitura. "Nova" e rascunho: edita, salva,
+   e o botao Aplicar promove a Nova sobre a Atual, com confirmacao. */
+const CENARIOS = ['relatorio_atual','relatorio_nova','precos_atual','precos_nova'];
+const cenNova = c => c.slice(-5) === '_nova';
+const cenPar  = c => cenNova(c) ? c.replace('_nova','_atual') : c.replace('_atual','_nova');
+function cenVazio(){
+  return {fontes: CUSTOS.fontes.slice(), itens:{}, fixos:{}, grupos:{},
+          padrao: CUSTOS.fontes[0], arquivo:'', itens_origem:{}};
+}
+/* base de cada cenario, como veio do banco; o que esta na tela e o CST_EDIT */
+let CST_BASES = {}, CST_CEN = 'relatorio_nova';   /* abre no rascunho, que e onde se trabalha */
+const cenAtualObj = () => CST_BASES[CST_CEN] || cenVazio();
+const cenSoLeitura = () => !cenNova(CST_CEN);
+/* guarda o que esta na tela de volta na base do cenario (so em memoria) */
+function cstGuarda(){
+  if (!CST_EDIT || cenSoLeitura()) return;
+  const c = cstColeta();
+  const b = CST_BASES[CST_CEN] || (CST_BASES[CST_CEN] = cenVazio());
+  b.itens = c.itens; b.fixos = c.fixos; b.grupos = c.grupos;
+  b.padrao = CUSTOS.fontes[CST_PAD] || b.padrao;
+}
+/* joga a base do cenario na tela */
+function cstCarrega(cen){
+  CST_CEN = cen;
+  const b = CST_BASES[cen] || (CST_BASES[cen] = cenVazio());
+  const padCen = (CUSTOS.fontes.indexOf(b.padrao) >= 0 && b.padrao) || CUSTOS.fontes[0];
+  CST_EDIT = Object.keys(b.itens).sort().map(k=>({
+    sku: k, v: CUSTOS.fontes.map((f,i)=> cst4((b.itens[k]||[])[i])),
+    /* sem escolha gravada, o item segue a fonte padrao do cenario */
+    fixo: (CUSTOS.fontes.indexOf((b.fixos||{})[k]) >= 0 ? b.fixos[k] : padCen)
   }));
-  /* copia dos grupos: so vira oficial no Salvar */
   CST_GRUPOS = {};
-  Object.keys(CUSTOS.grupos || {}).forEach(ref=>{
-    const mem = (CUSTOS.grupos[ref] || []).filter(m=>m !== ref);
+  Object.keys(b.grupos || {}).forEach(ref=>{
+    const mem = (b.grupos[ref] || []).filter(m=>m !== ref);
     if (mem.length) CST_GRUPOS[ref] = mem.slice();
   });
   GR_SEL = [];
-  CST_PAD = Math.max(0, CUSTOS.fontes.indexOf(CUSTOS.padrao || S.custo));
-  CST_TAB = 'custos';
-  CST_Q = ''; CST_USO = false; CST_ALERTA = false;
-  el('cstQ').value = ''; el('cstUso').setAttribute('aria-pressed','false');
+  CST_PAD = Math.max(0, CUSTOS.fontes.indexOf(b.padrao || S.custo));
+  CST_TAB = 'custos'; CST_Q = ''; CST_USO = false; CST_ALERTA = false;
+  const q = el('cstQ'); if (q) q.value = '';
+  el('cstUso').setAttribute('aria-pressed','false');
+}
+function cstAbrir(){
+  if (!ADM || !temCustos()) return;
+  /* sem os quatro cenarios no banco (versao antiga), o que ha e o relatorio */
+  if (!CST_BASES.relatorio_atual){
+    CST_BASES.relatorio_atual = {fontes:CUSTOS.fontes.slice(), itens:CUSTOS.itens,
+      fixos:CUSTOS.fixos, grupos:CUSTOS.grupos, padrao:CUSTOS.padrao,
+      arquivo:CUSTOS.arquivo, itens_origem:CUSTOS.itens};
+  }
+  CENARIOS.forEach(c=>{ if (!CST_BASES[c]) CST_BASES[c] =
+    JSON.parse(JSON.stringify(CST_BASES.relatorio_atual)); });
+  cstCarrega(CST_CEN);
   el('cstModal').hidden = false;
   cstRender();
+}
+/* barra dos cenarios */
+function cstCenBar(){
+  const L = t();
+  setH('cstCen', CENARIOS.map(c=>
+    '<button type="button" role="tab" data-c="'+c+'"'
+    + (cenNova(c) ? '' : ' class="viva"')
+    + ' aria-selected="'+(CST_CEN===c)+'">'
+    + '<small>'+esc(L.cenGrupo(c))+'</small>'+esc(L.cenNome(c))+'</button>').join(''));
+  const b = cenAtualObj();
+  const nItens = Object.keys(b.itens || {}).length;
+  setH('cstAcoes', cenSoLeitura()
+    ? '<span class="lida">'+esc(L.cenSoLeitura)+'</span>'
+      + '<span class="msg">'+esc(L.cenSoLeituraMsg(L.cenNome(cenPar(CST_CEN))))+'</span>'
+    : '<button type="button" class="apl" id="cstAplicarBt"'+(nItens?'':' disabled')+'>'
+      + esc(L.cenAplicar(L.cenNome(cenPar(CST_CEN))))+'</button>'
+      + '<button type="button" id="cstOrigemBt">'+esc(L.cenOrigem)+'</button>'
+      + '<span class="msg">'+esc(L.cenNovaMsg)+'</span>');
 }
 /* as duas guias do modal */
 function cstGuias(){
   const L = t();
+  cstCenBar();
   setH('cstGuias', [['custos', L.cstGuiaCustos], ['grupos', L.cstGuiaGrupos]].map(x=>
     '<button type="button" class="cst-guia" role="tab" data-t="'+x[0]+'" aria-selected="'
     + (CST_TAB===x[0]) + '">' + esc(x[1]) + '</button>').join(''));
 }
 function cstRender(){
   cstGuias();
+  cstBotoesTopo();
   if (CST_TAB === 'grupos') return grRender();
+  /* cenario "Atual" e retrato do que esta valendo: nada e editavel nele */
+  const RO = cenSoLeitura() ? ' disabled' : '', ROT = cenSoLeitura() ? ' readonly' : '';
   const L = t(), f = CUSTOS.fontes[CST_PAD] || '';
   const gd = cstGrpDe();
   const usados = new Set(R.filter(r=>r.st==='I' && r.sku).map(r=>custoKey(r.sku)).filter(Boolean));
@@ -2265,8 +2386,8 @@ function cstRender(){
      todos os itens listados logo acima do nome */
   const cabFontes = CUSTOS.fontes.map((x,i)=>
     '<th class="cc"><div class="cch">'
-    + '<button type="button" class="fs-all" data-f="'+i+'" title="'+esc(L.cstTodasTip(x))+'">'
-    + esc(L.cstTodas)+'</button><span>'+esc(x)+'</span></div></th>').join('');
+    + '<button type="button" class="fs-all" data-f="'+i+'" title="'+esc(L.cstTodasTip(x))+'"'
+    + RO + '>' + esc(L.cstTodas)+'</button><span>'+esc(x)+'</span></div></th>').join('');
   setH('cstGrid',
     '<table class="cst"><thead><tr><th class="rn"></th><th>'+esc(L.cstItem)+'</th>'
     + cabFontes
@@ -2282,9 +2403,9 @@ function cstRender(){
           return '<td class="cc'+(o.fixo===fn ? ' sel' : '')+(herd ? ' herd' : '')
           + '" data-cc="'+i+'-'+j+'"><div class="ccw">'
           + '<input type="radio" name="fs'+i+'" data-i="'+i+'" title="'+esc(L.cstTodasTip(fn))+'"'
-          + ' value="'+esc(fn)+'"' + (o.fixo===fn ? ' checked' : '') + '>'
+          + ' value="'+esc(fn)+'"' + (o.fixo===fn ? ' checked' : '') + RO + '>'
           + '<input class="num" data-i="'+i+'" data-k="v" data-f="'+j+'"'
-          + ' value="'+esc(cstTxt(o.v[j]))+'"'
+          + ' value="'+esc(cstTxt(o.v[j]))+'"' + ROT
           + (herd ? ' placeholder="'+esc(cstTxt(ef.v[j]))+'" title="'
                     + esc(L.cstDoGrupo(ef.de[j]))+'"' : '')
           + '></div></td>';
@@ -2295,7 +2416,7 @@ function cstRender(){
         return '<tr'+(usados.has(o.sku)?' class="usada':' class="')+(o.fixo?' fixa':'')+'">'
           + '<td class="rn">'+(i+1)+'</td>'
           + '<td><div class="skuw"><input data-i="'+i+'" data-k="sku" value="'+esc(o.sku)
-          + '" spellcheck="false"'
+          + '" spellcheck="false"' + ROT
           + (mem.length ? ' readonly title="'+esc(L.cstGrupoTip(mem))+'"' : '') + '>'
           + selo + '</div></td>'
           + CUSTOS.fontes.map(cel).join('')
@@ -2336,6 +2457,7 @@ function grRender(){
   const gd = cstGrpDe();
   const q = normSku(CST_Q);
   const bA = el('cstAlerta'); if (bA) bA.hidden = true;   /* aviso e da guia Custos */
+  const RO = cenSoLeitura() ? ' disabled' : '';
   /* filtro pela chave, exibicao pelo ID original */
   const usados = new Set(R.filter(r=>r.st==='I' && r.sku).map(r=>normSku(r.sku)));
   /* A lista traz os itens da tabela de custos MAIS os SKUs que aparecem nas
@@ -2365,7 +2487,7 @@ function grRender(){
   const refSemCusto = !!ref && !comCusto.has(normSku(ref));
   const podeAgrupar = GR_SEL.length >= 2 && !refSemCusto;
   const barra = '<div class="gr-bar">'
-    + '<button type="button" class="go" id="grDo"'+(podeAgrupar ? '' : ' disabled')+'>'
+    + '<button type="button" class="go" id="grDo"'+((podeAgrupar && !cenSoLeitura()) ? '' : ' disabled')+'>'
     + esc(L.grAgrupar(GR_SEL.length)) + '</button>'
     + '<button type="button" id="grClr"'+(GR_SEL.length ? '' : ' disabled')+'>'
     + esc(L.grLimpar) + '</button>'
@@ -2408,7 +2530,7 @@ function grRender(){
         }).join('');
         return '<tr class="'+(cls + (o.venda ? ' gr-venda' : '')).trim()+'">'
           + '<td class="gck"><input type="checkbox" data-g="'+esc(o.sku)+'"'
-          + (iSel >= 0 ? ' checked' : '') + (meu ? ' disabled' : '') + '></td>'
+          + (iSel >= 0 ? ' checked' : '') + ((meu || cenSoLeitura()) ? ' disabled' : '') + '></td>'
           + '<td class="gsku">'+esc(o.sku)+'</td>'
           + custos
           + '<td class="gtag">'+tag+'</td></tr>';
@@ -2457,6 +2579,78 @@ function grTirar(sku){
   if (mem.length) CST_GRUPOS[ref] = mem; else delete CST_GRUPOS[ref];
   grRender();
   cstAplicar();
+}
+/* Salvar, + Linha e Importar so existem nos cenarios "Nova" */
+function cstBotoesTopo(){
+  const ro = cenSoLeitura();
+  ['cstSave','cstAdd','cstImp'].forEach(id=>{ const b = el(id); if (b) b.hidden = ro; });
+}
+/* troca de cenario: guarda o rascunho atual e carrega o outro */
+el('cstCen').addEventListener('click', e=>{
+  const b = e.target.closest('button'); if (!b) return;
+  const c = b.dataset.c; if (!c || c === CST_CEN) return;
+  cstGuarda();
+  cstCarrega(c);
+  cstRender();
+  cstPreview();
+});
+/* Aplicar: promove a Nova sobre a Atual do mesmo par, com confirmacao */
+el('cstAcoes').addEventListener('click', async e=>{
+  const b = e.target.closest('button'); if (!b) return;
+  const L = t();
+  if (b.id === 'cstOrigemBt'){
+    const org = (cenAtualObj().itens_origem) || {};
+    if (!Object.keys(org).length){ toast(L.cenSemOrigem, true); return; }
+    if (!confirm(L.cenOrigemConf)) return;
+    /* devolve so os VALORES do arquivo; marcacao e grupos ficam */
+    let n = 0;
+    CST_EDIT.forEach(o=>{
+      const k = Object.keys(org).find(x=>normSku(x) === normSku(o.sku));
+      if (!k) return;
+      o.v = CUSTOS.fontes.map((f,i)=>cst4(org[k][i])); n++;
+    });
+    cstRender(); cstPreview();
+    toast(L.cenOrigemOk(n));
+    return;
+  }
+  if (b.id === 'cstAplicarBt'){
+    const alvo = cenPar(CST_CEN);
+    if (!confirm(L.cenAplicarConf(L.cenNome(CST_CEN), L.cenNome(alvo)))) return;
+    cstGuarda();
+    b.disabled = true;
+    try{
+      /* grava o rascunho e so entao promove, para aplicar o que esta na tela */
+      await cstSalvarCenario(CST_CEN);
+      if (SB_ON){
+        const d = await sbRpc('wgi_painel_aplicar_custos', {p_de: CST_CEN, p_para: alvo});
+        CST_BASES[alvo] = JSON.parse(JSON.stringify(CST_BASES[CST_CEN]));
+        toast(L.cenAplicarOk(L.cenNome(alvo), (d && d.itens) || ''));
+      } else {
+        CST_BASES[alvo] = JSON.parse(JSON.stringify(CST_BASES[CST_CEN]));
+        toast(L.custoLocal);
+      }
+      if (alvo === 'relatorio_atual') cenParaCUSTOS('relatorio_atual');
+      cstRender(); cstPreview();
+    } catch(err){ toast(t().impErr + (err && err.message ? err.message : err), true); }
+    finally { b.disabled = false; }
+  }
+});
+/* joga a base de um cenario no CUSTOS global (o que o dashboard calcula) */
+function cenParaCUSTOS(cen){
+  const b = CST_BASES[cen]; if (!b) return;
+  CUSTOS = {fontes: CUSTOS.fontes, itens: b.itens, fixos: b.fixos, grupos: b.grupos,
+            arquivo: b.arquivo, padrao: b.padrao};
+  garantirFontes();
+}
+/* o dashboard mostra o relatorio_atual; estando numa aba de relatorio, mostra
+   o que ela tem, para a simulacao aparecer nos graficos */
+function cstPreview(){
+  const cen = CST_CEN.slice(0,9) === 'relatorio' ? CST_CEN : 'relatorio_atual';
+  if (cenNova(cen)) cstGuarda();
+  cenParaCUSTOS(cen);
+  CST_SUJO = cenNova(cen);
+  render();
+  cstMarcaSujo();
 }
 el('cstGuias').addEventListener('click', e=>{
   const b = e.target.closest('button'); if (!b) return;
@@ -2592,15 +2786,11 @@ function cstColeta(){
    dashboard. Nao grava nada no banco — quem grava e o Salvar. Enquanto houver
    diferenca entre a tela e o que esta salvo, CST_SUJO marca o painel. */
 function cstAplicar(){
+  if (cenSoLeitura()) return;
   const c = cstColeta();
   if (!Object.keys(c.itens).length) return;
-  CUSTOS = {fontes:CUSTOS.fontes, itens:c.itens, fixos:c.fixos, grupos:c.grupos,
-            arquivo:CUSTOS.arquivo, padrao:CUSTOS.fontes[CST_PAD]};
-  S.custo = CUSTOS.fontes[CST_PAD];
-  garantirFontes();
-  CST_SUJO = true;
-  render();          /* render() chama aplicaCusto(): margens e graficos refeitos */
-  cstMarcaSujo();
+  cstGuarda();
+  cstPreview();
 }
 /* digitar valor dispara muito evento: espera parar de digitar para recalcular */
 let CST_T = null;
@@ -2617,29 +2807,34 @@ function cstMarcaSujo(){
     h.insertAdjacentHTML('afterbegin',
       '<span class="cst-sujo">'+esc(t().cstSujo)+'</span> ');
 }
+/* grava a base de um cenario: memoria + banco */
+async function cstSalvarCenario(cen){
+  const L = t(), c = cstColeta();
+  if (c.vazio) throw new Error(L.cstSemSku);
+  if (c.dups.length) toast(L.cstDup(c.dups), true);
+  const n = Object.keys(c.itens).length;
+  if (!n) throw new Error(L.cstSemSku);
+  const b = CST_BASES[cen] || (CST_BASES[cen] = cenVazio());
+  b.itens = c.itens; b.fixos = c.fixos; b.grupos = c.grupos;
+  b.padrao = CUSTOS.fontes[CST_PAD] || b.padrao;
+  b.arquivo = b.arquivo || CUSTOS.arquivo || 'ADM';
+  if (!Object.keys(b.itens_origem || {}).length) b.itens_origem = b.itens;
+  if (!SB_ON) return {itens:n, local:true};
+  return await sbRpc('wgi_painel_salvar_custos', {p_senha: null,
+    p_arquivo: b.arquivo, p_fontes: CUSTOS.fontes, p_itens: b.itens,
+    p_padrao: b.padrao, p_fixos: b.fixos, p_grupos: b.grupos,
+    p_cenario: cen, p_itens_origem: b.itens_origem});
+}
 el('cstSave').onclick = async () => {
   const L = t(), btn = el('cstSave');
-  const c = cstColeta();
-  const itens = c.itens, fixos = c.fixos, grupos = c.grupos;
-  if (c.vazio){ toast(L.cstSemSku, true); return; }
-  if (c.dups.length) toast(L.cstDup(c.dups), true);
-  const n = Object.keys(itens).length;
-  if (!n) return;
-  CUSTOS = {fontes:CUSTOS.fontes, itens, fixos, grupos, arquivo:CUSTOS.arquivo,
-            padrao:CUSTOS.fontes[CST_PAD]};
-  S.custo = CUSTOS.fontes[CST_PAD];
-  garantirFontes();
-  render();
-  if (!SB_ON){ CST_SUJO = false; cstMarcaSujo();
-               toast(L.custoLocal); el('cstModal').hidden = true; return; }
+  if (cenSoLeitura()) return;
   btn.disabled = true;
   try{
-    const d = await sbRpc('wgi_painel_salvar_custos', {p_senha: null,
-      p_arquivo: CUSTOS.arquivo || 'ADM', p_fontes: CUSTOS.fontes,
-      p_itens: itens, p_padrao: CUSTOS.padrao, p_fixos: fixos,
-      p_grupos: CUSTOS.grupos || {}});
-    CST_SUJO = false; cstMarcaSujo();
-    toast(L.custoSalvo((d && d.itens) || n));
+    const d = await cstSalvarCenario(CST_CEN);
+    if (CST_CEN === 'relatorio_atual') cenParaCUSTOS('relatorio_atual');
+    cstPreview();
+    toast(d && d.local ? L.custoLocal
+                       : L.cenSalvoEm(L.cenNome(CST_CEN), (d && d.itens) || ''));
     el('cstModal').hidden = true;
   } catch(err){ toast(t().impErr + (err && err.message ? err.message : err), true); }
   finally { btn.disabled = false; }
@@ -3096,24 +3291,40 @@ async function importarCustos(cells, fileName){
   Object.keys(CUSTOS.fixos || {}).forEach(k=>{
     if (itens[k] && fontes.indexOf(CUSTOS.fixos[k]) >= 0) fixos[k] = CUSTOS.fixos[k];
   });
-  /* a planilha tambem nao mexe em agrupamento: os grupos seguem, e o
-     garantirFontes() logo abaixo tira quem sumiu da tabela */
-  CUSTOS = {fontes, itens, fixos, grupos: CUSTOS.grupos || {},
-            arquivo:fileName, padrao:CUSTOS.padrao};
+  /* A planilha NAO entra no que esta valendo: alimenta as duas bases "Nova",
+     para voce conferir e aplicar cada cenario quando quiser. Agrupamento e
+     marcacao de cada Nova sao preservados; item que sumiu sai no garantirFontes. */
   if (fontes.indexOf(S.custo) < 0) S.custo = fontes[0];
-  garantirFontes();
-  CST_SUJO = true;          /* ja vale no dashboard; so sai de "nao salvo" ao gravar */
-  render();
-  toast(t().custoOk(fileName, n));
-  /* gravar a tabela de custos e coisa de ADM */
+  const alvos = ['relatorio_nova','precos_nova'];
+  alvos.forEach(cen=>{
+    const b0 = CST_BASES[cen] || (CST_BASES[cen] = cenVazio());
+    const pad = b0.padrao || CUSTOS.padrao || fontes[0];
+    const fx = {};
+    Object.keys(itens).forEach(k=>{
+      const f = (b0.fixos || {})[k];
+      fx[k] = fontes.indexOf(f) >= 0 ? f : pad;   /* item novo entra na padrao */
+    });
+    const gp = {};
+    Object.keys(b0.grupos || {}).forEach(ref=>{
+      if (!itens[ref]) return;
+      const mem = (b0.grupos[ref] || []).filter(m=>m !== ref);
+      if (mem.length) gp[ref] = mem;
+    });
+    CST_BASES[cen] = {fontes, itens: JSON.parse(JSON.stringify(itens)), fixos: fx,
+      grupos: gp, padrao: b0.padrao || CUSTOS.padrao || fontes[0],
+      arquivo: fileName, itens_origem: JSON.parse(JSON.stringify(itens))};
+  });
+  toast(t().custoOkNova(fileName, n));
   if (!SB_ON || !ADM){ toast(t().custoLocal); return true; }
   try{
-    const d = await sbRpc('wgi_painel_salvar_custos',
-      {p_senha: null, p_arquivo: fileName, p_fontes: fontes,
-       p_itens: itens, p_padrao: CUSTOS.padrao || S.custo,
-       p_fixos: CUSTOS.fixos, p_grupos: CUSTOS.grupos || {}});
-    CST_SUJO = false; cstMarcaSujo();
-    toast(t().custoSalvo((d && d.itens) || n));
+    for (const cen of alvos){
+      const b1 = CST_BASES[cen];
+      await sbRpc('wgi_painel_salvar_custos',
+        {p_senha: null, p_arquivo: fileName, p_fontes: fontes,
+         p_itens: b1.itens, p_padrao: b1.padrao, p_fixos: b1.fixos,
+         p_grupos: b1.grupos, p_cenario: cen, p_itens_origem: b1.itens_origem});
+    }
+    toast(t().custoSalvoNova(n));
   } catch(err){ toast(t().impErr + (err && err.message ? err.message : err), true); }
   return true;
 }
@@ -3254,6 +3465,14 @@ async function sbLoadData(){
     });
     CUSTOS = {fontes: d.custos.fontes || CUSTOS.fontes, itens: it, fixos: fx, grupos: gp,
               arquivo: d.custos.arquivo || '', padrao: d.custos.padrao || ''};
+    /* as quatro bases de custo, quando o banco as devolve (so para ADM) */
+    CST_BASES = {};
+    Object.keys((d && d.cenarios) || {}).forEach(cen=>{
+      const x = d.cenarios[cen] || {};
+      CST_BASES[cen] = {fontes: x.fontes || CUSTOS.fontes, itens: x.itens || {},
+        fixos: x.fixos || {}, grupos: x.grupos || {}, padrao: x.padrao || '',
+        arquivo: x.arquivo || '', itens_origem: x.itens_origem || {}};
+    });
     S.custo = CUSTOS.fontes.indexOf(CUSTOS.padrao) >= 0 ? CUSTOS.padrao : CUSTOS.fontes[0];
     /* base antiga vinha com itens em "auto": todos passam a ter fonte propria */
     garantirFontes();
