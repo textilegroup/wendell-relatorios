@@ -992,6 +992,13 @@ const UF_CLIENTE = {
 /*DATA_START*/const DATA0 = {"meses":[],"atual":"","ano":2026,"fx":5.1,"rows":[],"reps":[],"clientes":[],"fonte":"Supabase"};/*DATA_END*/
 
 const MO_ALL = ['JAN','FEV','MAR','ABR','MAI','JUN','JUL','AGO','SET','OUT','NOV','DEZ'];
+/* A planilha de origem pode trazer o mes em portugues ou em ingles, abreviado
+   ou por extenso (SET / SEP / SEPTEMBER / SETEMBRO). Tudo cai no codigo interno,
+   que e o portugues abreviado. */
+const MES_IN = {JAN:'JAN',FEB:'FEV',FEV:'FEV',MAR:'MAR',APR:'ABR',ABR:'ABR',
+                MAY:'MAI',MAI:'MAI',JUN:'JUN',JUL:'JUL',AUG:'AGO',AGO:'AGO',
+                SEP:'SET',SET:'SET',OCT:'OUT',OUT:'OUT',NOV:'NOV',DEC:'DEZ',DEZ:'DEZ'};
+const normMes = v => MES_IN[String(v == null ? '' : v).trim().toUpperCase().slice(0,3)] || '';
 /* A planilha traz a UF em "Customer UF". Erros de fórmula (#N/A) e vazios
    entram como "não informado" — nunca viram um estado de mentira. */
 const normUf = v => {
@@ -3262,7 +3269,7 @@ function buildData(cells, fileName){
     mg:   findCol(head,'Margin','Margem'),
     fr:   findCol(head,'Total Freight','Frete'),
     uf:   findCol(head,'Customer UF','UF do Cliente','Estado do Cliente','UF','Estado'),
-    sku:  findCol(head,'SKU LIMPO','SKU','ID LIMPO','Código limpo','Codigo limpo')
+    sku:  findCol(head,'SKU LIMPO','SKU','ID LIMPO','Item','Código limpo','Codigo limpo')
   };
   const NOME = {mes:'Month', st:'Status', cli:'Customer', brl:'Total per item (BRL Value)',
                 rep:'Rep', wh:'WH', qtd:'Quantity (m)', ped:'Order Number', dt:'Date',
@@ -3276,8 +3283,15 @@ function buildData(cells, fileName){
     const r = cells[i] || [];
     const cli = r[c.cli];
     if (!cli || typeof cli !== 'string' || !String(cli).trim()) continue;
-    const mes = String(r[c.mes]||'').trim().toUpperCase();
-    if (!MO_ALL.includes(mes)) continue;
+    let mes = normMes(r[c.mes]);
+    /* mes ilegivel: tenta deduzir da data, em vez de descartar a linha calado */
+    if (!mes && c.dt >= 0){
+      const d = r[c.dt];
+      const iso = typeof d === 'number' ? serialToISO(d) : (d ? String(d) : '');
+      const mm = /^(\d{4})-(\d{2})/.exec(iso || '');
+      if (mm) mes = MO_ALL[+mm[2] - 1] || '';
+    }
+    if (!mes) continue;
     const mgv = c.mg>=0 && typeof r[c.mg] === 'number' ? Math.round(r[c.mg]*1e6)/1e6 : null;
     rows.push([mes,
       c.rep>=0 ? String(r[c.rep]||'').trim() : '',
