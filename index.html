@@ -1891,7 +1891,10 @@ function render(){
   drawBars('chart', MS.map(m=>{
     const v = byM[m].v, tb = (m===CUR ? totalTbi : 0);
     const alvo = marcar ? (+MT.mes[m] || 0) : 0;
-    return {m, label: v?compact(v):'',
+    /* a barra do mes corrente empilha faturado + carteira: o numero no topo
+       tem de ser o total da pilha, senao fica apoiado num valor que nao conta.
+       A divisao entre os dois aparece no tooltip e na legenda. */
+    return {m, label: (v+tb) ? compact(v+tb) : '',
       alvo: alvo ? {y: foraEscala(alvo) ? 98 : alvo/maxBar*100,
                     hit: v >= alvo, fora: foraEscala(alvo)} : null,
       segs: (tb?[{cls:'bar b2', h:tb/maxBar*100}]:[]).concat([{cls:'bar', h:v/maxBar*100}]),
