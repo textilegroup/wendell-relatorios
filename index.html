@@ -331,6 +331,23 @@ input.moeda:focus{outline:2px solid var(--wine-soft);outline-offset:1px}
 .cen-gr .apl:disabled{opacity:.45;cursor:default}
 .cen-lb{font-size:8.5px;font-weight:700;letter-spacing:.1em;text-transform:uppercase;
   color:var(--ink-3);white-space:nowrap;line-height:1.1;flex:0 0 auto}
+/* ===== adotar: a Lista de precos passa a usar os custos de Relatorios =====
+   Mora entre os dois blocos porque e exatamente o que ele liga. Ligado, o
+   bloco da direita fica tracejado: mostra, mas o conteudo e do bloco da
+   esquerda. A base propria continua no banco — desligar devolve ela. */
+.cen-ado{display:flex;align-items:center;gap:7px;align-self:center;
+  margin:0 8px 6px 16px;padding:6px 10px;border:1px dashed var(--line);
+  border-radius:8px;background:var(--card);cursor:pointer;max-width:168px;
+  font-size:9.5px;font-weight:700;letter-spacing:.055em;text-transform:uppercase;
+  color:var(--ink-3);line-height:1.2}
+.cen-ado input{accent-color:var(--s4);cursor:pointer;flex:0 0 auto;margin:0}
+.cen-ado:hover{color:var(--ink-2)}
+.cen-ado.on{border-style:solid;border-color:var(--s4);color:var(--s4);
+  background:color-mix(in srgb, var(--s4) 8%, var(--card))}
+.cen-ado + .cen-gr{margin-left:0}
+.cen-gr.espelho{border-style:dashed}
+.cen-gr.espelho .cen-lb::after{content:" \2190";font-size:10px;letter-spacing:0}
+.cst-acoes .lida.esp{border-style:solid;border-color:var(--s4);color:var(--s4)}
 .cst-cen button{font:inherit;font-size:11px;font-weight:700;letter-spacing:.03em;
   border:1px solid var(--line);background:var(--sunk);color:var(--ink-3);
   padding:5px 12px;border-radius:7px;cursor:pointer;white-space:nowrap;line-height:1.2}
@@ -1297,6 +1314,15 @@ const T = {
     +'A versão anterior fica guardada no histórico. O outro par não é afetado.',
   cenAplicarOk:(g,q)=>'Base Atual de '+g+' atualizada'+(q?' com '+q+' itens':'')+', valendo para todos.',
   cenSalvoEm:(n,q)=>'Rascunho '+n+' salvo'+(q?' com '+q+' itens':'')+'. Nada mudou para os outros usuários.',
+  cenAdotar:'Adotar custos e agrupamento de Relatórios',
+  cenAdotarTip:'Assinalado, a Lista de preços passa a usar a tabela de custos e o '
+    +'agrupamento de Relatórios — a guia e a tabela ao lado ficam só de leitura. '
+    +'A base própria da Lista de preços continua guardada: desmarque e ela volta.',
+  cenAdotado:'adotando Relatórios · somente leitura',
+  cenAdotadoMsg:'O que aparece aqui é a base de <b>Relatórios</b>. Para editar, '
+    +'desmarque <b>Adotar custos e agrupamento de Relatórios</b> ou edite pelo grupo Relatórios.',
+  cenAdotarOk:'Lista de preços passou a adotar os custos e o agrupamento de Relatórios.',
+  cenAdotarOff:'Lista de preços voltou a usar a base própria.',
   cenOrigem:'Retornar dados do arquivo original',
   cenOrigemConf:'Devolver os valores das quatro fontes como vieram na planilha importada?\n\n'
     +'A marcação de fonte e os agrupamentos que você fez são preservados.',
@@ -1513,6 +1539,15 @@ const T = {
     +'The previous version stays in the history. The other pair is not affected.',
   cenAplicarOk:(g,q)=>g+' Live basis updated'+(q?' with '+q+' items':'')+', in force for everyone.',
   cenSalvoEm:(n,q)=>n+' draft saved'+(q?' with '+q+' items':'')+'. Nothing changed for other users.',
+  cenAdotar:'Adopt Report costs and grouping',
+  cenAdotarTip:'When ticked, the price list uses the Report cost table and grouping — '
+    +'the tab and table beside it become read only. The price list keeps its own '
+    +'basis stored: untick and it comes back.',
+  cenAdotado:'adopting Report · read only',
+  cenAdotadoMsg:'What you see here is the <b>Report</b> basis. To edit it, untick '
+    +'<b>Adopt Report costs and grouping</b> or edit it from the Report group.',
+  cenAdotarOk:'Price list now adopts the Report costs and grouping.',
+  cenAdotarOff:'Price list is back on its own basis.',
   cenOrigem:'Restore values from the original file',
   cenOrigemConf:'Restore the four source values exactly as they came in the imported sheet?\n\n'
     +'Your source ticks and groupings are preserved.',
@@ -2359,11 +2394,18 @@ function cenVazio(){
 }
 /* base de cada cenario, como veio do banco; o que esta na tela e o CST_EDIT */
 let CST_BASES = {}, CST_CEN = 'relatorio_nova';   /* abre no rascunho, que e onde se trabalha */
-const cenAtualObj = () => CST_BASES[CST_CEN] || cenVazio();
-const cenSoLeitura = () => !cenNova(CST_CEN);
+/* Lista de precos adotando os custos e o agrupamento de Relatorios: enquanto
+   ligado, as duas bases de precos espelham as de relatorio e nao sao editaveis.
+   A base propria de precos continua guardada no banco — desligar devolve ela. */
+let PRECOS_ESPELHA = false;
+const cenEspelhado = c => c.slice(0,6) === 'precos' && PRECOS_ESPELHA;
+/* de qual base o cenario le de fato */
+const cenFonte = c => cenEspelhado(c) ? c.replace('precos','relatorio') : c;
+const cenAtualObj = () => CST_BASES[cenFonte(CST_CEN)] || cenVazio();
+const cenSoLeitura = () => !cenNova(CST_CEN) || cenEspelhado(CST_CEN);
 /* guarda o que esta na tela de volta na base do cenario (so em memoria) */
 function cstGuarda(){
-  if (!CST_EDIT || cenSoLeitura()) return;
+  if (!CST_EDIT || cenSoLeitura()) return;   /* inclui o caso espelhado */
   const c = cstColeta();
   const b = CST_BASES[CST_CEN] || (CST_BASES[CST_CEN] = cenVazio());
   b.itens = c.itens; b.fixos = c.fixos; b.grupos = c.grupos;
@@ -2372,7 +2414,8 @@ function cstGuarda(){
 /* joga a base do cenario na tela */
 function cstCarrega(cen){
   CST_CEN = cen;
-  const b = CST_BASES[cen] || (CST_BASES[cen] = cenVazio());
+  const src = cenFonte(cen);
+  const b = CST_BASES[src] || (CST_BASES[src] = cenVazio());
   const padCen = (CUSTOS.fontes.indexOf(b.padrao) >= 0 && b.padrao) || CUSTOS.fontes[0];
   CST_EDIT = Object.keys(b.itens).sort().map(k=>({
     sku: k, v: CUSTOS.fontes.map((f,i)=> cst4((b.itens[k]||[])[i])),
@@ -2414,21 +2457,30 @@ function cstCenBar(){
     const nItens = Object.keys(((CST_BASES[g+'_nova']||{}).itens) || {}).length;
     /* bloco aberto = o que contem o cenario selecionado, em qualquer das duas bases */
     const meu = CST_CEN === g+'_atual' || aberto;
-    return '<div class="cen-gr'+(meu ? ' ativo' : '')+'">'
+    const esp = g === 'precos' && PRECOS_ESPELHA;
+    return '<div class="cen-gr'+(meu ? ' ativo' : '')+(esp ? ' espelho' : '')+'">'
     + '<span class="cen-lb">'+esc(L.cenGrupo(g+'_atual'))+'</span>'
     + [g+'_atual', g+'_nova'].map(c=>
         '<button type="button" role="tab" data-c="'+c+'"'
         + ' aria-selected="'+(CST_CEN===c)+'">'+esc(L.cenNome(c))+'</button>').join('')
-    /* o Aplicar nasce ao lado da Nova aberta: nao ha duvida de qual par ele age */
-    + (aberto ? '<button type="button" class="apl" id="cstAplicarBt"'
+    /* o Aplicar nasce ao lado da Nova aberta: nao ha duvida de qual par ele age.
+       Adotando Relatorios nao ha o que aplicar: o conteudo nem e desta base */
+    + (aberto && !esp ? '<button type="button" class="apl" id="cstAplicarBt"'
                 + (nItens ? '' : ' disabled') + ' title="'+esc(L.cenAplicarTip(L.cenGrupo(g+'_atual')))+'">'
                 + esc(L.cenAplicarCurto) + '</button>' : '')
     + '</div>';
   };
-  setH('cstCen', grupo('relatorio') + grupo('precos'));
+  setH('cstCen', grupo('relatorio')
+    + '<label class="cen-ado' + (PRECOS_ESPELHA ? ' on' : '') + '" title="'
+    + esc(L.cenAdotarTip) + '"><input type="checkbox" id="cstAdotar"'
+    + (PRECOS_ESPELHA ? ' checked' : '') + '><span>' + esc(L.cenAdotar) + '</span></label>'
+    + grupo('precos'));
   /* verde = base em uso; vermelho = rascunho ainda nao aplicado */
   el('cstModal').classList.toggle('cen-nova', cenNova(CST_CEN));
-  setH('cstAcoes', cenSoLeitura()
+  setH('cstAcoes', cenEspelhado(CST_CEN)
+    ? '<span class="lida esp">'+esc(L.cenAdotado)+'</span>'
+      + '<span class="msg">'+L.cenAdotadoMsg+'</span>'
+    : cenSoLeitura()
     ? '<span class="lida">'+esc(L.cenSoLeitura)+'</span>'
       + '<span class="msg">'+esc(L.cenSoLeituraMsg(L.cenNome(cenPar(CST_CEN))))+'</span>'
     : '<button type="button" id="cstOrigemBt">'+esc(L.cenOrigem)+'</button>'
@@ -2802,6 +2854,21 @@ function cstBotoesTopo(){
   const b3 = el('cstImp');  if (b3) b3.hidden = mk ? true  : ro;
   const b4 = el('cstExp');  if (b4) b4.hidden = mk;
 }
+/* liga/desliga a adocao dos custos de Relatorios pela Lista de precos */
+el('cstCen').addEventListener('change', async e=>{
+  if (e.target.id !== 'cstAdotar') return;
+  const lig = e.target.checked;
+  if (!cenEspelhado(CST_CEN)) cstGuarda();
+  PRECOS_ESPELHA = lig;
+  cstCarrega(CST_CEN);          /* recarrega ja pela base certa */
+  cstRender(); cstPreview();
+  if (SB_ON){
+    try{ await sbRpc('wgi_painel_prefs_gravar',
+           {p_chave:'precos_espelha_relatorio', p_valor: lig}); }
+    catch(err){ toast(t().impErr + (err && err.message ? err.message : err), true); }
+  }
+  toast(lig ? t().cenAdotarOk : t().cenAdotarOff);
+});
 /* troca de cenario: guarda o rascunho atual e carrega o outro */
 el('cstCen').addEventListener('click', e=>{
   const b = e.target.closest('button'); if (!b) return;
@@ -3706,6 +3773,14 @@ async function sbLoadData(){
     /* cenarios de markup: tabela propria, nao pertence a nenhuma base de custo */
     sbRpc('wgi_painel_markups', {}).then(mk=>{
       if (Array.isArray(mk)) MARKUPS = mk;
+    }).catch(()=>{});
+    /* preferencia global: a Lista de precos adota a base de Relatorios.
+       Vale para todos os usuarios, por isso mora no banco e nao no navegador. */
+    sbRpc('wgi_painel_prefs_ler', {}).then(pf=>{
+      const v = pf && pf.precos_espelha_relatorio;
+      PRECOS_ESPELHA = (v === true || v === 'true');
+      const m = el('cstModal');
+      if (PRECOS_ESPELHA && m && !m.hidden){ cstCarrega(CST_CEN); cstRender(); }
     }).catch(()=>{});
     /* as quatro bases de custo, quando o banco as devolve (so para ADM) */
     CST_BASES = {};
