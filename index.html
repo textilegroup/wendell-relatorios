@@ -329,6 +329,9 @@ input.moeda:focus{outline:2px solid var(--wine-soft);outline-offset:1px}
   background:transparent;color:var(--s4);cursor:pointer;white-space:nowrap}
 .cen-gr .apl:hover:not(:disabled){background:var(--s4);color:#fff}
 .cen-gr .apl:disabled{opacity:.45;cursor:default}
+/* o Aplicar da Lista de precos sai daqui e muda o outro HTML: cheio, nao vazado */
+.cen-gr .apl.pub{background:var(--s4);color:#fff}
+.cen-gr .apl.pub:hover:not(:disabled){filter:brightness(1.12)}
 .cen-lb{font-size:8.5px;font-weight:700;letter-spacing:.1em;text-transform:uppercase;
   color:var(--ink-3);white-space:nowrap;line-height:1.1;flex:0 0 auto}
 /* ===== adotar: a Lista de precos passa a usar os custos de Relatorios =====
@@ -1306,7 +1309,7 @@ const T = {
   cenNome:c=>c.slice(-5)==='_nova' ? 'Nova' : 'Atual',
   cenSoLeitura:'em uso · somente leitura',
   cenSoLeituraMsg:n=>'Esta é a base que está valendo. Para mudar, edite a aba '+n+' e clique em Aplicar.',
-  cenNovaMsg:'Rascunho: <b>Salvar</b> guarda só para você continuar depois. Quem publica para todos é <b>Aplicar sobre a Atual</b>, ao lado da aba.',
+  cenNovaMsg:n=>'Rascunho: <b>Salvar</b> guarda só para você continuar depois. Quem publica para todos é <b>'+n+'</b>, ao lado da aba.',
   cenAplicarCurto:'Aplicar sobre a Atual',
   cenAplicarTip:g=>'Publicar esta base Nova de '+g+' sobre a Atual, valendo para todos.',
   cenAplicarConf:(g,de,para)=>'Aplicar '+g+' — "'+de+'" sobre "'+para+'"?\n\n'
@@ -1314,6 +1317,15 @@ const T = {
     +'A versão anterior fica guardada no histórico. O outro par não é afetado.',
   cenAplicarOk:(g,q)=>'Base Atual de '+g+' atualizada'+(q?' com '+q+' itens':'')+', valendo para todos.',
   cenSalvoEm:(n,q)=>'Rascunho '+n+' salvo'+(q?' com '+q+' itens':'')+'. Nada mudou para os outros usuários.',
+  cenAplicarPrecos:'Aplicar na Lista de preços',
+  cenAplicarPrecosTip:'Publicar estes custos na Lista de preços. O HTML da tabela '
+    +'de preços passa a calcular com eles, para todos os usuários.',
+  cenAplicarPrecosConf:'Aplicar estes custos na Lista de preços?\n\n'
+    +'O HTML da tabela de preços passa a calcular os preços com esta base, '
+    +'para todos os usuários, na hora. A base anterior fica no histórico.\n\n'
+    +'Item sem custo nesta base aparece lá como SEM CUSTO, não com preço errado.',
+  cenAplicarPrecosOk:q=>'Custos aplicados na Lista de preços'
+    +(q?' — '+q+' itens':'')+'. A tabela de preços já calcula com eles.',
   cenAdotar:'Adotar custos e agrupamento de Relatórios',
   cenAdotarTip:'Assinalado, a Lista de preços passa a usar a tabela de custos e o '
     +'agrupamento de Relatórios — a guia e a tabela ao lado ficam só de leitura. '
@@ -1531,7 +1543,7 @@ const T = {
   cenNome:c=>c.slice(-5)==='_nova' ? 'Draft' : 'Live',
   cenSoLeitura:'in use · read only',
   cenSoLeituraMsg:n=>'This is the basis in use. To change it, edit the '+n+' tab and click Apply.',
-  cenNovaMsg:'Draft: <b>Save</b> only keeps it for you to carry on later. <b>Apply over Live</b>, next to the tab, is what publishes it for everyone.',
+  cenNovaMsg:n=>'Draft: <b>Save</b> only keeps it for you to carry on later. <b>'+n+'</b>, next to the tab, is what publishes it for everyone.',
   cenAplicarCurto:'Apply over Live',
   cenAplicarTip:g=>'Publish this '+g+' Draft over Live, in force for everyone.',
   cenAplicarConf:(g,de,para)=>'Apply '+g+' — "'+de+'" over "'+para+'"?\n\n'
@@ -1539,6 +1551,15 @@ const T = {
     +'The previous version stays in the history. The other pair is not affected.',
   cenAplicarOk:(g,q)=>g+' Live basis updated'+(q?' with '+q+' items':'')+', in force for everyone.',
   cenSalvoEm:(n,q)=>n+' draft saved'+(q?' with '+q+' items':'')+'. Nothing changed for other users.',
+  cenAplicarPrecos:'Apply to the price list',
+  cenAplicarPrecosTip:'Publish these costs to the price list. The price table HTML '
+    +'starts pricing from them, for every user.',
+  cenAplicarPrecosConf:'Apply these costs to the price list?\n\n'
+    +'The price table HTML starts pricing from this basis, for every user, right '
+    +'away. The previous basis stays in the history.\n\n'
+    +'An item with no cost in this basis shows there as NO COST, not as a wrong price.',
+  cenAplicarPrecosOk:q=>'Costs applied to the price list'
+    +(q?' — '+q+' items':'')+'. The price table already prices from them.',
   cenAdotar:'Adopt Report costs and grouping',
   cenAdotarTip:'When ticked, the price list uses the Report cost table and grouping — '
     +'the tab and table beside it become read only. The price list keeps its own '
@@ -2465,9 +2486,13 @@ function cstCenBar(){
         + ' aria-selected="'+(CST_CEN===c)+'">'+esc(L.cenNome(c))+'</button>').join('')
     /* o Aplicar nasce ao lado da Nova aberta: nao ha duvida de qual par ele age.
        Adotando Relatorios nao ha o que aplicar: o conteudo nem e desta base */
-    + (aberto && !esp ? '<button type="button" class="apl" id="cstAplicarBt"'
-                + (nItens ? '' : ' disabled') + ' title="'+esc(L.cenAplicarTip(L.cenGrupo(g+'_atual')))+'">'
-                + esc(L.cenAplicarCurto) + '</button>' : '')
+    /* no grupo Lista de precos o botao diz para onde vai: e ele que troca os
+       custos do HTML da tabela de precos, nao so a base daqui */
+    + (aberto && !esp ? '<button type="button" class="apl'+(g==='precos'?' pub':'')+'" id="cstAplicarBt"'
+                + (nItens ? '' : ' disabled')
+                + ' title="'+esc(g==='precos' ? L.cenAplicarPrecosTip
+                                              : L.cenAplicarTip(L.cenGrupo(g+'_atual')))+'">'
+                + esc(g==='precos' ? L.cenAplicarPrecos : L.cenAplicarCurto) + '</button>' : '')
     + '</div>';
   };
   setH('cstCen', grupo('relatorio')
@@ -2484,7 +2509,8 @@ function cstCenBar(){
     ? '<span class="lida">'+esc(L.cenSoLeitura)+'</span>'
       + '<span class="msg">'+esc(L.cenSoLeituraMsg(L.cenNome(cenPar(CST_CEN))))+'</span>'
     : '<button type="button" id="cstOrigemBt">'+esc(L.cenOrigem)+'</button>'
-      + '<span class="msg">'+L.cenNovaMsg+'</span>');
+      + '<span class="msg">'+L.cenNovaMsg(CST_CEN.slice(0,6)==='precos'
+          ? L.cenAplicarPrecos : L.cenAplicarCurto)+'</span>');
 }
 /* as duas guias do modal */
 function cstGuias(){
@@ -2901,9 +2927,10 @@ el('cstAcoes').addEventListener('click', async e=>{
 });
 /* promove o rascunho aberto sobre a base em uso do mesmo par */
 async function cstAplicarAgora(btn){
-  const L = t(), alvo = cenPar(CST_CEN);
+  const L = t(), alvo = cenPar(CST_CEN), prec = CST_CEN.slice(0,6) === 'precos';
   if (cenSoLeitura()) return;
-  if (!confirm(L.cenAplicarConf(L.cenGrupo(CST_CEN), L.cenNome(CST_CEN), L.cenNome(alvo)))) return;
+  if (!confirm(prec ? L.cenAplicarPrecosConf
+                    : L.cenAplicarConf(L.cenGrupo(CST_CEN), L.cenNome(CST_CEN), L.cenNome(alvo)))) return;
   cstGuarda();
   if (btn) btn.disabled = true;
   try{
@@ -2912,7 +2939,8 @@ async function cstAplicarAgora(btn){
     if (SB_ON){
       const d = await sbRpc('wgi_painel_aplicar_custos', {p_de: CST_CEN, p_para: alvo});
       CST_BASES[alvo] = JSON.parse(JSON.stringify(CST_BASES[CST_CEN]));
-      toast(L.cenAplicarOk(L.cenGrupo(alvo), (d && d.itens) || ''));
+      toast(prec ? L.cenAplicarPrecosOk((d && d.itens) || '')
+                 : L.cenAplicarOk(L.cenGrupo(alvo), (d && d.itens) || ''));
     } else {
       CST_BASES[alvo] = JSON.parse(JSON.stringify(CST_BASES[CST_CEN]));
       toast(L.custoLocal);
