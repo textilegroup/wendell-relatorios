@@ -470,6 +470,22 @@ table.cst tr.gr-ref td{background:color-mix(in srgb, var(--cen) 16%, transparent
 table.cst tr.gr-ref td.gsku{font-weight:700;color:var(--cen)}
 table.cst tr.gr-sel td{background:var(--chip)}
 table.cst tr.gr-in td.gsku{color:var(--ink-2)}
+/* ---- guia Markup ---- */
+table.cst.mk th.uf,table.cst.mk td.uf{width:74px}
+table.cst.mk th.pc,table.cst.mk td.pc{width:82px;text-align:right}
+table.cst.mk th.rm,table.cst.mk td.rm{width:34px;text-align:center}
+table.cst.mk th.pc,table.cst.mk th.num{text-align:right}
+table.cst.mk td.div,table.cst.mk td.mkv{padding:0 9px;text-align:right;
+  font-variant-numeric:tabular-nums;color:var(--ink-2);white-space:nowrap}
+table.cst.mk td.mkv b{font-weight:700;color:var(--cen);font-size:13px}
+table.cst.mk td.uf input{text-align:center;text-transform:uppercase;letter-spacing:.06em}
+table.cst.mk td.rm button{font:inherit;font-size:12px;font-weight:700;line-height:1;
+  width:22px;height:22px;border:1px solid var(--line);border-radius:6px;
+  background:var(--card);color:var(--ink-3);cursor:pointer}
+table.cst.mk td.rm button:hover{border-color:var(--s1);color:var(--s1)}
+table.cst.mk tr.ruim td{background:color-mix(in srgb, var(--s1) 10%, transparent)}
+table.cst.mk tr.ruim td.div i,table.cst.mk tr.ruim td.mkv i{color:var(--s1);font-style:normal;
+  font-weight:700;font-size:10px;letter-spacing:.04em;text-transform:uppercase}
 /* SKU que aparece nas vendas mas nao tem custo cadastrado */
 table.cst tr.gr-venda td.gsku{color:var(--ink-3);font-style:italic}
 table.cst td.gtag .sv{color:var(--ink-3);font-size:9.5px;letter-spacing:.03em}
@@ -1255,6 +1271,20 @@ const T = {
   cstSujoTip:'O dashboard está calculado com custos que ainda não foram gravados no banco. '
     +'Abra Ver custos e clique em Salvar para valer para todos.',
   cstGuiaCustos:'Custos', cstGuiaGrupos:'Agrupamento de itens',
+  cstGuiaMarkup:'Markup',
+  mkSub:n=>n+(n===1?' cenário de markup':' cenários de markup'),
+  mkCenario:'Cenário', mkOrigem:'Origem', mkDestino:'Destino',
+  mkIcms:'ICMS %', mkPis:'PIS/COFINS %', mkCom:'Comissão %', mkMrg:'Margem %',
+  mkDiv:'Divisor', mkMarkup:'Markup', mkRemover:'Remover cenário',
+  mkInvalido:'inviável', mkVazio:'Nenhum cenário. Use + Linha para criar o primeiro.',
+  mkSalvo:n=>n+(n===1?' cenário de markup salvo':' cenários de markup salvos')+', valendo para todos.',
+  mkHint:'Um cenário por combinação de <b>origem → destino</b> da venda. O markup sai das quatro '
+    +'alíquotas: <code>divisor = 1 − ICMS − PIS/COFINS×(1−ICMS) − comissão − margem</code> e '
+    +'<code>markup = 1 ÷ divisor</code>. O PIS/COFINS incide sobre a base já deduzida do ICMS, por '
+    +'isso entra multiplicado por (1−ICMS) e não somado direto — é a mesma conta que a tabela de '
+    +'preços usa hoje. Digite as alíquotas em porcentagem (18 = 18%). <b>Preço = custo × markup.</b> '
+    +'Soma das alíquotas em 100% ou mais deixa a venda inviável e a linha fica marcada. '
+    +'<b>Salvar</b> grava os cenários no banco, valendo para todos os usuários.',
   cenGrupo:c=>c.slice(0,9)==='relatorio' ? 'Relatórios' : 'Lista de preços',
   cenNome:c=>c.slice(-5)==='_nova' ? 'Nova' : 'Atual',
   cenSoLeitura:'em uso · somente leitura',
@@ -1457,6 +1487,20 @@ const T = {
   cstSujoTip:'The dashboard is using costs that have not been written to the database yet. '
     +'Open View costs and click Save to apply them for everyone.',
   cstGuiaCustos:'Costs', cstGuiaGrupos:'Item grouping',
+  cstGuiaMarkup:'Markup',
+  mkSub:n=>n+(n===1?' markup scenario':' markup scenarios'),
+  mkCenario:'Scenario', mkOrigem:'From', mkDestino:'To',
+  mkIcms:'ICMS %', mkPis:'PIS/COFINS %', mkCom:'Commission %', mkMrg:'Margin %',
+  mkDiv:'Divisor', mkMarkup:'Markup', mkRemover:'Remove scenario',
+  mkInvalido:'not viable', mkVazio:'No scenarios yet. Use + Row to create the first one.',
+  mkSalvo:n=>n+(n===1?' markup scenario saved':' markup scenarios saved')+', in force for everyone.',
+  mkHint:'One scenario per <b>origin → destination</b> pair. The markup comes from the four rates: '
+    +'<code>divisor = 1 − ICMS − PIS/COFINS×(1−ICMS) − commission − margin</code> and '
+    +'<code>markup = 1 ÷ divisor</code>. PIS/COFINS applies to the base already net of ICMS, which is '
+    +'why it is multiplied by (1−ICMS) rather than simply added — the same maths the price list uses '
+    +'today. Enter rates as percentages (18 = 18%). <b>Price = cost × markup.</b> '
+    +'Rates adding up to 100% or more make the sale unviable and the row is flagged. '
+    +'<b>Save</b> writes the scenarios to the database, in force for every user.',
   cenGrupo:c=>c.slice(0,9)==='relatorio' ? 'Report' : 'Price list',
   cenNome:c=>c.slice(-5)==='_nova' ? 'Draft' : 'Live',
   cenSoLeitura:'in use · read only',
@@ -1552,6 +1596,8 @@ const conv = v => S.cur==='BRL' ? v : v/FX;
 const sym  = () => S.cur==='BRL' ? 'R$' : 'US$';
 const nf0 = v => new Intl.NumberFormat(loc(),{maximumFractionDigits:0}).format(v);
 const nf1 = v => new Intl.NumberFormat(loc(),{minimumFractionDigits:1,maximumFractionDigits:1}).format(v);
+/* coeficientes de markup em 4 casas, como a tabela de precos ja usa */
+const nf4 = v => new Intl.NumberFormat(loc(),{minimumFractionDigits:4,maximumFractionDigits:4}).format(v);
 const money = v => sym()+' '+nf0(conv(v));
 function compact(v){
   const x = conv(v), MI = S.lang==='en' ? 'M' : ' mi', K = S.lang==='en' ? 'k' : ' mil';
@@ -2391,14 +2437,21 @@ function cstCenBar(){
 /* as duas guias do modal */
 function cstGuias(){
   const L = t();
-  cstCenBar();
-  setH('cstGuias', [['custos', L.cstGuiaCustos], ['grupos', L.cstGuiaGrupos]].map(x=>
+  /* o markup e unico e global: nao pertence a nenhuma das quatro bases de
+     custo, entao a barra de cenarios e o filtro de itens somem nessa guia */
+  const mk = CST_TAB === 'markup';
+  el('cstCen').hidden = mk; el('cstAcoes').hidden = mk;
+  document.querySelector('.cst-fil').hidden = mk;
+  if (!mk) cstCenBar();
+  setH('cstGuias', [['custos', L.cstGuiaCustos], ['grupos', L.cstGuiaGrupos],
+                    ['markup', L.cstGuiaMarkup]].map(x=>
     '<button type="button" class="cst-guia" role="tab" data-t="'+x[0]+'" aria-selected="'
     + (CST_TAB===x[0]) + '">' + esc(x[1]) + '</button>').join(''));
 }
 function cstRender(){
   cstGuias();
   cstBotoesTopo();
+  if (CST_TAB === 'markup') return mkRender();
   if (CST_TAB === 'grupos') return grRender();
   /* cenario "Atual" e retrato do que esta valendo: nada e editavel nele */
   const RO = cenSoLeitura() ? ' disabled' : '', ROT = cenSoLeitura() ? ' readonly' : '';
@@ -2500,6 +2553,109 @@ function cstEfetivo(o, vef){
   const i = fx >= 0 ? fx : CST_PAD;
   return {u: +e.v[i] || 0, src: CUSTOS.fontes[i], fixo: fx >= 0,
           de: (e.de && e.de[i] !== o.sku) ? e.de[i] : ''};
+}
+
+/* ============ guia Markup ============
+   Cenarios de venda por ORIGEM -> DESTINO, cada um com suas aliquotas.
+   Formula igual a que a tabela de precos ja usa no banco:
+     divisor = 1 - icms - pis*(1-icms) - comissao - margem
+     markup  = 1 / divisor        preco = custo x markup
+   O PIS/COFINS incide sobre a base ja deduzida do ICMS — e por isso que
+   entra multiplicado por (1-icms), e nao somado direto.
+   As aliquotas sao digitadas em PORCENTO e guardadas em decimal. */
+let MARKUPS = [];
+const mkPct = v => {            /* "9,25" -> 0.0925 */
+  const x = String(v == null ? '' : v).trim().replace(',', '.');
+  const n = parseFloat(x);
+  return isFinite(n) ? Math.round(n * 1e6) / 1e8 : 0;
+};
+const mkTxt = v => {            /* 0.0925 -> "9,25" */
+  const n = (+v || 0) * 100;
+  if (!n) return '';
+  const x = Math.round(n * 1e4) / 1e4;
+  return (S.lang === 'en' ? String(x) : String(x).replace('.', ','));
+};
+function mkDivisor(m){
+  const i = +m.icms || 0, p = +m.pis || 0;
+  return 1 - i - p * (1 - i) - (+m.comissao || 0) - (+m.margem || 0);
+}
+function mkNovo(){
+  return {id: 'm' + Date.now().toString(36), nome: '', origem: '', destino: '',
+          icms: 0, pis: 0.0925, comissao: 0, margem: 0};
+}
+function mkRender(){
+  const L = t();
+  set('cstSub', L.mkSub(MARKUPS.length));
+  set('cstCnt', '');
+  /* UFs que aparecem nas vendas viram sugestao nos campos de origem/destino */
+  const ufs = [...new Set(R.map(r => r.uf).filter(Boolean))].sort();
+  const whs = [...new Set(R.map(r => r.wh).filter(Boolean))].sort();
+  const lista = [...new Set(whs.concat(ufs))];
+  const campo = (i, k, v, cls) =>
+    '<input class="' + cls + '" data-mk="' + i + '" data-k="' + k + '" value="' + esc(v) + '">';
+  setH('cstGrid',
+    '<datalist id="mkUfs">' + lista.map(u => '<option value="' + esc(u) + '">').join('') + '</datalist>'
+    + '<table class="cst mk"><thead><tr>'
+    + '<th class="rn"></th><th>' + esc(L.mkCenario) + '</th>'
+    + '<th class="uf">' + esc(L.mkOrigem) + '</th><th class="uf">' + esc(L.mkDestino) + '</th>'
+    + ['mkIcms','mkPis','mkCom','mkMrg'].map(x =>
+        '<th class="pc">' + esc(L[x]) + '</th>').join('')
+    + '<th class="num">' + esc(L.mkDiv) + '</th>'
+    + '<th class="num">' + esc(L.mkMarkup) + '</th><th class="rm"></th></tr></thead><tbody>'
+    + (MARKUPS.length ? MARKUPS.map((m, i) => {
+        const d = mkDivisor(m), ok = d > 0.0001;
+        return '<tr' + (ok ? '' : ' class="ruim"') + '>'
+          + '<td class="rn">' + (i + 1) + '</td>'
+          + '<td>' + campo(i, 'nome', m.nome || '', '') + '</td>'
+          + '<td class="uf"><input class="uf" list="mkUfs" data-mk="' + i + '" data-k="origem" value="'
+          + esc(m.origem || '') + '"></td>'
+          + '<td class="uf"><input class="uf" list="mkUfs" data-mk="' + i + '" data-k="destino" value="'
+          + esc(m.destino || '') + '"></td>'
+          + ['icms','pis','comissao','margem'].map(k =>
+              '<td class="pc">' + campo(i, k, mkTxt(m[k]), 'num') + '</td>').join('')
+          + '<td class="num div">' + (ok ? nf4(d) : '<i>' + esc(L.mkInvalido) + '</i>') + '</td>'
+          + '<td class="num mkv">' + (ok ? '<b>' + nf4(1 / d) + '</b>' : '<i>–</i>') + '</td>'
+          + '<td class="rm"><button type="button" data-rm="' + i + '" title="'
+          + esc(L.mkRemover) + '">x</button></td></tr>';
+      }).join('')
+      : '<tr><td class="empty" colspan="10" style="padding:14px;color:var(--ink-3)">'
+        + esc(L.mkVazio) + '</td></tr>')
+    + '</tbody></table>');
+  setH('cstHint', L.mkHint);
+}
+el('cstGrid').addEventListener('input', e => {
+  const n = e.target;
+  if (!n.dataset || n.dataset.mk === undefined) return;
+  const m = MARKUPS[+n.dataset.mk]; if (!m) return;
+  const k = n.dataset.k;
+  if (k === 'nome') m.nome = n.value;
+  else if (k === 'origem' || k === 'destino') m[k] = n.value.toUpperCase();
+  else m[k] = mkPct(n.value);
+  /* recalcula so as duas celulas da linha, sem perder o campo em edicao */
+  const tr = n.closest('tr'); if (!tr) return;
+  const d = mkDivisor(m), ok = d > 0.0001;
+  tr.classList.toggle('ruim', !ok);
+  const cd = tr.querySelector('.div'), cm = tr.querySelector('.mkv');
+  if (cd) cd.innerHTML = ok ? nf4(d) : '<i>' + esc(t().mkInvalido) + '</i>';
+  if (cm) cm.innerHTML = ok ? '<b>' + nf4(1 / d) + '</b>' : '<i>–</i>';
+});
+el('cstGrid').addEventListener('click', e => {
+  const b = e.target.closest('button[data-rm]'); if (!b) return;
+  MARKUPS.splice(+b.dataset.rm, 1);
+  mkRender();
+});
+async function mkSalvar(){
+  const L = t();
+  const lim = MARKUPS.filter(m => (m.nome || m.origem || m.destino)).map(m => ({
+    id: m.id, nome: String(m.nome || '').trim(),
+    origem: String(m.origem || '').trim().toUpperCase(),
+    destino: String(m.destino || '').trim().toUpperCase(),
+    icms: +m.icms || 0, pis: +m.pis || 0,
+    comissao: +m.comissao || 0, margem: +m.margem || 0
+  }));
+  if (!SB_ON){ toast(L.custoLocal); return; }
+  const d = await sbRpc('wgi_painel_salvar_markups', {p_cenarios: lim});
+  toast(L.mkSalvo((d && d.cenarios) || lim.length));
 }
 
 /* ============ guia Agrupamento de itens ============
@@ -2638,8 +2794,13 @@ function grTirar(sku){
 }
 /* Salvar, + Linha e Importar so existem nos cenarios "Nova" */
 function cstBotoesTopo(){
+  const mk = CST_TAB === 'markup';
   const ro = cenSoLeitura();
-  ['cstSave','cstAdd','cstImp'].forEach(id=>{ const b = el(id); if (b) b.hidden = ro; });
+  /* no markup sempre da para salvar; Importar e Exportar sao de custos */
+  const b1 = el('cstSave'); if (b1) b1.hidden = mk ? false : ro;
+  const b2 = el('cstAdd');  if (b2) b2.hidden = mk ? false : ro;
+  const b3 = el('cstImp');  if (b3) b3.hidden = mk ? true  : ro;
+  const b4 = el('cstExp');  if (b4) b4.hidden = mk;
 }
 /* troca de cenario: guarda o rascunho atual e carrega o outro */
 el('cstCen').addEventListener('click', e=>{
@@ -2802,6 +2963,10 @@ el('cstGrid').addEventListener('input', e=>{
   }
 });
 el('cstAdd').onclick = () => {
+  if (CST_TAB === 'markup'){ MARKUPS.push(mkNovo()); mkRender();
+    const ins = el('cstGrid').querySelectorAll('input[data-k="nome"]');
+    const last = ins[ins.length-1]; if (last) last.focus();
+    return; }
   /* linha nova ja nasce com a fonte padrao marcada, na guia Custos */
   CST_TAB = 'custos'; GR_SEL = [];
   CST_EDIT.push({sku:'', v:CUSTOS.fontes.map(()=>0), fixo:CUSTOS.fontes[CST_PAD] || ''});
@@ -2886,6 +3051,13 @@ async function cstSalvarCenario(cen){
 }
 el('cstSave').onclick = async () => {
   const L = t(), btn = el('cstSave');
+  if (CST_TAB === 'markup'){
+    btn.disabled = true;
+    try{ await mkSalvar(); }
+    catch(err){ toast(t().impErr + (err && err.message ? err.message : err), true); }
+    finally { btn.disabled = false; }
+    return;
+  }
   if (cenSoLeitura()) return;
   btn.disabled = true;
   try{
@@ -3531,6 +3703,10 @@ async function sbLoadData(){
     });
     CUSTOS = {fontes: d.custos.fontes || CUSTOS.fontes, itens: it, fixos: fx, grupos: gp,
               arquivo: d.custos.arquivo || '', padrao: d.custos.padrao || ''};
+    /* cenarios de markup: tabela propria, nao pertence a nenhuma base de custo */
+    sbRpc('wgi_painel_markups', {}).then(mk=>{
+      if (Array.isArray(mk)) MARKUPS = mk;
+    }).catch(()=>{});
     /* as quatro bases de custo, quando o banco as devolve (so para ADM) */
     CST_BASES = {};
     Object.keys((d && d.cenarios) || {}).forEach(cen=>{
