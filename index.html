@@ -99,6 +99,18 @@ header{
   font-size:11.5px;font-weight:600;letter-spacing:.03em;background:rgba(255,255,255,.07);
   color:#fff;cursor:pointer;font-family:inherit;
 }
+/* ===== icones de linha fina =====
+   Herdam a cor do texto do botao, entao seguem tema, cor do cenario e o
+   estado desabilitado sem regra propria. O rotulo vive num <span> ao lado. */
+.ico{width:15px;height:15px;flex:0 0 auto;display:block}
+.hdr-chip,.admcalc,.admsave,.vercustos,.cst-guia,.cst-fil button,
+.gr-bar button,.cst-acoes button,.cen-gr .apl,.cen-ado,
+table.cst td.gtag button{display:inline-flex;align-items:center;gap:6px;
+  justify-content:center;line-height:1.2}
+.gr-bar button .ico,.cst-fil button .ico,table.cst td.gtag button .ico{width:13px;height:13px}
+table.cst td.gtag button{gap:4px}
+table.cst.mk td.rm button{display:inline-flex;align-items:center;justify-content:center}
+table.cst.mk td.rm .ico{width:13px;height:13px}
 .hdr-chip:hover{background:rgba(255,255,255,.16)}
 .hdr-chip[disabled]{opacity:.45;cursor:progress}
 .lang{display:flex;border:1px solid rgba(255,255,255,.35);border-radius:8px;overflow:hidden}
@@ -391,6 +403,9 @@ input.moeda:focus{outline:2px solid var(--wine-soft);outline-offset:1px}
   border-bottom:1px solid var(--line);background:var(--sunk)}
 .cst-fil input{flex:1;min-width:0;font:inherit;font-size:12.5px;color:var(--ink);
   background:var(--card);border:1px solid var(--line);border-radius:8px;padding:6px 9px}
+.cst-fil input{padding-left:30px;
+  background-image:url('data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="%238b868f" stroke-width="1.25" stroke-linecap="round"><circle cx="10.8" cy="10.8" r="6.4"/><path d="m15.4 15.4 4.2 4.2"/></svg>');
+  background-repeat:no-repeat;background-position:9px center;background-size:14px}
 .cst-fil input:focus{outline:2px solid var(--cen);outline-offset:-1px}
 .cst-fil .cnt{font-size:10.5px;color:var(--ink-3);white-space:nowrap;
   font-variant-numeric:tabular-nums}
@@ -1291,7 +1306,7 @@ const T = {
   custoSalvo:n=>'Custos gravados no banco: '+n+' itens.',
   custoLocal:'Custos aplicados nesta sessão. Entre em ADM para gravar no banco.',
   verCustos:'Ver custos',
-  cstTitulo:'Tabela de custos', cstAdd:'+ Linha', cstSalvar:'Salvar', cstFechar:'Fechar',
+  cstTitulo:'Tabela de custos', cstAdd:'Linha', cstSalvar:'Salvar', cstFechar:'Fechar',
   cstSub:(n,f)=>n+' itens · '+f,
   cstItem:'ID limpo',
   cstTodas:'todas', cstTodasTip:f=>'Usar '+f+' em todos os itens listados',
@@ -1383,7 +1398,7 @@ const T = {
   custoSalvoNova:n=>'Bases Nova gravadas com '+n+' itens. Nada mudou no que está valendo.',
   cstGrupoTip:m=>'Comanda o custo de: '+m.join(', '),
   cstDoGrupo:m=>'Valor vindo de '+m+' (a referência está zerada nesta fonte)',
-  cstAlerta:n=>'⚠ '+n+' sem custo',
+  cstAlerta:n=>n+' sem custo',
   cstAlertaTip:'Mostrar só os itens cuja fonte marcada está vazia, mas que têm custo em outra fonte.',
   cstAlertaHint:n=>n+(n>1?' itens ficam':' item fica')+' fora do cálculo: a fonte marcada está vazia, '
     +'mas há custo em outra. Troque a marcação nesses itens.',
@@ -1532,7 +1547,7 @@ const T = {
   custoSalvo:n=>'Costs saved to the database: '+n+' items.',
   custoLocal:'Costs applied to this session only. Enter ADMIN to save them to the database.',
   verCustos:'View costs',
-  cstTitulo:'Cost table', cstAdd:'+ Row', cstSalvar:'Save', cstFechar:'Close',
+  cstTitulo:'Cost table', cstAdd:'Row', cstSalvar:'Save', cstFechar:'Close',
   cstSub:(n,f)=>n+' items · '+f,
   custoHint:(f,a,b,c,d)=>'Margin: (sale − quantity × unit cost) ÷ sale, matching sale to cost by '
     +'<code>SKU LIMPO</code>. The source picked per item on the <b>View costs</b> screen is what drives it. '
@@ -1629,7 +1644,7 @@ const T = {
   custoSalvoNova:n=>'Draft bases saved with '+n+' items. Nothing changed in what is in use.',
   cstGrupoTip:m=>'Drives the cost of: '+m.join(', '),
   cstDoGrupo:m=>'Value taken from '+m+' (the reference is empty for this source)',
-  cstAlerta:n=>'⚠ '+n+' with no cost',
+  cstAlerta:n=>n+' with no cost',
   cstAlertaTip:'Show only items whose ticked source is empty but that have a cost in another source.',
   cstAlertaHint:n=>n+(n>1?' items are':' item is')+' left out of the calculation: the ticked source is '
     +'empty but there is a cost in another one. Change the tick on those items.',
@@ -1731,6 +1746,60 @@ const filtered = () => {
 const el = id => document.getElementById(id);
 const set  = (id,v) => { const n = el(id); if (n) n.textContent = v; };
 const setH = (id,v) => { const n = el(id); if (n) n.innerHTML = v; };
+/* ============ iconografia: SVG de linha fina, desenhado aqui ============
+   Caixa de 24, traco de 1.25 e cor herdada do texto — nenhuma biblioteca
+   externa entra no arquivo, e o icone acompanha tema, cor do cenario e
+   estado desabilitado sozinho. Cada entrada e o miolo do <svg>. */
+const ICO = {
+  importar:'<path d="M12 3.5v9.5"/><path d="m8.4 9.6 3.6 3.6 3.6-3.6"/>'
+    +'<path d="M4.2 15v3.3a2 2 0 0 0 2 2h11.6a2 2 0 0 0 2-2V15"/>',
+  exportar:'<path d="M12 13.2V3.7"/><path d="m8.4 7.3 3.6-3.6 3.6 3.6"/>'
+    +'<path d="M4.2 15v3.3a2 2 0 0 0 2 2h11.6a2 2 0 0 0 2-2V15"/>',
+  salvar:'<path d="M4.5 6.2a2 2 0 0 1 2-2h8.7L19.5 8.5v9.3a2 2 0 0 1-2 2h-11a2 2 0 0 1-2-2Z"/>'
+    +'<path d="M8.2 4.2v4.6h6.1V4.2"/><path d="M8.2 19.8v-5.4h7.6v5.4"/>',
+  pdf:'<path d="M7 8.2V4.4a.7.7 0 0 1 .7-.7h8.6a.7.7 0 0 1 .7.7v3.8"/>'
+    +'<path d="M6.2 8.2h11.6a2 2 0 0 1 2 2v4.3a1 1 0 0 1-1 1H17"/>'
+    +'<path d="M6.2 8.2a2 2 0 0 0-2 2v4.3a1 1 0 0 0 1 1H7"/>'
+    +'<path d="M7 13.6h10v6.1a.7.7 0 0 1-.7.7H7.7a.7.7 0 0 1-.7-.7Z"/>',
+  chave:'<circle cx="8.3" cy="13.4" r="3.6"/><path d="m11.2 11.3 6.1-6.1"/>'
+    +'<path d="m15.2 7.3 1.9 1.9"/><path d="m17.3 5.2 2 2"/>',
+  sair:'<path d="M14.6 4.5h3.2a2 2 0 0 1 2 2v11a2 2 0 0 1-2 2h-3.2"/>'
+    +'<path d="M10.2 16 14.3 12l-4.1-4"/><path d="M14.3 12H4.3"/>',
+  tema:'<circle cx="12" cy="12" r="7.3"/><path d="M12 4.7v14.6a7.3 7.3 0 0 0 0-14.6Z" fill="currentColor" stroke="none"/>',
+  etiqueta:'<path d="M4.4 11.1V5.5a1 1 0 0 1 1-1h5.6a1 1 0 0 1 .7.3l7.5 7.5a1 1 0 0 1 0 1.4l-5.6 5.6a1 1 0 0 1-1.4 0L4.7 11.8a1 1 0 0 1-.3-.7Z"/>'
+    +'<circle cx="8.4" cy="8.4" r="1.15"/>',
+  mais:'<path d="M12 5.3v13.4"/><path d="M5.3 12h13.4"/>',
+  fechar:'<path d="m6.4 6.4 11.2 11.2"/><path d="m17.6 6.4-11.2 11.2"/>',
+  funil:'<path d="M4.4 5.2h15.2l-5.9 7v6.1l-3.4 1.7V12.2Z"/>',
+  alerta:'<path d="M12 4.4 20.4 19H3.6Z"/><path d="M12 10v4"/><path d="M12 16.6h.01"/>',
+  juntar:'<path d="M9.6 14.4 14.4 9.6"/>'
+    +'<path d="M13.2 7.1 15 5.3a3.6 3.6 0 0 1 5.1 5.1l-1.8 1.8"/>'
+    +'<path d="M10.8 16.9 9 18.7a3.6 3.6 0 0 1-5.1-5.1l1.8-1.8"/>',
+  soltar:'<path d="M13.6 7.4 15 6a3.6 3.6 0 0 1 5.1 5.1l-1.4 1.4"/>'
+    +'<path d="M10.4 16.6 9 18a3.6 3.6 0 0 1-5.1-5.1l1.4-1.4"/>'
+    +'<path d="M4.2 4.2 19.8 19.8"/>',
+  limpar:'<circle cx="12" cy="12" r="7.6"/><path d="m9.4 9.4 5.2 5.2"/><path d="m14.6 9.4-5.2 5.2"/>',
+  aplicar:'<path d="M12 19.3V5.6"/><path d="m7.4 10.2 4.6-4.6 4.6 4.6"/><path d="M4.6 20.3h14.8"/>',
+  voltar:'<path d="M4.5 11.2a7.6 7.6 0 1 1 1.9 5.6"/><path d="M4.4 5.4v5.8h5.8"/>',
+  tirar:'<circle cx="12" cy="12" r="7.6"/><path d="M8.6 12h6.8"/>',
+  lista:'<path d="M4.4 6.6h15.2"/><path d="M4.4 12h15.2"/><path d="M4.4 17.4h15.2"/>'
+    +'<circle cx="8.6" cy="6.6" r="1.5"/><circle cx="14.6" cy="12" r="1.5"/>'
+    +'<circle cx="10.6" cy="17.4" r="1.5"/>',
+  percento:'<path d="m6.2 17.8 11.6-11.6"/><circle cx="7.9" cy="7.9" r="2.5"/>'
+    +'<circle cx="16.1" cy="16.1" r="2.5"/>',
+  lupa:'<circle cx="10.8" cy="10.8" r="6.4"/><path d="m15.4 15.4 4.2 4.2"/>',
+  lixo:'<path d="M4.8 6.8h14.4"/><path d="M9.4 6.8V4.9a1 1 0 0 1 1-1h3.2a1 1 0 0 1 1 1v1.9"/>'
+    +'<path d="M6.6 6.8 7.5 19a1 1 0 0 0 1 .9h7a1 1 0 0 0 1-.9l.9-12.2"/>'
+    +'<path d="M10.4 10.2v6"/><path d="M13.6 10.2v6"/>',
+  trazer:'<path d="M4.3 6.4a1 1 0 0 1 1-1h4.1l1.6 2h7.7a1 1 0 0 1 1 1v9.2a1 1 0 0 1-1 1H5.3a1 1 0 0 1-1-1Z"/>'
+    +'<path d="M12 10.4v5.2"/><path d="m9.7 13.3 2.3 2.3 2.3-2.3"/>'
+};
+const ico = n => '<svg class="ico" viewBox="0 0 24 24" fill="none" stroke="currentColor"'
+  + ' stroke-width="1.25" stroke-linecap="round" stroke-linejoin="round"'
+  + ' aria-hidden="true" focusable="false">' + (ICO[n] || '') + '</svg>';
+/* rotulo com icone: o texto continua sendo o que a traducao diz */
+const setI = (id, n, txt) => setH(id, ico(n) + '<span>' + esc(txt) + '</span>');
+
 
 const tip = el('tip');
 function showTip(e, html){
@@ -1813,18 +1882,20 @@ function applyLang(){
   const L = t();
   document.documentElement.lang = S.lang==='en' ? 'en' : 'pt-BR';
   document.title = S.lang==='en' ? 'Wendell Brazil Sales' : 'Vendas Wendell Brasil';
-  set('hTitle',L.htitle); set('hSub',L.hsub); set('themeBtn',L.theme);
+  set('hTitle',L.htitle); set('hSub',L.hsub); setI('themeBtn','tema',L.theme);
   set('gTitle',L.htitle); set('gSub', L.carregando);
-  set('btnImport',L.imp); set('btnExport',L.exp); set('btnSave',L.save); set('btnPdf',L.pdf);
-  set('btnOut',L.sair); set('btnAdm', ADM ? L.admOn : L.admBtn);
+  setI('btnImport','importar',L.imp); setI('btnExport','exportar',L.exp);
+  setI('btnSave','salvar',L.save); setI('btnPdf','pdf',L.pdf);
+  setI('btnOut','sair',L.sair); setI('btnAdm','chave', ADM ? L.admOn : L.admBtn);
   set('lFilters',L.filters); set('lRep',L.rep); set('lState',L.state);
   set('lYear',L.year); set('lMonth',L.month);
   set('lGeo',L.geo); set('lGeoWh',L.geoWh); set('lGeoUf',L.geoUf);
   set('lCusto',L.custo); set('lSearch',L.search);
-  set('btnCustos',L.verCustos); set('cstTitulo',L.cstTitulo);
-  set('cstAdd',L.cstAdd); set('cstSave',L.cstSalvar); set('cstClose',L.cstFechar);
-  set('cstExp',L.cstExp); set('cstImp',L.cstImp);
-  set('cstUso',L.cstUso);
+  setI('btnCustos','etiqueta',L.verCustos); set('cstTitulo',L.cstTitulo);
+  setI('cstAdd','mais',L.cstAdd); setI('cstSave','salvar',L.cstSalvar);
+  setI('cstClose','fechar',L.cstFechar);
+  setI('cstExp','exportar',L.cstExp); setI('cstImp','importar',L.cstImp);
+  setI('cstUso','funil',L.cstUso);
   const cq = el('cstQ');
   if (cq){ cq.placeholder = L.cstBusca; cq.setAttribute('aria-label', L.cstBusca); }
   if (!el('cstModal').hidden) cstRender();
@@ -1834,7 +1905,7 @@ function applyLang(){
   set('lK8',L.k8); set('lK9',L.k9);
   set('lAdm',L.adm); set('admSub',L.admSub); set('lAdmAno',L.admAno);
   set('lAdmEq',L.admEq + ' · ' + sym()); set('lAdmAnual',L.admAnual + ' · ' + sym());
-  set('aSalvar',L.admSalvar); set('aCalc',L.admCalc);
+  setI('aSalvar','salvar',L.admSalvar); setI('aCalc','percento',L.admCalc);
   setH('admHint', L.admMoeda(sym()) + ' ' + L.admHint);
   if (ADM){ const L2 = t();
     set('lAdmMeses', L2.admMeses(el('aAno').value));
@@ -2540,7 +2611,9 @@ function cstCenBar(){
                 + (nItens ? '' : ' disabled')
                 + ' title="'+esc(g==='precos' ? L.cenAplicarPrecosTip
                                               : L.cenAplicarTip(L.cenGrupo(g+'_atual')))+'">'
-                + esc(g==='precos' ? L.cenAplicarPrecos : L.cenAplicarCurto) + '</button>' : '')
+                + ico('aplicar') + '<span>'
+                + esc(g==='precos' ? L.cenAplicarPrecos : L.cenAplicarCurto)
+                + '</span></button>' : '')
     /* adotar e acao de uso unico: traz a base do lado para a Nova daqui e se
        desmarca sozinho. Nao e um modo ligado — nada fica espelhado depois. */
     + '<label class="cen-ado" title="'+esc(L.cenAdotarTip(fonte))+'">'
@@ -2554,7 +2627,8 @@ function cstCenBar(){
   setH('cstAcoes', cenSoLeitura()
     ? '<span class="lida">'+esc(L.cenSoLeitura)+'</span>'
       + '<span class="msg">'+esc(L.cenSoLeituraMsg(L.cenNome(cenPar(CST_CEN))))+'</span>'
-    : '<button type="button" id="cstOrigemBt">'+esc(L.cenOrigem)+'</button>'
+    : '<button type="button" id="cstOrigemBt">'+ico('voltar')
+      + '<span>'+esc(L.cenOrigem)+'</span></button>'
       + '<span class="msg">'+L.cenNovaMsg(CST_CEN.slice(0,6)==='precos'
           ? L.cenAplicarPrecos : L.cenAplicarCurto)+'</span>');
 }
@@ -2569,7 +2643,8 @@ function cstGuias(){
   if (!mk) cstCenBar();
   setH('cstGuias', [['custos', L.cstGuiaCustos], ['markup', L.cstGuiaMarkup]].map(x=>
     '<button type="button" class="cst-guia" role="tab" data-t="'+x[0]+'" aria-selected="'
-    + (CST_TAB===x[0]) + '">' + esc(x[1]) + '</button>').join(''));
+    + (CST_TAB===x[0]) + '">' + ico(x[0]==='markup' ? 'percento' : 'lista')
+    + '<span>' + esc(x[1]) + '</span></button>').join(''));
 }
 /* ============ guia unica: custo do item E agrupamento na mesma tela ============
    Antes eram duas guias e o mesmo item aparecia nas duas, com informacao pela
@@ -2614,7 +2689,7 @@ function cstRender(){
   if (bA){
     bA.hidden = !falta.size;
     if (!falta.size) CST_ALERTA = false;
-    bA.textContent = L.cstAlerta(falta.size);
+    bA.innerHTML = ico('alerta') + '<span>' + esc(L.cstAlerta(falta.size)) + '</span>';
     bA.setAttribute('aria-pressed', CST_ALERTA);
     bA.title = L.cstAlertaTip;
   }
@@ -2647,9 +2722,9 @@ function cstRender(){
   const podeAgrupar = GR_SEL.length >= 2 && !refSemCusto;
   const barra = '<div class="gr-bar">'
     + '<button type="button" class="go" id="grDo"'+((podeAgrupar && !cenSoLeitura()) ? '' : ' disabled')+'>'
-    + esc(L.grAgrupar(GR_SEL.length)) + '</button>'
+    + ico('juntar') + '<span>' + esc(L.grAgrupar(GR_SEL.length)) + '</span></button>'
     + '<button type="button" id="grClr"'+(GR_SEL.length ? '' : ' disabled')+'>'
-    + esc(L.grLimpar) + '</button>'
+    + ico('limpar') + '<span>' + esc(L.grLimpar) + '</span></button>'
     + '<span class="msg">'
     + (refSemCusto ? '<b>'+esc(L.grRefSemCusto(ref))+'</b>'
        : GR_SEL.length ? L.grRefMsg(esc(ref)) : esc(L.grAjuda)) + '</span>'
@@ -2700,9 +2775,11 @@ function cstRender(){
         let tag = '';
         if (ehRef) tag = '<span class="ref">'+esc(L.grRef)+'</span> · '
           + esc(L.grComanda(mem.length))
-          + '<button type="button" data-des="'+esc(o.sku)+'">'+esc(L.grDesagrupar)+'</button>';
+          + '<button type="button" data-des="'+esc(o.sku)+'">'+ico('soltar')
+          + '<span>'+esc(L.grDesagrupar)+'</span></button>';
         else if (ehMembro) tag = '<span class="mem">→ '+esc(memDe)+'</span>'
-          + '<button type="button" data-sai="'+esc(o.sku)+'">'+esc(L.grTirar)+'</button>';
+          + '<button type="button" data-sai="'+esc(o.sku)+'">'+ico('tirar')
+          + '<span>'+esc(L.grTirar)+'</span></button>';
         else if (iSel === 0) tag = '<span class="ref">'+esc(L.grRef)+'</span>';
         else if (iSel > 0) tag = '<span class="mem">'+esc(L.grSelecionado)+'</span>';
         else if (o.venda) tag = '<span class="sv">'+esc(L.grSoVenda)+'</span>';
@@ -2819,7 +2896,7 @@ function mkRender(){
           + '<td class="num div">' + (ok ? nf4(d) : '<i>' + esc(L.mkInvalido) + '</i>') + '</td>'
           + '<td class="num mkv">' + (ok ? '<b>' + nf4(1 / d) + '</b>' : '<i>–</i>') + '</td>'
           + '<td class="rm"><button type="button" data-rm="' + i + '" title="'
-          + esc(L.mkRemover) + '">x</button></td></tr>';
+          + esc(L.mkRemover) + '">' + ico('lixo') + '</button></td></tr>';
       }).join('')
       : '<tr><td class="empty" colspan="10" style="padding:14px;color:var(--ink-3)">'
         + esc(L.mkVazio) + '</td></tr>')
