@@ -834,8 +834,8 @@ footer{font-size:10.5px;color:var(--ink-3);text-align:center;padding:2px 0 0;lin
         <div class="fgrp" id="grpCusto" hidden><span class="lb" id="lCusto"></span>
           <div style="display:flex;gap:7px;align-items:center">
             <div class="pills" id="fCusto"></div>
-            <button type="button" class="vercustos no-print" id="btnCustos" hidden></button>
             <a class="vercustos no-print" href="https://textilegroup.github.io/wendell-custos/" target="_blank" rel="noopener">Matriz de Custos</a>
+            <button type="button" class="vercustos no-print" id="btnMarkup">Markup</button>
           </div>
         </div>
         <div class="fgrp grow"><label for="fQ" id="lSearch"></label><input type="search" id="fQ"></div>
@@ -1295,7 +1295,7 @@ const T = {
   custoSalvo:n=>'Custos gravados no banco: '+n+' itens.',
   custoLocal:'Custos aplicados nesta sessão. Entre em ADM para gravar no banco.',
   verCustos:'Ver custos',
-  cstTitulo:'Tabela de custos', cstAdd:'+ Linha', cstSalvar:'Salvar', cstFechar:'Fechar',
+  cstTitulo:'Markup', cstAdd:'+ Linha', cstSalvar:'Salvar', cstFechar:'Fechar',
   cstSub:(n,f)=>n+' itens · '+f,
   cstItem:'ID limpo',
   cstTodas:'todas', cstTodasTip:f=>'Usar '+f+' em todos os itens listados',
@@ -1534,7 +1534,7 @@ const T = {
   custoSalvo:n=>'Costs saved to the database: '+n+' items.',
   custoLocal:'Costs applied to this session only. Enter ADMIN to save them to the database.',
   verCustos:'View costs',
-  cstTitulo:'Cost table', cstAdd:'+ Row', cstSalvar:'Save', cstFechar:'Close',
+  cstTitulo:'Markup', cstAdd:'+ Row', cstSalvar:'Save', cstFechar:'Close',
   cstSub:(n,f)=>n+' items · '+f,
   custoHint:(f,a,b,c,d)=>'Margin: (sale − quantity × unit cost) ÷ sale, matching sale to cost by '
     +'<code>SKU LIMPO</code>. The source picked per item on the <b>View costs</b> screen is what drives it. '
@@ -1821,7 +1821,7 @@ function applyLang(){
   set('lYear',L.year); set('lMonth',L.month);
   set('lGeo',L.geo); set('lGeoWh',L.geoWh); set('lGeoUf',L.geoUf);
   set('lCusto',L.custo); set('lSearch',L.search);
-  set('btnCustos',L.verCustos); set('cstTitulo',L.cstTitulo);
+  set('btnMarkup',L.cstGuiaMarkup); set('cstTitulo',L.cstTitulo);
   set('cstAdd',L.cstAdd); set('cstSave',L.cstSalvar); set('cstClose',L.cstFechar);
   set('cstExp',L.cstExp); set('cstImp',L.cstImp);
   set('cstUso',L.cstUso);
@@ -2422,354 +2422,30 @@ function spark(id, vals, hi){
     '<i class="'+(i===hi?'on':'')+'" style="height:'+Math.max(6,Math.abs(v)/max*100)+'%"></i>').join(''));
 }
 
-/* ---------- tela de custos: uma guia por fonte, celulas simples ----------
-   Nao e uma planilha de verdade: so linhas e colunas para conferir e digitar.
-   O estado editado fica em CST_EDIT ate o botao Salvar. */
-/* CST_PAD: indice da fonte padrao — vale para linha nova e para item que
-   porventura fique sem escolha. As guias agora sao Custos / Agrupamento.
-   CST_GRUPOS e a copia editavel dos grupos; GR_SEL guarda a selecao da guia
-   de agrupamento NA ORDEM DE CLIQUE — o primeiro e a referencia. */
-let CST_EDIT = null, CST_PAD = 0, CST_Q = '', CST_USO = false;
-let CST_TAB = 'custos', CST_GRUPOS = {}, GR_SEL = [], CST_ALERTA = false;
-/* ha custo aplicado no dashboard que ainda nao foi gravado no banco */
-let CST_SUJO = false;
-/* mapa membro->referencia da copia em edicao (nao mexe no GRP_DE global) */
-function cstGrpDe(){
-  const m = {};
-  Object.keys(CST_GRUPOS).forEach(ref=>{
-    m[normSku(ref)] = ref;
-    (CST_GRUPOS[ref] || []).forEach(x=>{ if (x !== ref) m[normSku(x)] = ref; });
-  });
-  return m;
-}
-/* indices das linhas visiveis agora: e sobre elas que o botao "todas" age */
-let CST_VIS = [];
-const cstNum = v => {
-  const x = String(v == null ? '' : v).trim().replace(/\s/g,'');
-  if (!x) return 0;
-  const y = (x.indexOf(',') >= 0 && x.indexOf('.') >= 0) ? x.replace(/\./g,'').replace(',','.')
-          : x.replace(',','.');
-  return cst4(parseFloat(y));   /* 4 casas: o que aparece e o que calcula */
-};
-const cstTxt = v => !v ? '' : (S.lang==='en' ? String(v) : String(v).replace('.',','));
-/* ============ os quatro cenarios de custo ============
-   relatorio_atual / relatorio_nova -> margem do relatorio
-   precos_atual    / precos_nova    -> custo da tabela de precos
-   "Atual" e o que esta valendo: so leitura. "Nova" e rascunho: edita, salva,
-   e o botao Aplicar promove a Nova sobre a Atual, com confirmacao. */
-const CENARIOS = ['relatorio_atual','relatorio_nova','precos_atual','precos_nova'];
-const cenNova = c => c.slice(-5) === '_nova';
-const cenPar  = c => cenNova(c) ? c.replace('_nova','_atual') : c.replace('_atual','_nova');
-function cenVazio(){
-  return {fontes: FONTES.slice(), itens:{}, fixos:{}, grupos:{},
-          padrao: FONTES[0], arquivo:'', itens_origem:{}};
-}
-/* base de cada cenario, como veio do banco; o que esta na tela e o CST_EDIT */
-let CST_BASES = {}, CST_CEN = 'relatorio_nova';   /* abre no rascunho, que e onde se trabalha */
-/* Lista de precos adotando os custos e o agrupamento de Relatorios: enquanto
-   ligado, as duas bases de precos espelham as de relatorio e nao sao editaveis.
-   A base propria de precos continua guardada no banco — desligar devolve ela. */
-/* '' = cada grupo com a sua base. 'precos' = a Lista de precos adota a base de
-   Relatorios; 'relatorio' = o contrario. Nunca os dois: o valor guarda QUEM
-   adota. Quem adota mostra a base do outro, somente leitura, e a sua propria
-   continua gravada no banco — desmarcar devolve ela, intacta. */
-let ESPELHO = '';
-const cenGrp   = c => c.slice(0,9) === 'relatorio' ? 'relatorio' : 'precos';
-const cenOutro = g => g === 'precos' ? 'relatorio' : 'precos';
-const cenEspelhado = c => !!ESPELHO && cenGrp(c) === ESPELHO;
-/* de qual base o cenario le de fato */
-const cenFonte = c => cenEspelhado(c)
-  ? cenOutro(ESPELHO) + c.slice(cenGrp(c).length) : c;
-const cenAtualObj = () => CST_BASES[cenFonte(CST_CEN)] || cenVazio();
-const cenSoLeitura = () => !cenNova(CST_CEN) || cenEspelhado(CST_CEN);
-/* guarda o que esta na tela de volta na base do cenario (so em memoria) */
-function cstGuarda(){
-  if (!CST_EDIT || cenSoLeitura()) return;   /* inclui o caso espelhado */
-  const c = cstColeta();
-  const b = CST_BASES[CST_CEN] || (CST_BASES[CST_CEN] = cenVazio());
-  b.itens = c.itens; b.fixos = c.fixos; b.grupos = c.grupos;
-  b.padrao = CUSTOS.fontes[CST_PAD] || b.padrao;
-}
-/* joga a base do cenario na tela */
-function cstCarrega(cen){
-  CST_CEN = cen;
-  const src = cenFonte(cen);
-  const b = CST_BASES[src] || (CST_BASES[src] = cenVazio());
-  const padCen = (CUSTOS.fontes.indexOf(b.padrao) >= 0 && b.padrao) || CUSTOS.fontes[0];
-  CST_EDIT = Object.keys(b.itens).sort().map(k=>({
-    sku: k, v: CUSTOS.fontes.map((f,i)=> cst4((b.itens[k]||[])[i])),
-    /* sem escolha gravada, o item segue a fonte padrao do cenario */
-    fixo: (CUSTOS.fontes.indexOf((b.fixos||{})[k]) >= 0 ? b.fixos[k] : padCen)
-  }));
-  CST_GRUPOS = {};
-  Object.keys(b.grupos || {}).forEach(ref=>{
-    const mem = (b.grupos[ref] || []).filter(m=>m !== ref);
-    if (mem.length) CST_GRUPOS[ref] = mem.slice();
-  });
-  GR_SEL = [];
-  CST_PAD = Math.max(0, CUSTOS.fontes.indexOf(b.padrao || S.custo));
-  CST_TAB = 'custos'; CST_Q = ''; CST_USO = false; CST_ALERTA = false;
-  const q = el('cstQ'); if (q) q.value = '';
-  el('cstUso').setAttribute('aria-pressed','false');
-}
+/* A edição de custo (COGS/LANDED) saiu daqui: agora vive só no app
+   wendell-custos, que grava direto no Supabase (wgi_painel_custos).
+   O que resta aqui é o Markup — cenários de venda por origem/destino,
+   guardados em wgi_markups — e a leitura (só leitura) do custo que
+   vem de lá para calcular a margem do dashboard. */
+let CST_TAB = 'markup';
 function cstAbrir(){
-  if (!ADM || !temCustos()) return;
-  /* sem os quatro cenarios no banco (versao antiga), o que ha e o relatorio */
-  if (!CST_BASES.relatorio_atual){
-    CST_BASES.relatorio_atual = {fontes:CUSTOS.fontes.slice(), itens:CUSTOS.itens,
-      fixos:CUSTOS.fixos, grupos:CUSTOS.grupos, padrao:CUSTOS.padrao,
-      arquivo:CUSTOS.arquivo, itens_origem:CUSTOS.itens};
-  }
-  CENARIOS.forEach(c=>{ if (!CST_BASES[c]) CST_BASES[c] =
-    JSON.parse(JSON.stringify(CST_BASES.relatorio_atual)); });
-  cstCarrega(CST_CEN);
+  if (!ADM) return;
+  CST_TAB = 'markup';
   el('cstModal').hidden = false;
   cstRender();
 }
-/* barra dos cenarios */
-function cstCenBar(){
-  const L = t();
-  /* dois blocos separados: o nome do grupo aparece uma vez so, e as duas bases
-     ficam dentro dele — assim nao parecem quatro abas do mesmo conjunto */
-  const grupo = g => {
-    const aberto = CST_CEN === g+'_nova';
-    const nItens = Object.keys(((CST_BASES[g+'_nova']||{}).itens) || {}).length;
-    /* bloco aberto = o que contem o cenario selecionado, em qualquer das duas bases */
-    const meu = CST_CEN === g+'_atual' || aberto;
-    const esp = ESPELHO === g;          /* este bloco adota o do lado */
-    const fonte = L.cenGrupo(cenOutro(g)+'_atual');
-    return '<div class="cen-gr'+(meu ? ' ativo' : '')+(esp ? ' espelho' : '')+'">'
-    + '<span class="cen-lb">'+esc(L.cenGrupo(g+'_atual'))+'</span>'
-    + [g+'_atual', g+'_nova'].map(c=>
-        '<button type="button" role="tab" data-c="'+c+'"'
-        + ' aria-selected="'+(CST_CEN===c)+'">'+esc(L.cenNome(c))+'</button>').join('')
-    /* o Aplicar nasce ao lado da Nova aberta: nao ha duvida de qual par ele age.
-       Adotando Relatorios nao ha o que aplicar: o conteudo nem e desta base */
-    /* no grupo Lista de precos o botao diz para onde vai: e ele que troca os
-       custos do HTML da tabela de precos, nao so a base daqui */
-    + (aberto && !esp ? '<button type="button" class="apl'+(g==='precos'?' pub':'')+'" id="cstAplicarBt"'
-                + (nItens ? '' : ' disabled')
-                + ' title="'+esc(g==='precos' ? L.cenAplicarPrecosTip
-                                              : L.cenAplicarTip(L.cenGrupo(g+'_atual')))+'">'
-                + esc(g==='precos' ? L.cenAplicarPrecos : L.cenAplicarCurto) + '</button>' : '')
-    /* adotar mora dentro do bloco que adota: o texto diz de quem */
-    + '<label class="cen-ado'+(esp ? ' on' : '')+'" title="'+esc(L.cenAdotarTip(fonte))+'">'
-    + '<input type="checkbox" data-ado="'+g+'"'+(esp ? ' checked' : '')+'>'
-    + '<span>'+esc(L.cenAdotar(fonte))+'</span></label>'
-    + '</div>';
-  };
-  setH('cstCen', grupo('relatorio') + grupo('precos'));
-  /* verde = base em uso; vermelho = rascunho ainda nao aplicado */
-  el('cstModal').classList.toggle('cen-nova', cenNova(CST_CEN));
-  const fnt = L.cenGrupo(cenOutro(cenGrp(CST_CEN))+'_atual');
-  setH('cstAcoes', cenEspelhado(CST_CEN)
-    ? '<span class="lida esp">'+esc(L.cenAdotado(fnt))+'</span>'
-      + '<span class="msg">'+L.cenAdotadoMsg(fnt)+'</span>'
-    : cenSoLeitura()
-    ? '<span class="lida">'+esc(L.cenSoLeitura)+'</span>'
-      + '<span class="msg">'+esc(L.cenSoLeituraMsg(L.cenNome(cenPar(CST_CEN))))+'</span>'
-    : '<button type="button" id="cstOrigemBt">'+esc(L.cenOrigem)+'</button>'
-      + '<span class="msg">'+L.cenNovaMsg(CST_CEN.slice(0,6)==='precos'
-          ? L.cenAplicarPrecos : L.cenAplicarCurto)+'</span>');
-}
-/* as duas guias do modal */
+/* so existe a guia Markup agora; o resto do modal (cenarios, filtro) era
+   so de Custos, que saiu daqui — fica sempre escondido */
 function cstGuias(){
-  const L = t();
-  /* o markup e unico e global: nao pertence a nenhuma das quatro bases de
-     custo, entao a barra de cenarios e o filtro de itens somem nessa guia */
-  const mk = CST_TAB === 'markup';
-  el('cstCen').hidden = mk; el('cstAcoes').hidden = mk;
-  document.querySelector('.cst-fil').hidden = mk;
-  if (!mk) cstCenBar();
-  setH('cstGuias', [['custos', L.cstGuiaCustos], ['markup', L.cstGuiaMarkup]].map(x=>
-    '<button type="button" class="cst-guia" role="tab" data-t="'+x[0]+'" aria-selected="'
-    + (CST_TAB===x[0]) + '">' + esc(x[1]) + '</button>').join(''));
+  el('cstCen').hidden = true; el('cstAcoes').hidden = true;
+  document.querySelector('.cst-fil').hidden = true;
+  setH('cstGuias', '<button type="button" class="cst-guia" role="tab" aria-selected="true">'
+    + esc(t().cstGuiaMarkup) + '</button>');
 }
-/* ============ guia unica: custo do item E agrupamento na mesma tela ============
-   Antes eram duas guias e o mesmo item aparecia nas duas, com informacao pela
-   metade em cada. Agora e uma lista so: cada linha traz as quatro fontes com o
-   radio que escolhe a que vale, a caixinha que seleciona o item para agrupar e,
-   a direita, em que grupo ele esta. Item que virou membro de um grupo continua
-   na lista — antes ele sumia — em segundo plano, porque quem manda no custo do
-   grupo e a referencia. */
 function cstRender(){
   cstGuias();
   cstBotoesTopo();
-  if (CST_TAB === 'markup') return mkRender();
-  /* cenario "Atual" e retrato do que esta valendo: nada e editavel nele */
-  const RO = cenSoLeitura() ? ' disabled' : '', ROT = cenSoLeitura() ? ' readonly' : '';
-  const L = t(), f = CUSTOS.fontes[CST_PAD] || '';
-  const gd = cstGrpDe();
-  const usados = new Set(R.filter(r=>r.st==='I' && r.sku).map(r=>custoKey(r.sku)).filter(Boolean));
-  const vendidos = new Set(R.filter(r=>r.st==='I' && r.sku).map(r=>normSku(r.sku)).filter(Boolean));
-  /* SKU que aparece nas vendas e nao tem custo cadastrado: e justamente o que
-     se quer agrupar (venda "6A40PA 0100" x custo "6A40PAEA 0100"). Entra na
-     lista como linha sem valores — pode ser membro, nunca referencia. */
-  const comCusto = new Set(CST_EDIT.map(o=>normSku(o.sku)).filter(Boolean));
-  const soVenda = [], jaVi = new Set();
-  R.forEach(r=>{
-    const n = normSku(r.sku); if (!n || comCusto.has(n) || jaVi.has(n)) return;
-    jaVi.add(n);
-    soVenda.push({sku: r.sku0 || r.sku, venda:true, v:null, fixo:''});
-  });
-  soVenda.sort((a,b)=>a.sku.localeCompare(b.sku));
-  /* [item, indice em CST_EDIT] — indice -1 para o SKU so-de-venda, que nao
-     existe na tabela de custos e por isso nao tem celula editavel */
-  const base = CST_EDIT.map((o,i)=>[o,i]).concat(soVenda.map(o=>[o,-1]));
-  /* itens cuja fonte marcada esta vazia mas que TEM custo em outra fonte:
-     ficam de fora do calculo sem precisar — o botao de alerta isola eles */
-  const falta = new Set();
-  base.forEach(x=>{
-    if (x[1] < 0 || gd[normSku(x[0].sku)]) return;   /* membro nao manda no custo */
-    const fa = cstFalta(x[0]);
-    if (fa && fa.outras.length) falta.add(x[1]);
-  });
-  const bA = el('cstAlerta');
-  if (bA){
-    bA.hidden = !falta.size;
-    if (!falta.size) CST_ALERTA = false;
-    bA.textContent = L.cstAlerta(falta.size);
-    bA.setAttribute('aria-pressed', CST_ALERTA);
-    bA.title = L.cstAlertaTip;
-  }
-  /* o filtro compara pela chave (sem espaco, maiuscula) e alcanca o grupo
-     inteiro: digitar o codigo de um membro deixa a referencia na tela tambem,
-     que e o que permite conferir o par antes de agrupar */
-  const q = normSku(CST_Q);
-  const casa = o => {
-    const n = normSku(o.sku);
-    if (n.indexOf(q) >= 0) return true;
-    if ((CST_GRUPOS[o.sku] || []).some(m=>normSku(m).indexOf(q) >= 0)) return true;
-    const r = gd[n];
-    return !!r && (normSku(r).indexOf(q) >= 0
-      || (CST_GRUPOS[r] || []).some(m=>normSku(m).indexOf(q) >= 0));
-  };
-  const vis = base.filter(x=>
-    (!q || casa(x[0]))
-    && (!CST_USO || usados.has(x[0].sku) || vendidos.has(normSku(x[0].sku)))
-    && (!CST_ALERTA || falta.has(x[1])));
-  const nGrupos = Object.keys(CST_GRUPOS).length;
-  set('cstSub', L.cstSubMix(CST_EDIT.length, nGrupos, Object.keys(gd).length - nGrupos,
-                            CUSTOS.arquivo || f));
-  set('cstCnt', L.cstCnt(vis.length, base.length));
-  /* "todas" so age sobre quem de fato manda no proprio custo */
-  CST_VIS = vis.filter(x=>x[1] >= 0 && !gd[normSku(x[0].sku)]).map(x=>x[1]);
-
-  /* ---- barra de agrupar, fixa no topo da lista ---- */
-  const ref = GR_SEL[0] || '';
-  const refSemCusto = !!ref && !comCusto.has(normSku(ref));
-  const podeAgrupar = GR_SEL.length >= 2 && !refSemCusto;
-  const barra = '<div class="gr-bar">'
-    + '<button type="button" class="go" id="grDo"'+((podeAgrupar && !cenSoLeitura()) ? '' : ' disabled')+'>'
-    + esc(L.grAgrupar(GR_SEL.length)) + '</button>'
-    + '<button type="button" id="grClr"'+(GR_SEL.length ? '' : ' disabled')+'>'
-    + esc(L.grLimpar) + '</button>'
-    + '<span class="msg">'
-    + (refSemCusto ? '<b>'+esc(L.grRefSemCusto(ref))+'</b>'
-       : GR_SEL.length ? L.grRefMsg(esc(ref)) : esc(L.grAjuda)) + '</span>'
-    + (soVenda.length ? '<span class="msg" style="margin-left:auto">'
-        + esc(L.grSoVendaCnt(soVenda.length)) + '</span>' : '')
-    + '</div>';
-
-  /* cabecalho: uma coluna por fonte, com o botao que aplica aquela fonte a
-     todos os itens listados logo acima do nome */
-  const cabFontes = CUSTOS.fontes.map((x,i)=>
-    '<th class="cc"><div class="cch">'
-    + '<button type="button" class="fs-all" data-f="'+i+'" title="'+esc(L.cstTodasTip(x))+'"'
-    + RO + '>' + esc(L.cstTodas)+'</button><span>'+esc(x)+'</span></div></th>').join('');
-
-  setH('cstGrid', barra
-    + '<table class="cst mrg"><thead><tr><th class="gck"></th><th>'+esc(L.cstItem)+'</th>'
-    + cabFontes
-    + '<th class="num">'+esc(L.cstUsado)+'</th>'
-    + '<th class="gtag">'+esc(L.grSituacao)+'</th></tr></thead><tbody>'
-    + (vis.length ? vis.map(x=>{
-        const o = x[0], i = x[1];
-        const memDe = gd[normSku(o.sku)] || '';          /* referencia que comanda */
-        const ehMembro = !!memDe && memDe !== o.sku;
-        const mem = CST_GRUPOS[o.sku] || [];
-        const ehRef = mem.length > 0;
-        const iSel = GR_SEL.indexOf(o.sku);
-        const ef = i >= 0 ? cstVef(o) : null;
-        /* radio + valor na mesma celula: a fonte marcada e a que manda.
-           No membro o radio fica travado — quem escolhe a fonte do grupo e a
-           referencia —, mas os valores continuam abertos, porque fonte que a
-           referencia tem zerada e preenchida pelo membro. */
-        const cel = (fn,j) => {
-          if (i < 0) return '<td class="cc vazio">–</td>';
-          const herd = ef.de[j] && ef.de[j] !== o.sku && +ef.v[j] > 0;
-          return '<td class="cc'+((o.fixo===fn && !ehMembro) ? ' sel' : '')+(herd ? ' herd' : '')
-          + '" data-cc="'+i+'-'+j+'"><div class="ccw">'
-          + '<input type="radio" name="fs'+i+'" data-i="'+i+'"'
-          + ' title="'+esc(ehMembro ? L.cstFonteDoGrupo(memDe) : L.cstTodasTip(fn))+'"'
-          + ' value="'+esc(fn)+'"' + (o.fixo===fn ? ' checked' : '')
-          + ((ehMembro || cenSoLeitura()) ? ' disabled' : '') + '>'
-          + '<input class="num" data-i="'+i+'" data-k="v" data-f="'+j+'"'
-          + ' value="'+esc(cstTxt(o.v[j]))+'"' + ROT
-          + (herd ? ' placeholder="'+esc(cstTxt(ef.v[j]))+'" title="'
-                    + esc(L.cstDoGrupo(ef.de[j]))+'"' : '')
-          + '></div></td>';
-        };
-        /* situacao: em que grupo o item esta, e como sair dele */
-        let tag = '';
-        if (ehRef) tag = '<span class="ref">'+esc(L.grRef)+'</span> · '
-          + esc(L.grComanda(mem.length))
-          + '<button type="button" data-des="'+esc(o.sku)+'">'+esc(L.grDesagrupar)+'</button>';
-        else if (ehMembro) tag = '<span class="mem">→ '+esc(memDe)+'</span>'
-          + '<button type="button" data-sai="'+esc(o.sku)+'">'+esc(L.grTirar)+'</button>';
-        else if (iSel === 0) tag = '<span class="ref">'+esc(L.grRef)+'</span>';
-        else if (iSel > 0) tag = '<span class="mem">'+esc(L.grSelecionado)+'</span>';
-        else if (o.venda) tag = '<span class="sv">'+esc(L.grSoVenda)+'</span>';
-        const cls = ['cst-l'];
-        if (iSel === 0) cls.push('gr-ref'); else if (iSel > 0) cls.push('gr-sel');
-        else if (ehMembro) cls.push('gr-in');
-        if (o.venda) cls.push('gr-venda');
-        if (usados.has(o.sku)) cls.push('usada');
-        if (o.fixo && !ehMembro) cls.push('fixa');
-        const selo = ehRef
-          ? '<span class="gsel" title="'+esc(L.cstGrupoTip(mem))+'">+'+mem.length+'</span>' : '';
-        return '<tr class="'+cls.join(' ')+'">'
-          + '<td class="gck"><input type="checkbox" data-g="'+esc(o.sku)+'"'
-          + (iSel >= 0 ? ' checked' : '')
-          + ((ehMembro || cenSoLeitura()) ? ' disabled' : '') + '></td>'
-          + (i < 0
-             ? '<td class="gsku">'+esc(o.sku)+'</td>'
-             : '<td><div class="skuw"><input data-i="'+i+'" data-k="sku" value="'+esc(o.sku)
-               + '" spellcheck="false"' + ROT
-               + ((ehRef || ehMembro) ? ' readonly title="'+esc(L.cstIdTravado)+'"' : '')
-               + '>' + selo + '</div></td>')
-          + CUSTOS.fontes.map(cel).join('')
-          + (i < 0 || ehMembro
-             ? '<td class="uso"><i>–</i></td>'
-             : '<td class="uso" data-uso="'+i+'">'+cstUsoTxt(o, ef)+'</td>')
-          + '<td class="gtag">'+tag+'</td></tr>';
-      }).join('')
-      : '<tr><td class="empty" colspan="'+(CUSTOS.fontes.length+4)+'"'
-        + ' style="padding:14px;color:var(--ink-3)">' + esc(L.cstVazio) + '</td></tr>')
-    + '</tbody></table>');
-  /* a barra de acoes muda de altura conforme a mensagem: mede e avisa o
-     cabecalho grudento onde ele deve parar */
-  const bar = el('cstGrid').querySelector('.gr-bar');
-  el('cstGrid').style.setProperty('--grbar', (bar ? bar.offsetHeight : 44) + 'px');
-  const nfx = CST_EDIT.filter(o=>o.fixo).length;
-  setH('cstHint', L.cstHint(f) + (nfx ? ' <b>· '+esc(L.cstFixos(nfx))+'</b>' : '')
-    + (falta.size ? ' <b class="av">· '+esc(L.cstAlertaHint(falta.size))+'</b>' : ''));
-}
-/* custo que vale para o item: exatamente a fonte escolhida nele. Sem valor
-   naquela fonte, o item fica sem custo — nao ha mais troca automatica. */
-/* vetor efetivo da linha da tela: o proprio item, completado pelo grupo */
-function cstVef(o){
-  if (!o || !o.v) return {v: CUSTOS.fontes.map(()=>0), de: []};
-  if (!CST_GRUPOS[o.sku]) return {v:o.v, de: CUSTOS.fontes.map(()=>o.sku)};
-  const it = {}; CST_EDIT.forEach(x=>{ if (x.sku) it[x.sku] = x.v; });
-  return custosDoGrupo(o.sku, it, CST_GRUPOS);
-}
-function cstEfetivo(o, vef){
-  const e = vef || cstVef(o);
-  const fx = o.fixo ? CUSTOS.fontes.indexOf(o.fixo) : -1;
-  const i = fx >= 0 ? fx : CST_PAD;
-  return {u: +e.v[i] || 0, src: CUSTOS.fontes[i], fixo: fx >= 0,
-          de: (e.de && e.de[i] !== o.sku) ? e.de[i] : ''};
+  mkRender();
 }
 
 /* ============ guia Markup ============
@@ -2875,453 +2551,31 @@ async function mkSalvar(){
   toast(L.mkSalvo((d && d.cenarios) || lim.length));
 }
 
-/* ============ guia Agrupamento de itens ============
-   Agrupa SKUs que sao o mesmo produto com sufixo diferente
-   (6A40PA0100 / 6A40PAEA0100). O PRIMEIRO item marcado e a REFERENCIA: e o
-   custo dele que passa a valer para todos os outros do grupo, tanto na guia
-   Custos quanto no calculo da margem. O filtro de cima vai estreitando a
-   lista a cada caractere digitado, que e como se acha o conjunto a agrupar. */
-/* marcar/desmarcar preservando a ORDEM: o primeiro marcado e a referencia */
-function grToggle(sku){
-  const i = GR_SEL.indexOf(sku);
-  if (i >= 0) GR_SEL.splice(i, 1); else GR_SEL.push(sku);
-  cstRender();
-}
-function grAgrupar(){
-  if (GR_SEL.length < 2) return;
-  const ref = GR_SEL[0];
-  /* a referencia tem de ter custo: e dela que sai o valor do grupo */
-  if (!CST_EDIT.some(o=>o.sku && normSku(o.sku) === normSku(ref))){
-    toast(t().grRefSemCusto(ref), true); return;
-  }
-  const mem = GR_SEL.slice(1).filter(x=>x !== ref);
-  if (!mem.length) return;
-  /* referencia nova absorve grupo que algum selecionado ja comandava */
-  const juntos = new Set(mem);
-  mem.forEach(m=>{ (CST_GRUPOS[m] || []).forEach(x=>{ if (x !== ref) juntos.add(x); }); });
-  mem.forEach(m=>delete CST_GRUPOS[m]);
-  (CST_GRUPOS[ref] || []).forEach(x=>{ if (x !== ref) juntos.add(x); });
-  CST_GRUPOS[ref] = [...juntos];
-  GR_SEL = [];
-  cstRender();
-  cstAplicar();   /* agrupar muda o custo das vendas dos membros */
-}
-function grDesagrupar(ref){
-  delete CST_GRUPOS[ref]; GR_SEL = []; cstRender(); cstAplicar();
-}
-function grTirar(sku){
-  const gd = cstGrpDe(), ref = gd[normSku(sku)];
-  if (!ref || ref === sku) return;
-  const mem = (CST_GRUPOS[ref] || []).filter(x=>x !== sku);
-  if (mem.length) CST_GRUPOS[ref] = mem; else delete CST_GRUPOS[ref];
-  cstRender();
-  cstAplicar();
-}
-/* Salvar, + Linha e Importar so existem nos cenarios "Nova" */
 function cstBotoesTopo(){
-  const mk = CST_TAB === 'markup';
-  const ro = cenSoLeitura();
-  /* no markup sempre da para salvar; Importar e Exportar sao de custos */
-  const b1 = el('cstSave'); if (b1) b1.hidden = mk ? false : ro;
-  const b2 = el('cstAdd');  if (b2) b2.hidden = mk ? false : ro;
-  const b3 = el('cstImp');  if (b3) b3.hidden = mk ? true  : ro;
-  const b4 = el('cstExp');  if (b4) b4.hidden = mk;
+  const b1 = el('cstSave'); if (b1) b1.hidden = false;
+  const b2 = el('cstAdd');  if (b2) b2.hidden = false;
+  const b3 = el('cstImp');  if (b3) b3.hidden = true;
+  const b4 = el('cstExp');  if (b4) b4.hidden = true;
 }
-/* liga/desliga a adocao dos custos de Relatorios pela Lista de precos */
-el('cstCen').addEventListener('change', async e=>{
-  const g = e.target.dataset && e.target.dataset.ado; if (!g) return;
-  const lig = e.target.checked, L = t();
-  if (!cenEspelhado(CST_CEN)) cstGuarda();
-  /* so um dos dois pode estar ligado: guardar QUEM adota ja garante isso */
-  ESPELHO = lig ? g : '';
-  cstCarrega(CST_CEN);          /* recarrega ja pela base certa */
-  cstRender(); cstPreview();
-  if (SB_ON){
-    try{ await sbRpc('wgi_painel_prefs_gravar',
-           {p_chave:'espelho_custos', p_valor: ESPELHO}); }
-    catch(err){ toast(t().impErr + (err && err.message ? err.message : err), true); }
-  }
-  const eu = L.cenGrupo(g+'_atual'), fonte = L.cenGrupo(cenOutro(g)+'_atual');
-  toast(lig ? L.cenAdotarOk(eu, fonte) : L.cenAdotarOff(eu));
-});
-/* troca de cenario: guarda o rascunho atual e carrega o outro */
-el('cstCen').addEventListener('click', e=>{
-  const b = e.target.closest('button'); if (!b) return;
-  if (b.id === 'cstAplicarBt'){ cstAplicarAgora(b); return; }
-  const c = b.dataset.c; if (!c || c === CST_CEN) return;
-  cstGuarda();
-  cstCarrega(c);
-  cstRender();
-  cstPreview();
-});
-/* Aplicar: promove a Nova sobre a Atual do mesmo par, com confirmacao */
-el('cstAcoes').addEventListener('click', async e=>{
-  const b = e.target.closest('button'); if (!b) return;
-  const L = t();
-  if (b.id === 'cstOrigemBt'){
-    const org = (cenAtualObj().itens_origem) || {};
-    if (!Object.keys(org).length){ toast(L.cenSemOrigem, true); return; }
-    if (!confirm(L.cenOrigemConf)) return;
-    /* devolve so os VALORES do arquivo; marcacao e grupos ficam */
-    let n = 0;
-    CST_EDIT.forEach(o=>{
-      const k = Object.keys(org).find(x=>normSku(x) === normSku(o.sku));
-      if (!k) return;
-      o.v = CUSTOS.fontes.map((f,i)=>cst4(org[k][i])); n++;
-    });
-    cstRender(); cstPreview();
-    toast(L.cenOrigemOk(n));
-    return;
-  }
-});
-/* promove o rascunho aberto sobre a base em uso do mesmo par */
-async function cstAplicarAgora(btn){
-  const L = t(), alvo = cenPar(CST_CEN), prec = CST_CEN.slice(0,6) === 'precos';
-  if (cenSoLeitura()) return;
-  if (!confirm(prec ? L.cenAplicarPrecosConf
-                    : L.cenAplicarConf(L.cenGrupo(CST_CEN), L.cenNome(CST_CEN), L.cenNome(alvo)))) return;
-  cstGuarda();
-  if (btn) btn.disabled = true;
-  try{
-    /* grava o rascunho e so entao promove, para aplicar o que esta na tela */
-    await cstSalvarCenario(CST_CEN);
-    if (SB_ON){
-      const d = await sbRpc('wgi_painel_aplicar_custos', {p_de: CST_CEN, p_para: alvo});
-      CST_BASES[alvo] = JSON.parse(JSON.stringify(CST_BASES[CST_CEN]));
-      toast(prec ? L.cenAplicarPrecosOk((d && d.itens) || '')
-                 : L.cenAplicarOk(L.cenGrupo(alvo), (d && d.itens) || ''));
-    } else {
-      CST_BASES[alvo] = JSON.parse(JSON.stringify(CST_BASES[CST_CEN]));
-      toast(L.custoLocal);
-    }
-    if (alvo === 'relatorio_atual') cenParaCUSTOS('relatorio_atual');
-    cstRender(); cstPreview();
-  } catch(err){ toast(t().impErr + (err && err.message ? err.message : err), true); }
-  finally { if (btn) btn.disabled = false; }
-}
-/* joga a base de um cenario no CUSTOS global (o que o dashboard calcula) */
-function cenParaCUSTOS(cen){
-  const b = CST_BASES[cenFonte(cen)]; if (!b) return;
-  CUSTOS = {fontes: CUSTOS.fontes, itens: b.itens, fixos: b.fixos, grupos: b.grupos,
-            arquivo: b.arquivo, padrao: b.padrao};
-  garantirFontes();
-}
-/* o dashboard mostra o relatorio_atual; estando numa aba de relatorio, mostra
-   o que ela tem, para a simulacao aparecer nos graficos */
-function cstPreview(){
-  /* o dashboard calcula com Relatorios; se Relatorios adota a Lista de precos,
-     quem manda e a base de precos — e e a aba dela que serve de previa */
-  const gd = ESPELHO === 'relatorio' ? 'precos' : 'relatorio';
-  const cen = cenGrp(CST_CEN) === gd ? CST_CEN : gd + '_atual';
-  if (cenNova(cen)) cstGuarda();
-  cenParaCUSTOS(cen);
-  CST_SUJO = cenNova(cen);
-  render();
-  cstMarcaSujo();
-}
-el('cstGuias').addEventListener('click', e=>{
-  const b = e.target.closest('button'); if (!b) return;
-  if (CST_TAB === b.dataset.t) return;
-  CST_TAB = b.dataset.t; GR_SEL = []; CST_ALERTA = false;
-  CST_Q = ''; el('cstQ').value = '';
-  cstRender();
-});
-el('cstGrid').addEventListener('change', e=>{
-  const n = e.target;
-  if (n.type === 'checkbox' && n.dataset.g) grToggle(n.dataset.g);
-});
-el('cstGrid').addEventListener('click', e=>{
-  const b = e.target.closest('button'); if (!b) return;
-  if (b.id === 'grDo') grAgrupar();
-  else if (b.id === 'grClr'){ GR_SEL = []; cstRender(); }
-  else if (b.dataset.des) grDesagrupar(b.dataset.des);
-  else if (b.dataset.sai) grTirar(b.dataset.sai);
-});
-/* Aviso, sem mexer no calculo: a fonte marcada no item esta vazia. Devolve as
-   fontes que TEM valor — se houver alguma, o item esta ficando de fora do
-   calculo apesar de ter custo cadastrado, e e so trocar a marcacao. Lista
-   vazia = o item nao tem custo em fonte nenhuma. */
-function cstFalta(o, vef){
-  const i = CUSTOS.fontes.indexOf(o.fixo);
-  if (i < 0) return null;
-  const e = vef || cstVef(o);
-  if (+e.v[i] > 0) return null;
-  return {outras: CUSTOS.fontes.filter((f,j)=>+e.v[j] > 0)};
-}
-function cstUsoTxt(o, vef){
-  const e = cstEfetivo(o, vef);
-  if (!e.u){
-    const fa = cstFalta(o, vef);
-    if (fa && fa.outras.length)
-      return '<i class="alerta" title="'+esc(t().cstFaltaTip(o.fixo, fa.outras))+'">'
-        + '– !</i>';
-    return '<i>–</i>';
-  }
-  /* valor que veio do outro item do grupo leva um asterisco e o title diz de onde */
-  return '<b'+(e.de ? ' class="herd" title="'+esc(t().cstDoGrupo(e.de))+'"' : '')+'>'
-    + esc(cstTxt(e.u)) + (e.de ? '*' : '') + '</b>'
-    + '<i class="'+(e.fixo?'fx':'')+'">'+esc(e.src)+'</i>';
-}
-el('cstQ').addEventListener('input', e=>{ CST_Q = e.target.value; cstRender(); });
-el('cstUso').onclick = () => {
-  CST_USO = !CST_USO;
-  el('cstUso').setAttribute('aria-pressed', CST_USO);
-  cstRender();
-};
-/* isola os itens cuja fonte marcada esta vazia tendo custo em outra fonte */
-el('cstAlerta').onclick = () => { CST_ALERTA = !CST_ALERTA; cstRender(); };
-/* "todas": passa a fonte da coluna para todos os itens que estao na lista
-   agora (respeitando o filtro e o "so os vendidos") e passa a ser o padrao
-   para linha nova. Depois disso da para trocar item a item nos radios — a
-   escolha continua sendo por item. */
-el('cstGrid').addEventListener('click', e=>{
-  const b = e.target.closest('button.fs-all'); if (!b) return;
-  const j = +b.dataset.f, f = CUSTOS.fontes[j]; if (!f) return;
-  CST_VIS.forEach(i=>{ if (CST_EDIT[i]) CST_EDIT[i].fixo = f; });
-  CST_PAD = j;
-  cstRender();
-  cstAplicar();      /* dashboard recalcula na hora com a fonte nova */
-});
-el('cstGrid').addEventListener('input', e=>{
-  const n = e.target; if (!n.dataset || n.dataset.i === undefined) return;
-  const i = +n.dataset.i, o = CST_EDIT[i]; if (!o) return;
-  if (n.type === 'radio'){ o.fixo = n.value; }
-  /* o ID fica como o usuario digitou; o casamento e por normSku, nao pelo texto */
-  else if (n.dataset.k === 'sku') o.sku = n.value;
-  else o.v[+n.dataset.f] = cstNum(n.value);
-  /* atualiza so a celula do custo aplicado: nao redesenha a lista nem
-     perde a rolagem ou o campo em edicao */
-  const td = el('cstGrid').querySelector('[data-uso="'+i+'"]');
-  if (td) td.innerHTML = cstUsoTxt(o);
-  const tr = td && td.closest('tr');
-  if (tr) tr.classList.toggle('fixa', !!o.fixo);
-  if (n.type === 'radio'){
-    /* move o destaque da coluna sem redesenhar a linha inteira */
-    CUSTOS.fontes.forEach((fn,j)=>{
-      const c = el('cstGrid').querySelector('[data-cc="'+i+'-'+j+'"]');
-      if (c) c.classList.toggle('sel', o.fixo === fn);
-    });
-    const nfx = CST_EDIT.filter(x=>x.fixo).length;
-    setH('cstHint', t().cstHint(CUSTOS.fontes[CST_PAD] || '')
-      + (nfx ? ' <b>· '+esc(t().cstFixos(nfx))+'</b>' : ''));
-    cstAplicar();          /* trocar a fonte do item recalcula na hora */
-  } else {
-    cstAplicarDebounce();  /* digitar valor ou ID: espera parar de digitar */
-  }
-});
 el('cstAdd').onclick = () => {
-  if (CST_TAB === 'markup'){ MARKUPS.push(mkNovo()); mkRender();
-    const ins = el('cstGrid').querySelectorAll('input[data-k="nome"]');
-    const last = ins[ins.length-1]; if (last) last.focus();
-    return; }
-  /* linha nova ja nasce com a fonte padrao marcada, na guia Custos */
-  CST_TAB = 'custos'; GR_SEL = [];
-  CST_EDIT.push({sku:'', v:CUSTOS.fontes.map(()=>0), fixo:CUSTOS.fontes[CST_PAD] || ''});
-  CST_Q = ''; CST_USO = false;
-  el('cstQ').value = ''; el('cstUso').setAttribute('aria-pressed','false');
-  cstRender();
-  const ins = el('cstGrid').querySelectorAll('input[data-k="sku"]');
-  const last = ins[ins.length-1]; if (last){ last.focus(); last.scrollIntoView({block:'center'}); }
+  MARKUPS.push(mkNovo()); mkRender();
+  const ins = el('cstGrid').querySelectorAll('input[data-k="nome"]');
+  const last = ins[ins.length-1]; if (last) last.focus();
 };
 el('cstClose').onclick = () => { el('cstModal').hidden = true; };
 el('cstModal').addEventListener('click', e=>{ if (e.target.id === 'cstModal') el('cstModal').hidden = true; });
 document.addEventListener('keydown', e=>{
   if (e.key === 'Escape' && !el('cstModal').hidden) el('cstModal').hidden = true;
 });
-/* Junta o que esta na tela (CST_EDIT + CST_GRUPOS) no formato do CUSTOS.
-   A chave gravada e o ID como esta na tela, com espacos e caixa originais.
-   Duas linhas que so diferem em espaco/caixa sao o mesmo item: fica a
-   primeira. Usado tanto pelo recalculo ao vivo quanto pelo Salvar. */
-function cstColeta(){
-  const itens = {}, fixos = {}, vistos = {}, dups = [];
-  let vazio = false;
-  CST_EDIT.forEach(o=>{
-    const k = String(o.sku == null ? '' : o.sku).trim();
-    if (!k){ if (o.v.some(x=>x>0)) vazio = true; return; }
-    const n = normSku(k);
-    if (vistos[n]){ dups.push(k); return; }
-    vistos[n] = k;
-    itens[k] = o.v.map(cst4);
-    if (o.fixo && CUSTOS.fontes.indexOf(o.fixo) >= 0) fixos[k] = o.fixo;
-  });
-  /* grupos da guia Agrupamento, limpos de item que nao existe mais */
-  const grupos = {};
-  Object.keys(CST_GRUPOS).forEach(ref=>{
-    if (!itens[ref]) return;          /* a referencia precisa ter custo */
-    const mem = (CST_GRUPOS[ref] || []).filter(m=>m && m !== ref);
-    if (mem.length) grupos[ref] = mem;
-  });
-  return {itens, fixos, grupos, vazio, dups};
-}
-/* Recalculo ao vivo: passa o estado da tela para o CUSTOS e redesenha o
-   dashboard. Nao grava nada no banco — quem grava e o Salvar. Enquanto houver
-   diferenca entre a tela e o que esta salvo, CST_SUJO marca o painel. */
-function cstAplicar(){
-  if (cenSoLeitura()) return;
-  const c = cstColeta();
-  if (!Object.keys(c.itens).length) return;
-  cstGuarda();
-  cstPreview();
-}
-/* digitar valor dispara muito evento: espera parar de digitar para recalcular */
-let CST_T = null;
-function cstAplicarDebounce(){
-  clearTimeout(CST_T);
-  CST_T = setTimeout(()=>{ if (!el('cstModal').hidden || CST_SUJO) cstAplicar(); }, 350);
-}
-function cstMarcaSujo(){
-  const b = el('btnCustos'); if (!b) return;
-  b.classList.toggle('sujo', !!CST_SUJO);
-  b.title = CST_SUJO ? t().cstSujoTip : '';
-  const h = el('cstHint');
-  if (h && CST_SUJO && !el('cstModal').hidden && !h.querySelector('.cst-sujo'))
-    h.insertAdjacentHTML('afterbegin',
-      '<span class="cst-sujo">'+esc(t().cstSujo)+'</span> ');
-}
-/* grava a base de um cenario: memoria + banco */
-async function cstSalvarCenario(cen){
-  const L = t(), c = cstColeta();
-  if (c.vazio) throw new Error(L.cstSemSku);
-  if (c.dups.length) toast(L.cstDup(c.dups), true);
-  const n = Object.keys(c.itens).length;
-  if (!n) throw new Error(L.cstSemSku);
-  const b = CST_BASES[cen] || (CST_BASES[cen] = cenVazio());
-  b.itens = c.itens; b.fixos = c.fixos; b.grupos = c.grupos;
-  b.padrao = CUSTOS.fontes[CST_PAD] || b.padrao;
-  b.arquivo = b.arquivo || CUSTOS.arquivo || 'ADM';
-  if (!Object.keys(b.itens_origem || {}).length) b.itens_origem = b.itens;
-  if (!SB_ON) return {itens:n, local:true};
-  return await sbRpc('wgi_painel_salvar_custos', {p_senha: null,
-    p_arquivo: b.arquivo, p_fontes: CUSTOS.fontes, p_itens: b.itens,
-    p_padrao: b.padrao, p_fixos: b.fixos, p_grupos: b.grupos,
-    p_cenario: cen, p_itens_origem: b.itens_origem});
-}
 el('cstSave').onclick = async () => {
-  const L = t(), btn = el('cstSave');
-  if (CST_TAB === 'markup'){
-    btn.disabled = true;
-    try{ await mkSalvar(); }
-    catch(err){ toast(t().impErr + (err && err.message ? err.message : err), true); }
-    finally { btn.disabled = false; }
-    return;
-  }
-  if (cenSoLeitura()) return;
+  const btn = el('cstSave');
   btn.disabled = true;
-  try{
-    const d = await cstSalvarCenario(CST_CEN);
-    if (CST_CEN === 'relatorio_atual') cenParaCUSTOS('relatorio_atual');
-    cstPreview();
-    toast(d && d.local ? L.custoLocal
-                       : L.cenSalvoEm(L.cenNome(CST_CEN), (d && d.itens) || ''));
-    el('cstModal').hidden = true;
-  } catch(err){ toast(t().impErr + (err && err.message ? err.message : err), true); }
+  try{ await mkSalvar(); }
+  catch(err){ toast(t().impErr + (err && err.message ? err.message : err), true); }
   finally { btn.disabled = false; }
 };
-el('btnCustos').onclick = cstAbrir;
+el('btnMarkup').onclick = cstAbrir;
 
-/* ============ exportar / importar a tabela de custos ============
-   Uma planilha, aba TABELA: uma linha por item e uma COLUNA POR FONTE de
-   custo (COGS1, COGS2, LANDED1, LANDED2). A planilha carrega so os VALORES —
-   a escolha de fonte de cada item vive na tela e no banco, nao na planilha.
-   E o mesmo formato que a importacao le, entao exportar, editar no Excel e
-   importar de volta fecha o ciclo sem mexer nas escolhas. */
-function custosXlsx(){
-  const estilos = '<?xml version="1.0" encoding="UTF-8" standalone="yes"?>'
-   + '<styleSheet xmlns="http://schemas.openxmlformats.org/spreadsheetml/2006/main">'
-   + '<fonts count="2"><font><sz val="10"/><name val="Arial"/></font>'
-   + '<font><b/><sz val="10"/><color rgb="FFFFFFFF"/><name val="Arial"/></font></fonts>'
-   + '<fills count="3"><fill><patternFill patternType="none"/></fill>'
-   + '<fill><patternFill patternType="gray125"/></fill>'
-   + '<fill><patternFill patternType="solid"><fgColor rgb="FF7C1B29"/>'
-   + '<bgColor indexed="64"/></patternFill></fill></fills>'
-   + '<borders count="1"><border><left/><right/><top/><bottom/><diagonal/></border></borders>'
-   + '<cellStyleXfs count="1"><xf numFmtId="0" fontId="0" fillId="0" borderId="0"/></cellStyleXfs>'
-   + '<cellXfs count="2"><xf numFmtId="0" fontId="0" fillId="0" borderId="0" xfId="0"/>'
-   + '<xf numFmtId="0" fontId="1" fillId="2" borderId="0" xfId="0" applyFont="1" applyFill="1"'
-   + ' applyAlignment="1"><alignment horizontal="center" vertical="center"/></xf></cellXfs>'
-   + '<cellStyles count="1"><cellStyle name="Normal" xfId="0" builtinId="0"/></cellStyles></styleSheet>';
-  const cab = ['ID LIMPO'].concat(CUSTOS.fontes).map(v=>({v, s:1}));
-  const linhas = [cab].concat((CST_EDIT || []).filter(o=>o.sku)
-    .map(o=>[o.sku].concat(o.v.map(x=>+x||0))));
-  const larg = [20].concat(CUSTOS.fontes.map(()=>14));
-  return zipStore([
-   {name:'[Content_Types].xml', xml:'<?xml version="1.0" encoding="UTF-8" standalone="yes"?>'
-     + '<Types xmlns="http://schemas.openxmlformats.org/package/2006/content-types">'
-     + '<Default Extension="rels" ContentType="application/vnd.openxmlformats-package.relationships+xml"/>'
-     + '<Default Extension="xml" ContentType="application/xml"/>'
-     + '<Override PartName="/xl/workbook.xml" ContentType="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet.main+xml"/>'
-     + '<Override PartName="/xl/worksheets/sheet1.xml" ContentType="application/vnd.openxmlformats-officedocument.spreadsheetml.worksheet+xml"/>'
-     + '<Override PartName="/xl/styles.xml" ContentType="application/vnd.openxmlformats-officedocument.spreadsheetml.styles+xml"/>'
-     + '</Types>'},
-   {name:'_rels/.rels', xml:'<?xml version="1.0" encoding="UTF-8" standalone="yes"?>'
-     + '<Relationships xmlns="http://schemas.openxmlformats.org/package/2006/relationships">'
-     + '<Relationship Id="rId1" Type="http://schemas.openxmlformats.org/officeDocument/2006/relationships/officeDocument" Target="xl/workbook.xml"/>'
-     + '</Relationships>'},
-   {name:'xl/workbook.xml', xml:'<?xml version="1.0" encoding="UTF-8" standalone="yes"?>'
-     + '<workbook xmlns="http://schemas.openxmlformats.org/spreadsheetml/2006/main" '
-     + 'xmlns:r="http://schemas.openxmlformats.org/officeDocument/2006/relationships">'
-     + '<sheets><sheet name="TABELA" sheetId="1" r:id="rId1"/></sheets></workbook>'},
-   {name:'xl/_rels/workbook.xml.rels', xml:'<?xml version="1.0" encoding="UTF-8" standalone="yes"?>'
-     + '<Relationships xmlns="http://schemas.openxmlformats.org/package/2006/relationships">'
-     + '<Relationship Id="rId1" Type="http://schemas.openxmlformats.org/officeDocument/2006/relationships/worksheet" Target="worksheets/sheet1.xml"/>'
-     + '<Relationship Id="rId2" Type="http://schemas.openxmlformats.org/officeDocument/2006/relationships/styles" Target="styles.xml"/>'
-     + '</Relationships>'},
-   {name:'xl/styles.xml', xml:estilos},
-   {name:'xl/worksheets/sheet1.xml', xml:sheetXml(linhas, larg, {freeze:true})}
-  ]);
-}
-el('cstExp').onclick = () => {
-  const url = URL.createObjectURL(new Blob([custosXlsx()],
-    {type:'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet'}));
-  const a = document.createElement('a');
-  a.href = url; a.download = 'CUSTOS-WGI.xlsx';
-  document.body.appendChild(a); a.click(); a.remove();
-  setTimeout(()=>URL.revokeObjectURL(url), 4000);
-  toast(t().cstExpOk((CST_EDIT || []).filter(o=>o.sku).length));
-};
-
-/* abre um .xlsx e devolve as celulas da aba pedida (ou da primeira) */
-async function abasDoXlsx(f, nomePreferido){
-  const files = await unzip(new Uint8Array(await f.arrayBuffer()));
-  const wb = td(files['xl/workbook.xml'] || new Uint8Array());
-  const rels = td(files['xl/_rels/workbook.xml.rels'] || new Uint8Array());
-  const shared = files['xl/sharedStrings.xml'] ? sharedStrings(td(files['xl/sharedStrings.xml'])) : [];
-  const attr = (tag, name) => {
-    const m = tag.match(new RegExp('\\b'+name+'="([^"]*)"'));
-    return m ? unesc(m[1]) : null;
-  };
-  const sheets = (wb.match(/<sheet\b[^>]*\/?>/g) || [])
-    .map(tag=>({name:attr(tag,'name'), rid:attr(tag,'r:id') || attr(tag,'id')}))
-    .filter(x=>x.name);
-  const relMap = {};
-  (rels.match(/<Relationship\b[^>]*\/?>/g) || []).forEach(tag=>{
-    const id = attr(tag,'Id'), tg = attr(tag,'Target');
-    if (id && tg) relMap[id] = tg;
-  });
-  const resolve = tg => {
-    if (!tg) return null;
-    const c = tg.replace(/^\//,'').replace(/^\.\//,'');
-    for (const cand of [c, 'xl/'+c, c.replace(/^xl\//,'')]) if (files[cand]) return cand;
-    return null;
-  };
-  const alvo = sheets.find(x=>norm(x.name) === norm(nomePreferido)) || sheets[0];
-  const path = (alvo && resolve(relMap[alvo.rid]))
-    || Object.keys(files).filter(k=>/^xl\/worksheets\/sheet\d*\.xml$/.test(k)).sort()[0];
-  if (!path) throw new Error(t().impNoBase);
-  return sheetRows(td(files[path]), shared);
-}
-el('cstImp').onclick = () => el('cstFile').click();
-el('cstFile').onchange = async e => {
-  const f = e.target.files[0]; if (!f) return;
-  const b = el('cstImp'); b.disabled = true;
-  try{
-    const ok = await importarCustos(await abasDoXlsx(f, 'TABELA'), f.name);
-    if (!ok){ toast(t().cstImpErr, true); return; }
-    cstAbrir();   /* recarrega a tela ja com o que veio da planilha */
-  } catch(err){
-    toast(t().impErr + (err && err.message ? err.message : err), true);
-  } finally { b.disabled = false; e.target.value = ''; }
-};
 
 /* Fonte de custo em uso. Nao e mais seletor: quem escolhe e a tela Ver
    custos, item a item. Aqui so mostramos o que esta valendo — o nome da
@@ -3347,7 +2601,6 @@ function syncCustoPills(){
   if (!on) return;
   if (CUSTOS.fontes.indexOf(S.custo) < 0) S.custo = CUSTOS.fontes[0];
   const u = fonteEmUso();
-  cstMarcaSujo();
   setH('fCusto', '<span class="fonte-uso'+(u.multi ? ' multi' : '')+'" title="'
     + esc(u.multi ? t().custoMultiTip : t().custoUnicaTip(u.f)) + '">'
     + esc(u.multi ? t().custoMulti : u.f) + '</span>');
@@ -3642,89 +2895,6 @@ function buildData(cells, fileName){
     fonte: fileName
   };
 }
-/* A planilha de custos tem uma aba TABELA com ID LIMPO + as colunas de
-   cada fonte (COGS1, COGS2, LANDED1, LANDED2). Reconhecida pelo cabecalho,
-   entra pelo mesmo botao de importar e vai para o banco. A planilha traz
-   so valores: quem ja existia mantem a fonte marcada nele e item novo entra
-   na fonte padrao (garantirFontes). Coluna FONTE, se vier de um arquivo
-   antigo, e simplesmente ignorada. */
-async function importarCustos(cells, fileName){
-  const head = (cells[0] || []).map(x=>String(x==null?'':x).trim());
-  if (head.findIndex(h=>norm(h)==='idlimpo') < 0) return false;
-  const iId = head.findIndex(h=>norm(h)==='idlimpo');
-  /* uma coluna por fonte do modelo; a planilha pode trazer so algumas.
-     ESPECIAL aceita tambem a grafia em ingles. */
-  const apelido = n => n === 'SPECIAL' ? 'ESPECIAL' : n;
-  const col = FONTES.map(()=>-1);
-  head.forEach((h,i)=>{
-    const n = apelido(String(h).trim().toUpperCase().replace(/\s+/g,''));
-    const j = FONTES.indexOf(n);
-    if (j >= 0 && col[j] < 0) col[j] = i;
-  });
-  if (!col.some(i=>i >= 0)) return false;
-  const fontes = FONTES.slice();
-  /* coluna que a planilha NAO traz nao zera o que ja estava gravado: fica como
-     estava. E o que permite manter uma planilha antiga de quatro colunas sem
-     perder LANDED3 e ESPECIAL digitados na tela. */
-  const antes = (CST_BASES.relatorio_nova && CST_BASES.relatorio_nova.itens) || CUSTOS.itens || {};
-  const porChave = {};
-  Object.keys(antes).forEach(k=>{ porChave[normSku(k)] = antes[k]; });
-  const itens = {}, vistos = new Set();
-  for (let i = 1; i < cells.length; i++){
-    /* o ID entra como veio na planilha, com espacos e caixa preservados. Se
-       duas linhas so diferem em espaco/caixa, vale a primeira. */
-    const r = cells[i] || [], k = String(r[iId] == null ? '' : r[iId]).trim();
-    const nk = normSku(k);
-    if (!nk || vistos.has(nk)) continue;
-    vistos.add(nk);
-    const velho = porChave[nk] || [];
-    itens[k] = col.map((j,f)=> j >= 0 ? cst4(r[j]) : cst4(velho[f]));
-  }
-  const n = Object.keys(itens).length;
-  if (!n) return false;
-  /* a planilha nao mexe em escolha: item que ja existia mantem a fonte dele,
-     item novo fica sem e o garantirFontes() logo abaixo poe a padrao */
-  const fixos = {};
-  Object.keys(CUSTOS.fixos || {}).forEach(k=>{
-    if (itens[k] && fontes.indexOf(CUSTOS.fixos[k]) >= 0) fixos[k] = CUSTOS.fixos[k];
-  });
-  /* A planilha NAO entra no que esta valendo: alimenta as duas bases "Nova",
-     para voce conferir e aplicar cada cenario quando quiser. Agrupamento e
-     marcacao de cada Nova sao preservados; item que sumiu sai no garantirFontes. */
-  if (fontes.indexOf(S.custo) < 0) S.custo = fontes[0];
-  const alvos = ['relatorio_nova','precos_nova'];
-  alvos.forEach(cen=>{
-    const b0 = CST_BASES[cen] || (CST_BASES[cen] = cenVazio());
-    const pad = b0.padrao || CUSTOS.padrao || fontes[0];
-    const fx = {};
-    Object.keys(itens).forEach(k=>{
-      const f = (b0.fixos || {})[k];
-      fx[k] = fontes.indexOf(f) >= 0 ? f : pad;   /* item novo entra na padrao */
-    });
-    const gp = {};
-    Object.keys(b0.grupos || {}).forEach(ref=>{
-      if (!itens[ref]) return;
-      const mem = (b0.grupos[ref] || []).filter(m=>m !== ref);
-      if (mem.length) gp[ref] = mem;
-    });
-    CST_BASES[cen] = {fontes, itens: JSON.parse(JSON.stringify(itens)), fixos: fx,
-      grupos: gp, padrao: b0.padrao || CUSTOS.padrao || fontes[0],
-      arquivo: fileName, itens_origem: JSON.parse(JSON.stringify(itens))};
-  });
-  toast(t().custoOkNova(fileName, n));
-  if (!SB_ON || !ADM){ toast(t().custoLocal); return true; }
-  try{
-    for (const cen of alvos){
-      const b1 = CST_BASES[cen];
-      await sbRpc('wgi_painel_salvar_custos',
-        {p_senha: null, p_arquivo: fileName, p_fontes: fontes,
-         p_itens: b1.itens, p_padrao: b1.padrao, p_fixos: b1.fixos,
-         p_grupos: b1.grupos, p_cenario: cen, p_itens_origem: b1.itens_origem});
-    }
-    toast(t().custoSalvoNova(n));
-  } catch(err){ toast(t().impErr + (err && err.message ? err.message : err), true); }
-  return true;
-}
 el('btnImport').onclick = () => el('fFile').click();
 el('fFile').onchange = async e => {
   const f = e.target.files[0]; if (!f) return;
@@ -3755,10 +2925,15 @@ el('fFile').onchange = async e => {
         if (files[cand]) return cand;
       return null;
     };
-    /* planilha de custos? entra por aqui e nao mexe nos dados de venda */
+    /* planilha de custos (aba TABELA) nao entra mais por aqui — a importacao
+       de custos agora e so no app wendell-custos */
     const cst = sheets.find(x=>norm(x.name)==='tabela');
-    const cstPath = cst && resolve(relMap[cst.rid]);
-    if (cstPath && await importarCustos(sheetRows(td(files[cstPath]), shared), f.name)) return;
+    if (cst){
+      toast(S.lang==='en'
+        ? 'This looks like a cost sheet — import it in the Matriz de Custos app instead.'
+        : 'Isso parece uma planilha de custos — importe pelo app Matriz de Custos.', true);
+      return;
+    }
     const pick = sheets.find(x=>norm(x.name)==='base') || sheets[0];
     /* ultimo recurso: a primeira planilha que existir no pacote */
     const path = (pick && resolve(relMap[pick.rid]))
@@ -3864,28 +3039,9 @@ async function sbLoadData(){
     sbRpc('wgi_painel_markups', {}).then(mk=>{
       if (Array.isArray(mk)) MARKUPS = mk;
     }).catch(()=>{});
-    /* preferencia global: a Lista de precos adota a base de Relatorios.
-       Vale para todos os usuarios, por isso mora no banco e nao no navegador. */
-    sbRpc('wgi_painel_prefs_ler', {}).then(pf=>{
-      let v = pf && pf.espelho_custos;
-      /* chave antiga, de quando so existia um sentido */
-      if (v === undefined || v === null){
-        const o = pf && pf.precos_espelha_relatorio;
-        v = (o === true || o === 'true') ? 'precos' : '';
-      }
-      ESPELHO = (v === 'precos' || v === 'relatorio') ? v : '';
-      const m = el('cstModal');
-      if (ESPELHO && m && !m.hidden){ cstCarrega(CST_CEN); cstRender(); }
-    }).catch(()=>{});
-    /* as quatro bases de custo, quando o banco as devolve (so para ADM) */
-    CST_BASES = {};
-    Object.keys((d && d.cenarios) || {}).forEach(cen=>{
-      const x = d.cenarios[cen] || {};
-      CST_BASES[cen] = {fontes: FONTES.slice(),
-        itens: fontesSeis(x.fontes, x.itens), fixos: x.fixos || {},
-        grupos: x.grupos || {}, padrao: x.padrao || '', arquivo: x.arquivo || '',
-        itens_origem: fontesSeis(x.fontes, x.itens_origem)};
-    });
+    /* Preferencia "adotar" e as quatro bases de cenario (relatorio/precos ×
+       atual/nova) eram so para a tela de edicao de custos, que saiu daqui —
+       o dashboard usa direto o CUSTOS ja resolvido acima. */
     S.custo = CUSTOS.fontes.indexOf(CUSTOS.padrao) >= 0 ? CUSTOS.padrao : CUSTOS.fontes[0];
     /* base antiga vinha com itens em "auto": todos passam a ter fonte propria */
     garantirFontes();
