@@ -739,6 +739,18 @@ footer{font-size:10.5px;color:var(--ink-3);text-align:center;padding:2px 0 0;lin
 }
 #pmore td{text-align:center;font-family:Archivo,sans-serif;font-size:9px;color:var(--ink-3);
   text-transform:uppercase;letter-spacing:.06em;padding:4px}
+
+.module-nav{display:flex;gap:4px;flex-wrap:wrap;padding:5px 16px;background:var(--card);border-bottom:1px solid var(--line)}
+.module-nav a{font:600 11px Archivo,Arial,sans-serif;color:var(--ink-2);text-decoration:none;padding:5px 9px;border-radius:5px;border:1px solid transparent}
+.module-nav a[aria-current="page"]{color:#fff;background:var(--wine);border-color:var(--wine)}
+.module-nav a:hover{background:var(--sunk)}
+.module-nav a:focus-visible{outline:2px solid var(--wine-soft);outline-offset:1px}
+#sellerForm input,#sellerForm select{font:inherit;color:var(--ink);background:var(--card);border:1px solid var(--line);border-radius:6px;padding:7px;width:100%;min-width:0}
+#sellerForm .fgrp{flex:1 1 170px}
+.seller-actions{display:flex;gap:6px;flex-wrap:wrap;margin-top:12px}
+#sellerStatus{color:var(--wine);min-height:18px;margin:8px 0}
+#sellerTable td{white-space:normal;overflow-wrap:anywhere}
+#sellerTable{min-width:660px}
 </style>
 </head>
 <body>
@@ -778,6 +790,12 @@ footer{font-size:10.5px;color:var(--ink-3);text-align:center;padding:2px 0 0;lin
     <button class="hdr-chip" id="themeBtn" type="button"></button>
   </div>
 </header>
+<nav class="module-nav no-print" aria-label="Seções do painel">
+<a href="#vendas" data-page="vendas" aria-current="page">Vendas</a>
+<a href="https://textilegroup.github.io/wendell-custos/" target="_blank" rel="noopener">Custos ↗</a>
+<a href="#metas" data-page="metas" data-admin hidden>Metas e break even <small>· ADM</small></a>
+<a href="#vendedores" data-page="vendedores" data-admin hidden>Vendedores <small>· ADM</small></a>
+</nav>
 <div class="pfilters" id="pfilters"></div>
 
 <div id="pwrap"><main id="pscale">
@@ -876,7 +894,7 @@ footer{font-size:10.5px;color:var(--ink-3);text-align:center;padding:2px 0 0;lin
         </div>
         <div class="card-bd">
           <div class="bars" id="chart"><div class="grid-lines" id="glines"></div></div>
-          <div class="metas" id="metas"></div>
+
         </div>
       </div>
       <div class="card">
@@ -925,6 +943,7 @@ footer{font-size:10.5px;color:var(--ink-3);text-align:center;padding:2px 0 0;lin
   <section class="card no-print" id="admCard" hidden>
     <div class="card-hd"><h2 id="lAdm"></h2><span class="sub" id="admSub"></span></div>
     <div class="card-bd">
+      <div class="metas" id="metas" style="margin:0 0 14px"></div>
       <div class="frow admtop">
         <div class="fgrp"><label for="aAno" id="lAdmAno"></label><select id="aAno"></select></div>
         <div class="fgrp"><label for="aEq" id="lAdmEq"></label>
@@ -955,6 +974,27 @@ footer{font-size:10.5px;color:var(--ink-3);text-align:center;padding:2px 0 0;lin
     <div class="card-bd"><div class="newlist" id="newList"></div></div>
   </section>
 
+
+<section class="card no-print" id="sellerCard" hidden aria-labelledby="sellerTitle">
+ <div class="card-hd"><h2 id="sellerTitle">Vendedores e representantes</h2><span class="sub">Cadastro · ADM</span></div>
+ <div class="card-bd">
+  <p class="hint">Cadastro salvo somente neste navegador. Exporte uma cópia para guardar os registros. Este cadastro não cria acesso ao sistema nem altera vendas já importadas.</p>
+  <form id="sellerForm">
+   <div class="frow">
+    <div class="fgrp"><label for="sellerName">Nome *</label><input id="sellerName" required maxlength="120" autocomplete="name"></div>
+    <div class="fgrp"><label for="sellerKind">Tipo *</label><select id="sellerKind"><option value="representante">Representante</option><option value="vendedor">Vendedor</option></select></div>
+    <div class="fgrp"><label for="sellerCode">Código *</label><input id="sellerCode" required maxlength="40"></div>
+    <div class="fgrp"><label for="sellerEmail">E-mail</label><input id="sellerEmail" type="email" maxlength="160" autocomplete="email"></div>
+    <div class="fgrp"><label for="sellerPhone">Telefone</label><input id="sellerPhone" type="tel" maxlength="40" autocomplete="tel"></div>
+    <div class="fgrp"><label for="sellerRegion">Região / UF</label><input id="sellerRegion" maxlength="100"></div>
+   </div>
+   <div class="seller-actions"><button class="admsave" id="sellerSave" type="submit">Cadastrar</button><button class="admcalc" id="sellerCancel" type="button" hidden>Cancelar edição</button><button class="admcalc" id="sellerExport" type="button">Exportar cadastro</button></div>
+  </form>
+  <p id="sellerStatus" role="status" aria-live="polite"></p>
+  <div class="fgrp"><label for="sellerSearch">Buscar por nome, código ou região</label><input type="search" id="sellerSearch" placeholder="Buscar no cadastro"></div>
+  <div class="tscroll"><table id="sellerTable"><thead><tr><th>Nome / código</th><th>Tipo</th><th>Contato</th><th>Região / UF</th><th>Situação</th><th>Ações</th></tr></thead><tbody id="sellerRows"></tbody></table></div>
+ </div>
+</section>
   <footer id="foot"></footer>
 </main></div>
 <div id="tip" role="status" aria-live="polite"></div>
@@ -1216,7 +1256,7 @@ const T = {
   k7:'Frete Médio Ponderado', k8:'Ticket Médio por Pedido', k9:'Concentração da Carteira',
   tkMeta:(n,i)=>n+' pedido'+(n===1?'':'s')+' · '+i+' itens por pedido',
   concMeta:(t10,n)=>'top 5 clientes · top 10 = '+t10+' · '+n+' clientes no total',
-  adm:'ADM · Metas e ponto de equilíbrio', admSub:'aberto pelo botão ADM no topo',
+  adm:'ADM · Metas e ponto de equilíbrio', admSub:'seção administrativa',
   admAno:'Ano', admEq:'Ponto de equilíbrio (mês)',
   admMeses:m=>'Meta de cada mês de '+m, admTris:m=>'Meta de cada trimestre de '+m,
   admAnual:'Meta anual', admSalvar:'Salvar metas', admCalc:'Somar meses',
@@ -1233,9 +1273,9 @@ const T = {
   admBtn:'ADM', admOn:'ADM ✓', admTitulo:'Área de administração',
   admTxt:'Digite a senha de ADM para definir metas e ponto de equilíbrio.',
   admEntrar:'Entrar', admCancelar:'Cancelar',
-  admLiberado:'Área ADM liberada. O card de metas está no fim da página.',
+  admLiberado:'Área ADM liberada. Abra a guia Metas e break even.',
   admMoeda:c=>'Valores em '+c+'. Deixe em branco ou 0 para não exibir a marca.',
-  admHint:'O ponto de equilíbrio vira uma linha contínua no gráfico; a meta de cada mês vira um tracinho sobre a barra daquele mês. As metas do trimestre e do ano alimentam as barrinhas de alcance embaixo do gráfico.',
+  admHint:'Defina o ponto de equilíbrio e as metas mensais, trimestrais e anuais. Os indicadores acima usam o ano e os filtros selecionados no painel.',
   admCalcOk:'Trimestres e ano preenchidos a partir dos meses.',
   triMeses:{T1:'jan–mar', T2:'abr–jun', T3:'jul–set', T4:'out–dez'},
   admOk:a=>'Metas de '+a+' salvas. Todo mundo que abrir o painel já vê.',
@@ -1461,7 +1501,7 @@ const T = {
   k7:'Weighted Average Freight', k8:'Average Order Value', k9:'Customer Concentration',
   tkMeta:(n,i)=>n+' order'+(n===1?'':'s')+' · '+i+' items per order',
   concMeta:(t10,n)=>'top 5 customers · top 10 = '+t10+' · '+n+' customers overall',
-  adm:'ADMIN · Targets and break-even', admSub:'opened from the ADMIN button at the top',
+  adm:'ADMIN · Targets and break-even', admSub:'administrative section',
   admAno:'Year', admEq:'Break-even (month)',
   admMeses:m=>'Target for each month of '+m, admTris:m=>'Target for each quarter of '+m,
   admAnual:'Annual target', admSalvar:'Save targets', admCalc:'Sum months',
@@ -1480,7 +1520,7 @@ const T = {
   admEntrar:'Enter', admCancelar:'Cancel',
   admLiberado:'Admin area unlocked. The targets card is at the bottom of the page.',
   admMoeda:c=>'Values in '+c+'. Leave blank or 0 to hide the mark.',
-  admHint:'Break-even becomes a solid line on the chart; each month target becomes a tick over that month bar. Quarter and year targets feed the progress bars under the chart.',
+  admHint:'Set break-even and monthly, quarterly and yearly targets. The indicators above use the year and filters selected in the dashboard.',
   admCalcOk:'Quarters and year filled in from the months.',
   triMeses:{T1:'jan–mar', T2:'apr–jun', T3:'jul–sep', T4:'oct–dec'},
   admOk:a=>'Targets for '+a+' saved. Everyone opening the report sees them.',
@@ -2024,9 +2064,9 @@ function render(){
   spark('kConcSpark', ord.slice(0,8), 0);
 
   /* gráfico faturamento */
-  const MT = metaAno();
+  const MT = ADM ? metaAno() : null;
   const semFiltro = !S.reps.size && !S.ufs.size && !S.q.trim();
-  const marcar = MT && semFiltro;
+  const marcar = false; // Metas ficam exclusivamente na seção administrativa.
   /* A escala segue o FATURAMENTO. A meta só estica o eixo se estiver perto do
      realizado (até 25%); metas muito acima ficariam esmagando os meses fracos,
      então nesse caso a marca vai para o topo em vez de puxar a escala. */
@@ -3073,7 +3113,7 @@ function applyRole(){
   const g = GUARD();
   el('btnImport').hidden = SB_ON && !podeEditar();
   el('btnAdm').hidden = !ADM;
-  el('admCard').hidden = !ADM;
+  syncPages();
   el('btnOut').hidden = !(g && g.sair);
   const nome = USUARIO && (USUARIO.nome || USUARIO.email);
   if (nome){ set('whoami', nome); el('whoami').hidden = false; }
@@ -3161,6 +3201,7 @@ el('aCalc').onclick = () => {
   toast(t().admCalcOk);
 };
 el('aSalvar').onclick = async () => {
+  if (!ADM) return;
   const L = t(), btn = el('aSalvar'), ano = +el('aAno').value;
   document.querySelectorAll('input.moeda').forEach(sincCampo);
   const mensais = {}, tris = {};
@@ -3186,7 +3227,7 @@ el('aSalvar').onclick = async () => {
 
 /* botão ADM no topo: quem entrou com a senha de gestão já chega liberado */
 el('btnAdm').onclick = () => {
-  if (ADM) el('admCard').scrollIntoView({behavior:'smooth', block:'center'});
+  if (ADM) location.hash = 'metas';
 };
 
 /* ===== escrita de .xlsx sem biblioteca: zip "stored" + XML minimo =====
@@ -3416,6 +3457,70 @@ el('btnOut').onclick = () => {
   const g = GUARD();
   if (g && g.sair) g.sair(); else location.reload();
 };
+/* Seções preservam os elementos, filtros e rotinas existentes. */
+const dashboardParts = [...el('pscale').children].filter(n => !['admCard','sellerCard','foot'].includes(n.id));
+const filterCard = dashboardParts[0];
+function syncPages(){
+  let page = location.hash.slice(1);
+  if (!['vendas','metas','vendedores'].includes(page) || (!ADM && page !== 'vendas')) page = 'vendas';
+  document.querySelectorAll('[data-admin]').forEach(n => n.hidden = !ADM);
+  document.querySelectorAll('[data-page]').forEach(n => {
+    if(n.dataset.page === page) n.setAttribute('aria-current','page');
+    else n.removeAttribute('aria-current');
+  });
+  dashboardParts.forEach(n => n.hidden = page !== 'vendas' && !(page === 'metas' && n === filterCard));
+  el('admCard').hidden = !(ADM && page === 'metas');
+  el('sellerCard').hidden = !(ADM && page === 'vendedores');
+  if (ADM && page === 'vendedores') renderSellers();
+}
+window.addEventListener('hashchange', syncPages);
+const SELLER_KEY = 'wgi.dashboard.cadastro-comercial.v1';
+let sellers = [], sellerEdit = null, sellerLoaded = false;
+const sellerFields = {nome:'sellerName',tipo:'sellerKind',codigo:'sellerCode',email:'sellerEmail',telefone:'sellerPhone',regiao:'sellerRegion'};
+function loadSellers(){
+  if(sellerLoaded) return true;
+  try {
+    const data = JSON.parse(localStorage.getItem(SELLER_KEY) || '[]');
+    if (!Array.isArray(data) || data.some(x => !x || typeof x.id !== 'string' || typeof x.nome !== 'string' || typeof x.codigo !== 'string')) throw Error('invalid');
+    sellers = data; sellerLoaded = true; return true;
+  } catch(e){set('sellerStatus','Não foi possível ler o cadastro local. Verifique o armazenamento do navegador.');return false;}
+}
+function saveSellers(next){
+  if(!ADM || !sellerLoaded) return false;
+  try {localStorage.setItem(SELLER_KEY,JSON.stringify(next)); sellers=next;return true;}
+  catch(e){set('sellerStatus','Não foi possível salvar. O armazenamento do navegador está indisponível ou cheio.');return false;}
+}
+function renderSellers(){
+  if(!ADM || !loadSellers()) return;
+  const q = el('sellerSearch').value.trim().toLocaleLowerCase('pt-BR');
+  const rows = sellers.filter(x=>[x.nome,x.codigo,x.regiao].join(' ').toLocaleLowerCase('pt-BR').includes(q));
+  el('sellerRows').innerHTML = rows.map(x=>'<tr><td><b>'+esc(x.nome)+'</b><br>'+esc(x.codigo)+'</td><td>'+(x.tipo==='vendedor'?'Vendedor':'Representante')+'</td><td>'+esc(x.email||'—')+'<br>'+esc(x.telefone||'')+'</td><td>'+esc(x.regiao||'—')+'</td><td>'+(x.ativo?'Ativo':'Inativo')+'</td><td><button class="admcalc" type="button" data-edit="'+esc(x.id)+'">Editar</button> <button class="admcalc" type="button" data-toggle="'+esc(x.id)+'">'+(x.ativo?'Inativar':'Ativar')+'</button></td></tr>').join('') || '<tr><td colspan="6">'+(sellers.length?'Nenhum resultado para a busca.':'Nenhum vendedor ou representante cadastrado.')+'</td></tr>';
+}
+function resetSeller(){sellerEdit=null;el('sellerForm').reset();el('sellerCancel').hidden=true;set('sellerSave','Cadastrar');}
+el('sellerCancel').onclick=()=>{resetSeller();set('sellerStatus','Edição cancelada.');};
+el('sellerSearch').oninput=renderSellers;
+el('sellerForm').onsubmit=e=>{
+  e.preventDefault();if(!ADM || !loadSellers() || !el('sellerForm').reportValidity())return;
+  const entry={};Object.entries(sellerFields).forEach(([k,id])=>entry[k]=el(id).value.trim());
+  if(!entry.nome || !entry.codigo){set('sellerStatus','Preencha nome e código.');return;}
+  if(sellers.some(x=>x.id!==sellerEdit && x.codigo.toLocaleLowerCase('pt-BR')===entry.codigo.toLocaleLowerCase('pt-BR'))){set('sellerStatus','Este código já está cadastrado. Use outro código ou edite o registro existente.');return;}
+  const old=sellers.find(x=>x.id===sellerEdit);
+  entry.id=old?old.id:crypto.randomUUID();entry.ativo=old?old.ativo:true;
+  const next=old?sellers.map(x=>x.id===old.id?entry:x):[...sellers,entry];
+  if(saveSellers(next)){resetSeller();renderSellers();set('sellerStatus','Cadastro salvo neste navegador.');}
+};
+el('sellerRows').onclick=e=>{
+  if(!ADM)return;const b=e.target.closest('button');if(!b)return;
+  const row=sellers.find(x=>x.id===(b.dataset.edit||b.dataset.toggle));if(!row)return;
+  if(b.dataset.edit){sellerEdit=row.id;Object.entries(sellerFields).forEach(([k,id])=>el(id).value=row[k]||'');el('sellerCancel').hidden=false;set('sellerSave','Salvar alterações');set('sellerStatus','Editando: '+row.nome);el('sellerName').focus();}
+  else if(saveSellers(sellers.map(x=>x.id===row.id?{...x,ativo:!x.ativo}:x))){renderSellers();set('sellerStatus','Situação atualizada.');}
+};
+el('sellerExport').onclick=()=>{
+  if(!ADM || !loadSellers())return;
+  const url=URL.createObjectURL(new Blob([JSON.stringify(sellers,null,2)],{type:'application/json'}));
+  const a=document.createElement('a');a.href=url;a.download='vendedores-representantes.json';a.click();setTimeout(()=>URL.revokeObjectURL(url),4000);
+};
+
 applyLang();
 arranca();
 </script>
